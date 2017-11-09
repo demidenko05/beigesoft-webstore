@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Copyright (c) 2017 Beigesoft ™
+ 
+ Licensed under the GNU General Public License (GPL), Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+  http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
+ -->
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Explicit final definition.</comment>
+<entry key="specificInListdefinition">varchar(500)</entry>
+<entry key="dateEndAucisNullable">true</entry>
+<entry key="dateStartAucisNullable">true</entry>
+<entry key="itsPriceisNullable">true</entry>
+<entry key="previousPriceisNullable">true</entry>
+<entry key="startPriceAucisNullable">true</entry>
+<entry key="minimumPriceAucisNullable">true</entry>
+<entry key="buyItNowPriceAucisNullable">true</entry>
+<entry key="currentPriceAucisNullable">true</entry>
+<entry key="soldPriceAucisNullable">true</entry>
+<entry key="itemIdisNullable">false</entry>
+</properties>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Copyright (c) 2017 Beigesoft ™
+ 
+ Licensed under the GNU General Public License (GPL), Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+  http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
+ -->
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Correspondence of class types to its ID names. ORDER is essential, the LAST value will be used.</comment>
+<entry key="java.lang.Object">itsId</entry>
+<entry key="org.beigesoft.persistable.DatabaseInfo">databaseId</entry>
+<entry key="org.beigesoft.persistable.UserTomcat">itsUser</entry>
+<entry key="org.beigesoft.persistable.UserRoleTomcat">itsUser,itsRole</entry>
+<entry key="org.beigesoft.persistable.UserRoleJetty">itsUser,itsRole</entry>
+<entry key="org.beigesoft.accounting.persistable.WarehouseRest">warehouseSite,invItem,unitOfMeasure</entry>
+<entry key="org.beigesoft.webstore.persistable.GoodsRating">goods</entry>
+<entry key="org.beigesoft.webstore.persistable.SeSeller">seller</entry>
+<entry key="org.beigesoft.webstore.persistable.AdvisedGoodsForGoods">advisedCategory,forAdviseCategory</entry>
+<entry key="org.beigesoft.webstore.persistable.CustomerGoodsSeen">customer,goods</entry>
+<entry key="org.beigesoft.webstore.persistable.BuyerPriceCategory">buyer,priceCategory</entry>
+<entry key="org.beigesoft.webstore.persistable.GoodsAdviseCategories">goods,adviseCategory</entry>
+<entry key="org.beigesoft.webstore.persistable.GoodsCatalogs">goods,itsCatalog</entry>
+<entry key="org.beigesoft.webstore.persistable.GoodsPrice">goods,priceCategory</entry>
+<entry key="org.beigesoft.webstore.persistable.GoodsSpecific">goods,specifics</entry>
+<entry key="org.beigesoft.webstore.persistable.GoodsAvailable">goods,pickUpPlace</entry>
+<entry key="org.beigesoft.webstore.persistable.SubcatalogsCatalogsGs">subcatalog,itsCatalog</entry>
+<entry key="org.beigesoft.webstore.persistable.ShoppingCart">buyer</entry>
+</properties>

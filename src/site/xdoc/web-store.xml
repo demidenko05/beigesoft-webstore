@@ -1,0 +1,981 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns="http://maven.apache.org/XDOC/2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+
+  <properties>
+    <title>Beigesoftware, Beige-WEB-Store</title>
+   </properties>
+
+  <body>
+
+    <section name="Beige WEB Store specification #1.">
+
+      <h4>Goals And Requirements.</h4>
+      <p>* It is embedded in Beige-Accounting (database and WEB-app). So it's no need to import/export data.</p>
+      <p>* It must be cross-browser app bootstrap/jquery based.</p>
+      <p>* It must be mobile adapted.</p>
+      <p>* It must be as multipurpose as possible.</p>
+      <p>* It must implements pricing methods based on:
+        <ul>
+          <li>Customer's price category, i.e. fixed price different for different customers</li>
+          <li>Goods price category, used in BI</li>
+          <li>Auctioned merchandise/service</li>
+        </ul>
+      </p>
+      <p>* It can be used as well for small catalog of goods or/and services as for large one (thousands products).
+        E.g. for "Flower shop" with 15 goods and 3 services in single page
+        or "Electronic store" with 4235 goods of 24 categories and 234 subcategories.</p>
+      <p>* Goods/service info (specifics) should be flexible and efficient-usable (for "filtering", "on line advising" and farther business intelligence).
+        E.g. goods specifics like "Image", "Producer", "Weight", "Dimension".
+        A product future can be represent either as "text", or "number" or "link" or "image" or "file" (e.g. brochure).
+      </p>
+      <p>* It can be used to sold items that has non-integer quantity, e.g. 45.15 pounds or 11.25 metres.</p>
+      <p>* It should be rating for goods/services and someone else sellers.</p>
+      <p>* Goods may be from own warehouse (owned or not) or offered by other seller.
+        For example cars auction there cars belongs to other owners. And so does services e.g. rent room in hotels/apartments.
+        For goods/services that belongs to someone else business owner take interest from purchase's amount.
+        Such goods/services called <b>SeGoods</b> and<b>SeService</b> and their owners called <b>SeSeller</b>..</p>
+      <p>* It should be "pick date" - date that customer want to take ordered goods/service either by he-self or by delivery.
+      It is optional. It can be used even to make appointment to a hairdresser. It's tied with "Availability".</p>
+      <p>* It should be methods that handle "Available [N] since [time]" goods or services,
+        and <b>Always available since [time]</b>. 
+        E.g. at 25 Dec customers ordered 233 "pizza with bacon", but "the store" can make only 200,
+        and same for available services e.g. make appointment to a hairdresser, booking a hotel room and advised always available food and beverage.</p>
+      <p>* It should implements widely used "goods/services seen history"
+        - several (e.g. up to 8) last goods that customer just has seen.</p>
+      <p>* It should use for authentication any public account (Facebook etc.).</p>
+      <p>* It should be stored customer history to allow customer repeat order.</p>
+      <p>* It should implements "advising goods or services for chosen goods or service"
+        e.g. "nice packaging #3 for 2USD" for "bunch of roses #122 for 13 USD", cover for cell-phone or
+        offer transfer, food and beverage  after booking room.</p>
+      <p>* It should be bulk operations for filtered products, e.g. apply increase price for chosen set of goods.</p>
+      
+      <h5>Persistable entities located in <b>org.beigesoft.webstore.persistable</b> package.</h5>
+
+      <h4>Persistable model TradingSettings</h4>
+      <p>It consist of:
+        <ul>
+          <li>itsId - Long, Not Null, PK, where is only record with itsId=1</li>
+          <li>itsVersion - Version, changed time algorithm.</li>
+          <li>isGoodsStore - Boolean, Not Null, default true, is it store of goods, it will reflect to menu and which data will be requested from database</li>
+          <li>isServiceStore - Boolean, Not Null, default false, is it store of services, it will reflect to menu and which data will be requested from database.</li>
+          <li>isSeGoodsStore - Boolean, Not Null, default false, is it store of S.E. goods, it will reflect to menu and which data will be requested from database</li>
+          <li>isSeServiceStore - Boolean, Not Null, default false, is it store of S.E. services, it will reflect to menu and which data will be requested from database.</li>
+          <li>isUseAuction - Boolean, Not Null, default false, is use auction</li>
+          <li>isShowLogo - Boolean, Not Null, default true, is show file static/img/logo-web-store.png in the top menu</li>
+          <li>webStoreName - String, name that will be appeared in the top menu (if present)</li>
+          <li>isUseGoodsAdvising - Boolean, Not Null, default false, is use goods advising.</li>
+          <li>isUseServicesAdvising - Boolean, Not Null, default false, is use services advising.</li>
+          <li>isUseSeenHistory - Boolean, Not Null, default false, is use "goods/services seen history".</li>
+          <li>isUsePriceForCustomer - Boolean, Not Null, default false, if use <b>Price for customer</b> method</li>
+          <li>defaultCustomerCategory - DebtorCreditorCategory, not null, default category for newly created DebtorCreditor for new OnlineBuyer</li>
+          <li>rememberUnauthorizedUserFor - Integer remember unauthorized user for N days, 0 default, not null - for BI and advertising</li>
+          <li>maxQuantityOfTopLevelCatalogs - Integer, not null, default 5, maximum quantity of top level catalogs shown in menu,
+            others will be in drop-down menu "others"</li>
+          <li>itemsPerPage - Integer, Not null, default 50</li>
+          <li>maxQuantityOfBulkItems - Integer, Not null, default 50, maximum quantity of bulk operated items.</li>
+          <li>catalogOnStart - CatalogGs, nullable, In case of little catalog to list all goods/services on start without clicking on "menu-[catalog]",
+            or it's catalog that offers different goods/services for all on start.</li>
+          <li>columnsCount - Integer, not null, default 2, items list columns count.</li>
+          <li>isCreateOnlineUserOnFirstVisit - Not null, whether create online user on first visit if there is no
+            cookie "cUserId" and of course user unauthorized. False by default,
+            otherwise it used for BI and tracking unauthorized users who even did not
+            added any item to cart for farther suggesting goods.</li>
+     add     <li>isUsedSeveralPaymentMethods - Boolean, false default. False means that web-store used only payment method,
+        and consequently no need to divide customer order. Usually it's online payment.
+        For small shop or service maker payment usually made by cash.</li>
+        </ul>
+        The most settings reflects to menu (enabled features) and performance in some cases(e.g. if it used price for customer then additional query used).
+      </p>
+      
+      <h4>Persistable model SeSeller</h4>
+      <p>Something-else seller i.e. any seller that sells his products on your web-store. 
+        <ul>
+          <li>seller - DebtorCreditor, PK</li>
+          <li>itsEmail - String, not null</li>
+          <li>itsPassword - String, not null</li>
+        </ul>
+      </p>
+      
+      <h4>Persistable model SeGoods</h4>
+      <p>
+        <ul>
+          <li>AHasNameIdLongVersion fields, S.E. Seller can import it with ID from his database.</li>
+          <li>seller - SeSeller, not null</li>
+        </ul>
+      </p>
+      
+      <h4>Persistable model SeService</h4>
+      <p>
+        <ul>
+          <li>AHasNameIdLongVersion fields</li>
+          <li>seller - SeSeller, not null</li>
+        </ul>
+      </p>
+      
+      <h4>Persistable model OnlineBuyer</h4>
+      <p>
+        <ul>
+          <li>AHasNameIdLongVersion (autogenerated ID) fields</li>
+          <li>registeredPassword - String, null for unregistered buyer</li>
+          <li>regEmail - String, null for unregistered buyer</li>
+          <li>regCustomer - DebtorCreditor, it will be assigned/created when CustomerInvoice is created for request.</li>
+          <li>regAddress1 - String, if applied</li>
+          <li>regAddress2 - String, if applied</li>
+          <li>regZip - String, if applied</li>
+          <li>regCountry - String, if applied</li>
+          <li>regState - String, if applied</li>
+          <li>regCity - String, if applied</li>
+          <li>regPhone - String, if applied</li>
+        </ul>
+      </p>
+      <p>TradingSettings.isCreateOnlineUserOnFirstVisit - create online user on first visit if there is no cookie "cUserId"
+        and of course user unauthorized. False by default, otherwise it used for BI and tracking unauthorized users who even did not
+        added any item to cart for farther suggesting goods.
+      </p>
+      <p>Any user has dedicated at first visit cookie <b>cBuyerId=OnlineBuyer.itsId</b>, so OnlineBuyer is created either immediately
+        if TradingSettings.rememberUnauthorizedUserFor &gt; 0 or when cart check out.
+        Unauthorized user (did not buy anything) can be deleted according TradingSettings.rememberUnauthorizedUserFor days.</p>
+      <p>After user fist authorized it's created automatically their customer (DebtorCreditor) with DebtorCreditorCategory.
+        It can be changed or assigned by hand. 
+      </p>
+
+      <h4>Persistable model ShoppingCart</h4>
+      <p>
+        <ul>
+          <li>buyer - OnlineBuyer, PK</li>
+          <li>itsTotal - BigDecimal, not null</li>
+          <li>totalItems - Integer, not null</li>
+          <li>recipientName - String, if buyer bought for someone else i.e. for this recipient
+            or buyer want to receive goods at different address</li>
+          <li>recipientAddress1 - String, if applied</li>
+          <li>recipientAddress2 - String, if applied</li>
+          <li>recipientZip - String, if applied</li>
+          <li>recipientCountry - String, if applied</li>
+          <li>recipientState - String, if applied</li>
+          <li>recipientCity - String, if applied</li>
+          <li>recipientPhone - String, if applied</li>
+          <li>itsItems - List&lt;CartItem&gt;</li>
+          <li>taxes - List&lt;CartTaxLine&gt;</li>
+        </ul>
+      </p>
+      <p>Persistable model CartItem:
+        <ul>
+          <li>AHasNameIdLong (autogenerated ID) fields</li>
+          <li>itsOwner - CartItem, not null.</li>
+          <li>isDisabled - Boolean, do not show in cart, it's for performance,
+            old purchased cart emptied with this flag, when buyer add new goods to cart then it's used any disabled
+            line (if exist) otherwise new line will be created</li>
+          <li>itemType - EShopItemType, not null</li>
+          <li>itemId - Long, not null</li>
+          <li>itsPrice - BigDecimal, not null, grater than zero</li>
+          <li>itsQuantity - BigDecimal, not null</li>
+          <li>subtotal - BigDecimal, not null</li>
+          <li>totalTaxes - BigDecimal, not null</li>
+          <li>taxesDescription - String, Taxes description, uneditable, e.g. "tax1 10%=12, tax2 5%=6"</li>
+          <li>itsTotal - BigDecimal, not null</li>
+          <li>availableQuantity - BigDecimal, not null, to constraint buyer</li>
+       +   <li>pickUpPlace - PickUpPlace, not null.</li>
+        </ul>
+      </p>
+      <p>Persistable model base ATaxLine:
+        <ul>
+          <li>AHasIdLongVersion (autogenerated ID) fields</li>
+          <li>tax - Tax, not null.</li>
+ +         <li>itsTotal - BigDecimal, not null</li>
+        </ul>
+      </p>
+      <p>Persistable model CartTaxLine:
+        <ul>
+          <li>ATaxLine fields</li>
++          <li>itsOwner - CartItem, not null.</li>
+        </ul>
+      </p>
+      <p>Model EShopItemType, enumeration:
+        <ul>
+          <li>GOODS, goods that stored in shop owner's warehouse, they are usually belongs to the owner.
+            Owner can rent his warehouse to store S.E. seller's goods.
+            It's org.beigesoft.accounting.persistable.InvItem.</li>
+          <li>SERVICE, service that performed by shop owner.
+            It's org.beigesoft.accounting.persistable.ServiceToSale.
+          </li>
+          <li>SEGOODS, goods that located in S.E. seller warehouse.
+            It's org.beigesoft.webstore.persistable.SeGoods.
+          </li>
+          <li>SESERVICE, service that performed by S.E. Seller.
+            It's org.beigesoft.webstore.persistable.SeService.
+         </li>
+        </ul>
+      </p>
+
+      <h4>Persistable model CustomerOrder</h4>
+        <p>If buyer buy something then CustomerOrder(s) will be created,
+          if buyer order items belonging different owners (S.E.sellers, web-store owner)
+          then orders will be created for each goods/service owner. If items has different payment method
+          e.g. a goods must payment full price online but another one - with cash, then order will be divided.
+          Many online payment providers do not allow partial payment to avoid some problems.
+          So divide cart by two orders - part items will be payed full online
+          and other part - with cash, is suitable method.
+        <ul>
+          <li>AHasNameIdLongVersion (+autogenerated ID) fields</li>
+          <li>buyer - OnlineBuyer, not null</li>
+         + <li>seSeller - SeSeller, if sold by S.E. seller, otherwise seller is webstore owner.</li>
+          <li>paymentMethod - EPaymentMethod, not null, ANY default</li>
+          <li>goodsList - List[CustomerOrderGoods], ordered goods</li>
+          <li>serviceList - List[CustomerOrderService], ordered services</li>
+          <li>seGoodsList - List[CustomerOrderSeGoods], ordered S.E.goods</li>
+          <li>seServiceList - List[CustomerOrderSeService], ordered S.E.services</li>
+       c db   <li>taxesList - List[CustomerOrderTaxLine], taxes</li>
+        </ul>
+        CustomerOrderGoods and CustomerOrderService decreased availability of goods/service if GoodsAvailable.isAlways = false.
+        If seSeller=null, then SalesInvoice will be created for buyer with goods/services in this order to report profit and withdraw warehouse,
+        otherwise SalesInvoice will be created for S.E.Seller with service "webstore selling fee" to report webstore owner's profit.
+      </p>
+      <p>Persistable model CustomerOrderTaxLine:
+        <ul>
+          <li>ATaxLine fields</li>
++          <li>itsOwner - CustomerOrder, not null.</li>
+        </ul>
+      </p>
+      <p>Persistable model base ACustomerOrderLine:
+        <ul>
+          <li>AHasIdLongVersion (autogenerated ID) fields</li>
+          <li>itsOwner - CustomerOrder, not null.</li>
+          <li>pickUpPlace - PickUpPlace, not null.</li>
+          <li>itsPrice - BigDecimal, not null, grater than zero</li>
+          <li>itsQuantity - BigDecimal, not null, negative means reversing</li>
+          <li>subtotal - BigDecimal, not null</li>
+          <li>totalTaxes - BigDecimal, not null</li>
+          <li>taxesDescription - String, Taxes description, uneditable, e.g. "tax1 10%=12, tax2 5%=6"</li>
+ +         <li>itsTotal - BigDecimal, not null</li>
+        </ul>
+      </p>
+      <p>Persistable model CustomerOrderGoods:
+        <ul>
+          <li>ACustomerOrderLine fields</li>
++          <li>goods - InvItem, not null.</li>
+        </ul>
+      </p>
+      <p>Persistable model CustomerOrderService:
+        <ul>
+          <li>ACustomerOrderLine fields</li>
++          <li>service - ServiceToSale, not null.</li>
+        </ul>
+      </p>
+      <p>Persistable model CustomerOrderSeGoods:
+        <ul>
+          <li>ACustomerOrderLine fields</li>
+   +       <li>goods - SeGoods, not null.</li>
+        </ul>
+      </p>
+      <p>Persistable model CustomerOrderSeService:
+        <ul>
+          <li>ACustomerOrderLine fields</li>
+     +     <li>service - SeService, not null.</li>
+        </ul>
+      </p>
+      <p>Model EPaymentMethod:
+        <ul>
+          <li>ONLINE, buyer must pay right now with any online method (e.g. credit card, PayPal)</li>
+          <li>ANY, it's means that buyer can pay 100% with any method (e.g. with cash when goods has been delivered),
+            and if order can be payed partially with several methods,
+            e.g. 50% online, 50% bank transfer, cash or cheque.</li>
+          <li>CASH, cash.</li>
+          <li>BANK_TRANSFER, bank transfer.</li>
+          <li>BANK_CHEQUE, bank cheque.</li>
+          <li>CASH_BANK_TRANSFER, cash or bank transfer.</li>
+          <li>BANK_TRANSFER_CHEQUE, bank transfer or cheque.</li>
+          <li>CASH_BANK_TRANSFER_CHEQUE, cash, bank transfer or cheque.</li>
+          <li>PARTIAL_ONLINE, in case when order must be payed partially online e.g 50% and the rest
+    +        with any methods - online, bank transfer, cash or cheque.</li>
+        </ul>
+      </p>
+      <p>Persistable model GoodsPaymentMethod to register payment method for a goods:
+        <ul>
+ p c db f         <li>goods - InvItem, PK</li>
+          <li>paymentMethod - EPaymentMethod, not null, ANY default.</li>
+        </ul>
+        TradingSettings.isUsedSeveralPaymentMethods = false by default. It means that web-store used only payment method,
+        and consequently no need to divide customer order. Usually it's online payment.
+        For small shop or service maker payment usually made by cash.
+        For S.E.sellers no need to truck non-online payments [p]??.
+        It will be created orders grouped by payment method and owner for cart items during cart check-out.
+        If there is no GoodsPaymentMethod for the goods then used EPaymentMethod.ANY.
+      </p>
+      
+      <h4>Buyer's(customer's) payments</h4>
+      <p>Buyer can pay with several methods: cash, bank money transfer and online methods - credit card, Paypal etc.
+        Non-cash-in-hand account (in bank) may be either webstore owner's or S.E. seller's in any way,
+        i.e. S.E. seller can receive "payment minus fee" from paid webstore account.
+[p]        S.E. Seller can also pay for other services/materials that made by webstore business, e.g. goods storage,
+        packaging, delivering, advertising etc., so it's reasonable to create only SalesInvoice for S.E. seller
+        that containing all. The best way is let worker to decide -
+        "create new invoice or add order fee in existed unaccounted one".
+        Online payments entirely handled(by using their checkout page for security reasons) by 3-d party
+        - any gateway payment e.g. 2checkout.
+        That is means that Beige-Webstore never hold/store customer payments method data like cart number and CVV number(Card Security Code).
+      </p>
+      
+      <h4>Goods/services catalog</h4>
+      <p>For small lists of goods catalog may not be used, so only available items will be listed with pagination.</p>
+      <p>A goods may has only catalog.</p>
+      <p>Entity CatalogGs:
+        <ul>
+          <li>AHasNameIdLongVersion fields</li>
+          <li>hasSubcatalogs - Boolean, not null, false default.</li>
+          <li>description - String.</li>
+          <li>itsIndex - Integer, not null, ordering</li>
+          <li>isInMenu - Boolean, default true, Is it in the menu, default true, to quick switch on/off from menu
+            or for catalog that shows only on start</li>
+        </ul>
+      </p>
+      <p>Entity GoodsCatalogs:
+        <ul>
+          <li>itsCatalog - CatalogGs, not null, its hasSubcatalogs=false.</li>
+          <li>goods - InvItem, not null.</li>
+        </ul>
+        Pair {"goods", "itsCatalog"} is primary key.<br></br>
+        Bulk operations for filtered GoodsCatalogs:
+        <ul>
+          <li>delete</li>
+          <li>assign another catalog</li>
+        </ul>
+      </p>
+      <p>Entity SubcatalogsCatalogsGs pair of goods catalog - subcatalog, e.g "electronics"-"notebooks":
+        <ul>
+          <li>itsCatalog - CatalogGs, not null, its hasSubcatalogs=true.</li>
+          <li>subcatalog - CatalogGs, not null.</li>
+        </ul>
+        Pair {"itsCatalog", "subcatalog"} is primary key
+      </p>
+      <p>Entity list InvItem has forced filtered for type Merchandise or Product.<br></br>
+        Bulk operations for filtered InvItem:
+        <ul>
+          <li>assign catalog (create GoodsCatalogs for chosen goods and catalog), at start it checks first goods if it already assigned.</li>
+          <li>assign advice category (create AdviseCategoryOfGs ... at start checking if already created.)</li>
+        </ul>
+      </p>
+      
+      <h4>Goods/services specifics</h4>
+      <p>Used to describe and filter goods/services.</p>
+      <p>Model SpecificsOfItem, e.g. "Screen size":
+        <ul>
+          <li>AHasNameIdLongVersion fields</li>
+          <li>itsGroop - SpecificsOfItemGroup, if exist e.g. "Monitor" for its size, web-cam, LED-type</li>
+          <li>itsType - ESpecificsItemType, not null, default ESpecificsItemType.STRING</li>
+          <li>isUseInFilter - Boolean, not null, default false</li>
+          <li>isShowInList - Boolean, not null, default false - show only in goods page</li>
+          <li>itsIndex - Integer, not null, used for ordering when printing.</li>
+          <li>description - String.</li>
+        </ul>
+      </p>
+      <p>Its useful to use separate specifics for same thing for filtering and other purposes.
+      But it's need to group them (e.g. when printing) by using Specific Group, e.g. "Memory" has child "MemorySize" and "MemoryType" e.g. 8GB and DDR3.
+      So they should be printed together in their group.</p>
+      <p>Entity SpecificsOfItemGroup:
+        <ul>
+          <li>AHasNameIdLongVersion fields</li>
+          <li>description - String, e.g. "for notebooks".</li>
+        </ul>
+      </p>
+      <p>Model GoodsSpecific, e.g. "Monitor AJK A4565"-"Screen size = 17inch":
+        <ul>
+          <li>googs - InvItem, not null</li>
+          <li>specifics - SpecificsOfItem, not null</li>
+          <li>numericValue1 - BigDecimal, if present</li>
+          <li>numericValue2 - BigDecimal, if present</li>
+          <li>longValue1 - Long, if present</li>
+          <li>longValue2 - Long, if present</li>
+          <li>stringValue1 - String, if present</li>
+          <li>stringValue2 - String, if present</li>
+        </ul>
+        Pair {"googs", "specifics"} is primary key
+      </p>
+      <p>Model Enum ESpecificsItemType described how to treat (edit/print/filter) assigned specifics:
+        <ul>
+          <li>TEXT - 0, default, printed as text.</li>
+          <li>BIGDECIMAL - 1, for specifics like "Weight", stringValue1 may hold unit of measure.</li>
+          <li>INTEGER - 2, for specifics like "MemorySize", stringValue1 may hold unit of measure.</li>
+          <li>IMAGE - 3, stringValue1 hold URL to image, stringValue2 - uploaded file path if it was uploaded.</li>
+          <li>IMAGE_IN_SET - 4, stringValue1 hold URL to image, stringValue2 - uploaded file path if it was uploaded. Image that belongs to set of images ordered and gathered
+            (they must have adjacent indexes) by itsIndex, longValue1 may hold "showSizeTypeClass".</li>
+          <li>FILE - 5, stringValue1 hold URL to file, e.g. "get brochure", stringValue2 - uploaded file path if it was uploaded.</li>
+          <li>FILE_EMBEDDED - 6, show it on page, stringValue1 hold URL to file e.g. a PDF,
+            longValue1 may hold "showSizeTypeClass", e.g. class=1 means show 30% of page size, stringValue2 - uploaded file path if it was uploaded.</li>
+          <li>LINK - 7, stringValue1 hold URL.</li>
+          <li>LINK_EMBEDDED - 8, show HTML page. stringValue1 hold URL, longValue1 may hold "showSizeClass".</li>
+          <li>CHOOSEABLE_SPECIFICS - 10, longValue1 hold ID of chosen from list of ChooseableSpecifics, stringValue1 hold appearance to improve performance,
+            and so does longValue2 - ChooseableSpecificsType. This is the mostly used method.</li>
+        </ul>
+        It can be extended.
+      </p>
+
+      <h5>Implementation of choosing from list e.g. OS for computer.</h5>
+      <p>Entity ChooseableSpecifics e.g. "MS Windows 10":
+        <ul>
+          <li>AHasNameIdLongVersion (autogenerated ID) fields</li>
+          <li>itsType - ChooseableSpecificsType, not null, used to filter chosen specifics e.g. "Operation System ID=12"</li>
+        </ul>
+      </p>
+      <p>Entity ChooseableSpecificsType e.g. "Operation System":
+        <ul>
+          <li>AHasNameIdLongVersion (manual ID, e.g. 1011 for Operation System) fields</li>
+          <li>description - String, e.g. "for computers".</li>
+        </ul>
+      </p>
+
+      <h4>Goods/seller rating</h4>
+      <p>It's used standard rating from 0 to 10 with 5 stars appearance (include half star),
+        e.g. 10 appeared as whole 5 stars, 5 appeared as 2 whole stars, 1 one half star and 2 empty stars.
+      </p>
+      
+      <h4>Goods rating</h4>
+      <p>Persistable model GoodsRating:
+        <ul>
+          <li>goods - InvItem, PK</li>
+          <li>averageRating - Integer, 0..10, if exist.</li>
+        </ul>
+      </p>
+      <p>Persistable model BuyerGoodsRating:
+        <ul>
+          <li>goods - InvItem, not null</li>
+          <li>buyer - OnlineBuyer, not null</li>
+          <li>itsRating - Integer, 0..10, default=0, not null.</li>
+          <li>description - String</li>
+        </ul>
+        Pair {goods, buyer} is PK.
+      </p>
+
+      <h4>SeSellers rating</h4>
+[db][c]      <p>Persistable model SeSellerRating:
+        <ul>
+          <li>seSeller - SeSeller, PK</li>
+          <li>averageRating - Integer, 0..10, if exist.</li>
+        </ul>
+      </p>
+      <p>Persistable model BuyerSeSellerRating:
+        <ul>
+          <li>seSeller - SeSeller, not null</li>
+          <li>buyer - OnlineBuyer, not null</li>
+          <li>itsRating - Integer, 0..10, default=0, not null.</li>
+          <li>description - String</li>
+        </ul>
+        Pair {seSeller, buyer} is PK.
+      </p>
+
+      <h4>Pricing for standard selling (non-auction)</h4>
+      <p>There is three pricing methods:
+        <ol>
+          <li>a goods has same price for all customers <b>Price for all</b></li>
+          <li>a goods price depends of customer's category <b>Price for customer</b></li>
+          <li><b>Discount for customer</b> it may be used together with
+            either <b>Price for all</b> or additionally to <b>Price for customer</b></li>
+        </ol>
+        TradingSettings.isUsePriceForCustomer is flag for elected method.
+      </p>
+      <p>Model GoodsPrice:
+        <ul>
+          <li>goods - InvItem, not null</li>
+          <li>priceCategory - PriceCategory, not null</li>
+          <li>itsPrice - BigDecimal, not null, if auctioned then start price or current bid, otherwise just price</li>
+          <li>previousPrice - BigDecimal, it can be used to implements widely used method "Price has been reduced",
+            i.e. previousPrice = 60 against itsPrice = 45.</li>
+            priceCategory used for BI and may be used in filter for method <b>Price for customer</b>
+        </ul>
+        Pair {"goods", "priceCategory"} is PK.<br></br>
+        In case <b>Price for all</b> every goods has only GoodsPrice, otherwise GoodsPrice should be for every PriceCategoryOfBuyer.<br></br>
+        Bulk operations for filtered GoodsPrice:
+        <ul>
+          <li>delete</li>
+          <li>assign another priceCategory</li>
+          <li>assign another price (too mistakable operation!)</li>
+          <li>change price plus/minus amount</li>
+          <li>change price plus/minus percentage</li>
+        </ul>
+        * all bulk operations can cause "store is out of order" in case wrong changes, so it should be steps:
+        <ol>
+          <li>disable web-store for customers</li>
+          <li>backup web-store</li>
+          <li>bulk changes</li>
+          <li>checking phase</li>
+          <li>enable web-store for customers</li>
+        </ol>
+      </p>
+      <p>Model PriceCategory:
+        <ul>
+          <li>AHasNameIdLongVersion fields</li>
+          <li>priceCategoryGoods - PriceCategory, not null, e.g. "cheap goods"</li>
+          <li>priceCategoryCustomer - PriceCategoryOfBuyer, e.g. "rich", if null then used "Price for all"</li>
+          <li>description - String.</li>
+        </ul>
+      </p>
+      <p>Model PriceCategory:
+        <ul>
+          <li>AHasNameIdLongVersion fields</li>
+          <li>description - String.</li>
+        </ul>
+      </p>
+      <p>Model PriceCategoryOfBuyer:
+        <ul>
+          <li>AHasNameIdLongVersion fields</li>
+          <li>description - String.</li>
+        </ul>
+      </p>
+
+      <h5>Price for customer</h5>
+      <p>TradingSettings.isUsePriceForCustomer=true. All customers mast have BuyerPriceCategory.</p>
+      <p>Model BuyerPriceCategory:
+        <ul>
+          <li>buyer - OnlineBuyer, not null</li>
+          <li>priceCategory - PriceCategory, not null</li>
+        </ul>
+        Pair {"buyer", "priceCategory"} is PK.
+      </p>
+      <p>In that way <b>PriceCategory</b> reflect to both "Goods Price Category" and "Customer Price Category" e.g.:
+        <ul>
+          <li>newbie cheap goods</li>
+          <li>newbie expensive goods</li>
+          <li>rich_a cheap goods</li>
+          <li>rich_a expensive goods</li>
+          <li>poor_a cheap goods</li>
+          <li>poor_a expensive goods</li>
+          <li>and so on ...</li>
+        </ul>
+        And SQL query is not too expensive for this method e.g. a customer has two price categories #12 and #13:
+        <pre>
+          ... join GoodsPrice ... where GoodsPrice.priceCategory in (12, 13) ...
+        </pre>
+        A customer must has no mixed PriceCategory dedicated to different "customer category" e.g. "newbie cheap goods" and "rich_a expensive goods"
+        And so does goods i.e. "rich_a expensive goods" and "newbie cheap goods".<br></br>
+[c]        Software will check it during insert/update.
+[c]        Software will check possibility of change TradingSettings.isUsePriceForCustomer, at first all records <b>PriceCategory</b> must be edited/deleted for new profile.
+      </p>
+
+      <h5>Price same for all customers</h5>
+      <p>TradingSettings.isUsePriceForCustomer=false. All customers must have no BuyerPriceCategory and all goods must have PriceCategory with priceCategoryCustomer=null.
+        In that way <b>PriceCategory</b> reflect only to "Goods Price Category" and used only for BI e.g.:
+        <ul>
+          <li>cheap food</li>
+          <li>expensive food</li>
+          <li>expensive smartphones</li>
+        </ul>
+        And SQL query is extremely cheap without filtering price category for customer.
+      </p>
+      
+      <p>Business services must use TradingSettings.isUsePriceForCustomer to validate if data consistent, e.g. in case
+      TradingSettings.isUsePriceForCustomer=false any goods must has only price category with empty "customer price category".</p>
+
+      <h5>Discount for customer</h5>
+      <p>A customer may has a discount (obtained as gift or by other way) that can be applied for
+        set of "PriceCategory" (e.g. "unexpensive notebooks").</p>
+      <p>Model DiscountForCustomer:
+        <ul>
+          <li>customer - DebtorCreditor, not null</li>
+          <li>priceCategory - PriceCategory, not null</li>
+          <li>discountPercentage - BigDecimal, not null</li>
+          <li>discountAmount - BigDecimal, not null</li>
+          <li>description - String.</li>
+        </ul>
+        Pair {"customer", "priceCategory"} is PK.
+      </p>
+      
+      <h5>Pricing of services</h5>
+      <p>In same way pricing designed to ServiceToSale.</p>
+
+      <h4>Auctioning</h4>
+      <p>Any goods/services can be sold in auction.
+        It also can be sold for fixed price during auction.
+      </p>
+      <p>Persistable model GoodsAuction:
+        <ul>
+          <li>goods - PK</li>
+          <li>dateStart - Date, not null, date start.</li>
+          <li>dateEnd - Date, not null, date end.</li>
+          <li>startPrice - BigDecimal, Not null, start price.</li>
+          <li>minimumPrice - BigDecimal, Not null, minimum price that seller will accept.</li>
+          <li>buyItNowPrice - BigDecimal, buy it now price, if applied.</li>
+          <li>currentPrice - BigDecimal, Not null, default=0, current price.</li>
+          <li>soldPrice - BigDecimal, if sold.</li>
+          <li>totalBids - Integer, Not null, default=0, totalBids.</li>
+          <li>isEnded - Boolean, not null, default=false</li>
+          <li>isSold - Boolean, not null, default=false</li>
+        </ul>
+        For improving performance:
+        <ul>
+          <li>only record for goods exist</li>
+          <li>it contains of last auction data</li>
+          <li>it can be reused, i.e. start new auction</li>
+        </ul>
+        If goods sold in auction then "CustomerOrder" will created, otherwise "GoodsAuctionUnsold" created.
+      </p>
+
+      <h4>Advising goods or services for chosen goods or service</h4>
+      <p>Services/goods that has price but has no any CatalogCategory with ECatalogCategory.Catalog[N] are not shown in store catalog
+      but can be offered additionally to chosen goods/service. And so for "on-catalog" goods/services.</p>
+      <p>Advising happen after customer pick a goods/service. It should be button "show/hide advising".</p>
+      <p>Advising should take account of "ExpensiveCategory" i.e. is it cheap or expensive goods.</p>
+      <p>Model AdvisedGoodsForGoods:
+        <ul>
+          <li>forAdviseCategory - AdviseCategoryOfGs, not null, for goods advise category,
+          e.g. "smartphones 5inch 2*3".</li>
+          <li>advisedCategory - AdviseCategoryOfGs, not null, goods advised category,
+          e.g. "covers for smartphones 5inch 2*3".</li>
+          <li>description - String.</li>
+        </ul>
+        pair {forAdviseCategory, toAdviseCategory} is PK.
+      </p>
+      <p>Model AdviseCategoryOfGs:
+        <ul>
+          <li>AHasNameIdLongVersion fields</li>
+          <li>description - String.</li>
+        </ul>
+      </p>
+      <p>Model GoodsAdviseCategories:
+        <ul>
+          <li>adviseCategory - AdviseCategoryOfGs, not null.</li>
+          <li>goods - InvItem, not null.</li>
+        </ul>
+        Bulk operations for filtered GoodsAdviseCategories:
+        <ul>
+          <li>delete</li>
+          <li>assign another AdviseCategoryOfGs</li>
+        </ul>
+      </p>
+
+      <h4>Goods/services seen history</h4>
+      <p>Model BuyerGoodsSeen used for advising and BI:
+        <ul>
+          <li>buyer - OnlineBuyer, not null.</li>
+          <li>goods - InvItem, not null.</li>
+          <li>dateSeen - Date, not null.</li>
+        </ul>
+        Pair {"buyer", "goods"} is PK.
+      </p>
+      
+      
+      <h4>Data consistence</h4>
+      <p>Here is used the cheap transaction isolation method "read uncommitted".
+        A goods may be sold either in standard way or in auction.
+        To prevent "phantom read" when one transaction makes GoodsPrice (standard selling) and another
+        makes GoodsAuction (auction selling) at same time, service must update shared the goods record.
+        For example transactionA set "GoodsAuction":
+        <ol>
+          <li>Start transaction</li>
+          <li>Read (refresh) goods</li>
+          <li>Check that "there is no any GoodsPrice for this goods", if exist then rollback transaction</li>
+          <li>insert "GoodsAuction"</li>
+          <li>update goods, just for version dirty check</li>
+          <li>Commit transaction</li>
+        </ol>
+        So if another "set GoodsPrice for this goods" transactionB has been committed before this one,
+        then dirty check exception (updated goods's version has been changed) cause roll back transactionA.
+      </p>
+      
+      <h4>Cart checkout</h4>
+      <p>The first transaction is goods reservation (create order that decrease available goods if GoodsAvailable.isAlways=false),
+[p]        farther is payment transaction.
+        In case farther online checkout transaction by 3-d party that is not completed, and buyer
+        did not change payment method then reservation (order) is reversed.
+        In case of cash or bank transfer order saved with this information. 
+      </p>
+      
+      <h4>Seller payments preferences/requirements</h4>
+      <p>Seller webstore or S.E.seller can require desired payment method.
+[p]        For example minimum 50% online payments, or 100% cash, or "no credit card" etc.
+      </p>
+      
+      <h4>Customer payments</h4>
+      <h5>* Direct payments to S.E. seller with any method (cash, online...)</h5>
+      <p>In this case webstore can not control it.
+[db][i]        S.E.seller himself mark order as paid. Buyer himself mark order as completed (delivered).
+      </p>
+      <h5>* Payments to webstore account</h5>
+      <p>Customer can change mind about payment method (if this allowed) e.g. pay with cash or online despite
+        of chosen "bank transfer method", that is buyer can choose unpaid order and make online payments.
+        In case bank transfer buyer can make PaymentNotice for paid order for highlighting this event.
+        Buyer should see when payment rich webstore - order should be updated with this information.
+      </p>
+      <h5>*Partially payments </h5>
+      <p><b>Online</b>. Not all online payment gateways allowed partially payments.
+        If allowed then customer can make online partially payments himself - he select
+        order to pay, enter desired amount (less or equals the rest) and currency and make payments with payment gateway.
+      </p>
+      
+      <h4>Buyer email notification</h4>
+      <p>Buyer should receive email of every event:
+        <ul>
+          <li>Order created</li>
+          <li>Order payment (partially or full)</li>
+          <li></li>
+        </ul>
+      </p>
+      
+      <h4>Customer order changing when customer didn't pick up goods or delivering hasn't started yet ()</h4>
+[p]      <p>There are cases:
+        <ul>
+          <li>Full payments occurred
+            <ul>
+              <li></li>
+            </ul>
+          </li>
+          <li>Partially paid
+          </li>
+          <li>Unpaid
+          </li>
+        </ul>
+  In case offline unpaid payment customer can change order during all time till pickup or starting of delivery
+        except if it's S.E.seller's goods.
+      </p>
+      
+      <h4>Goods return</h4>
+[p]      <p>Many countries have similar "Goods return Law".
+        This operation is performed by accounting document "Sales return".
+        S.E.seller should handle it by himself.
+      </p>
+
+      <h4>Availability of goods.</h4>
+      <p>Implements business logic:
+        <ol>
+          <li>[N] of goods is available at [place] since [date]</li>
+          <li>goods always available at [place] since [date],
+            this is simplest method when seller is ensured that he can handle all received orders.</li>
+        </ol>
+        [N] is increased by a supply service (goods that arrived or manufactured).<br></br>
+        [N] is decreased by a customer purchase service (cart checkout) (if not always AV).
+      </p>
+      <p>
+        To improve performance availability information (include filter that buyer choose) are passed during action adding goods to cart.
+        So user can't order quantity that exceed the rest.
+        During checkout goods availability may has changed
+        by another purchase, so customer will be asked about change quantity and he can accept it (decrease/remove items from cart) or not.
+      </p>
+      <p>
+[p]        To implements business logic "goods available near the place in future" it's used
+        For example at 1 Jul customer is searching for 234 "pizza mozarella" and 234 bunches of flowers and want to pickup itself
+        near Nikl subway station at 11 Jul. There is small pizzeria near that place and another and flower's store is  far away,
+        but webstore can ensure this order.
+      </p>
+      <h5>Filter "available since" and/or "pickup place".</h5>
+      <p>Customer can use filter "available since" and/or "pickup place" to list available goods.
+        Service that makes this filter select all GoodsAvailable with itsQuantity > 0 and retrieve list
+        of "pickup places". If there is only pickup place then filter "pickup place" disabled. If maximum
+        of "sinceDate" is less than "now" then filter "available since" is disabled.
+        This filter is used together with other goods filters - catalog, goods spec, S.E. seller etc.
+      </p>
+      <p>Goods is listed in store always if it's either available now or (may be) in future.</p>
+      <p>Model GoodsAvailable:
+          <li>goods - InvItem, not null.</li>
+          <li>pickUpPlace - PickUpPlace, not null.</li>
+          <li>sinceDate - Date, not null.</li>
+          <li>isAlways - Boolean, not null, false default - switch method <b>Always available</b>.</li>
+  +        <li>itsQuantity - BigDecimal, more or equals zero, if isAlways=true then must be more than zero
+            cause performance optimization (filter only "quantity>0").</li>
+          {goods, pickUpPlace} is PK.
+      </p>
+      <p>Model PickUpPlace for goods means where it is located, e.g. for small store there is only place e.g. "shop".
+        For a service it means either where is service performed (e.g. haircut saloon) or
+        service maker/s location (for services that performed in the buyer territory e.g. fix faucet by plumber).
+        It's used for goods/service availability and can be used for buyer that prefer pick up goods/get service at chosen place:
+        <ul>
+          <li>AHasNameIdLongVersion fields</li>
+       +   <li>description - String.</li>
+        </ul>
+      </p>
+      <p>To improve performance for customer that did not prefer any pickUpPlace (he prefer delivery) it's used SQL subquery
+      that select only (with maximum quantity) GoodsAvailable:
+        <pre>
+          select GOODS, max(QUANTITY) as QUANTITY from GOODSAVAILABLE where SINCEDATE&lt;=1124584544411 group by GOODS having max(QUANTITY)>0
+        </pre>
+      </p>
+      <p>Any service that increase quantity of available goods could invoke method <b>registerIncrease(goods, warehouseSite)</b>
+        in service ISrvIncreaseGoods, where warehouseSite used instead warehouse for addition logic like
+        "goods in that warehouseSite is not available for web-store". For example this service can be invoked during making <b>Manufacture</b>.
+        But it can be <b>bulk register</b> that made by an operator or automatically by scheduler at scheduled time
+        by using new unregistered documents. It can be used also <b>ISrvAvailableGoods</b> that set quantity according
+        warehouse.
+      </p>
+
+      <h4>Availability of service.</h4>
+      <p>If customer prefer concrete service-maker then service availability is binary - available or not at the time.
+        Otherwise if service can be made by several service-makers then availability is summarized. 
+      </p>
+      <p>A service can be always available, e.g. "nice packaging" even though it depends of availability of materials,
+        if business-makers can make sure availability then this method can be used.</p>
+      <p>Main availability of service method is schedule. Common approach is to add service-maker name to service method,
+      then make availability schedule.
+      Services schedule depends of service, e.g. room rent - daily, haircut - hourly.</p>
+      
+      <h4>Improving performance.</h4>
+      <p>Model persistable ItemInList:
+        <ul>
+          <li>AHasNameIdLongVersion fields</li>
+          <li>goodsId - Long, Goods ID, null if it's service.</li>
+          <li>itemId - Long, Goods/Service/SEGoods/SEService ID, not null.</li>
+          <li>itsType - EShopItemType, not null.</li>
+          <li>urlInList - String, not null</li>
+          <li>imageUrl - String, image URL if exist</li>
+          <li>specificInList - String, if exist, addition to name, max length = 500, usually HTML string that briefly describes item.</li>
+          <li>itsRating - Integer, goods's rating if exist.</li>
+          <li>seSeller - SeSeller, S.E. seller if exist.</li>
+          <li>seSellerRating - Integer, S.E. seller's rating if exist.</li>
+          <li>itsPrice - BigDecimal, null if auctioned, if TradingSettings.isUsePriceForCustomer=false then it should be updated with changing GoodsPice,
+            otherwise it should be retrieved by additional SQL query according BuyerPriceCategory when customer is requesting.
+          </li>
+          <li>previousPrice - BigDecimal, null if auctioned, if TradingSettings.isUsePriceForCustomer=false then it should be updated with changing GoodsPice,
+            otherwise it should be retrieved by additional SQL query according BuyerPriceCategory when customer is requesting.
+          </li>
+     +     <li>availableQuantity - BigDecimal, more or equals 0, it's sum of all GoodsAvailable,
+            so it's updated with changing GoodsAvailable. If it zero then row not present in list.
+            If customer use filter "available since" and/or "pickup place" then it's used inner join - additional SQL query
+            of GoodsAvailable with place filter. Auctioning goods has quantity 1 settled by GoodsAuction, when auction is end quantity settled to 0.
+          </li>
+          <b>auctioned goods fields:</b>
+          <li>dateStartAuc - Date, date start.</li>
+          <li>dateEndAuc - Date, date end.</li>
+          <li>startPriceAuc - BigDecimal, start price.</li>
+          <li>minimumPriceAuc - BigDecimal, minimum price that seller will accept.</li>
+          <li>buyItNowPriceAuc - BigDecimal, buy it now price, if applied.</li>
+          <li>currentPriceAuc - BigDecimal, default=0, current price.</li>
+          <li>soldPriceAuc - BigDecimal, if sold.</li>
+          <li>totalBidsAuc - Integer, default=0, totalBids.</li>
+          <li>isEndedAuc - Boolean, default=false</li>
+          <li>isSoldAuc - Boolean, default=false</li>
+        </ul>
+      </p>
+      <p>This is simple model that contains of full HTML appearance of goods/service in the list (page), i.e.
+        after admin fill out all specifics it must update this, and so does goods price, rating etc.
+        So retrieve list of goods/services is not expensive. This model allows both goods and services
+        in the same list for both standard and auction selling.
+      </p>
+      <p>This model is maintained by invoking by hand <b>menu-refresh items list</b> after admin or S.E. seller has been changed
+        goods specifics, price etc. All models has <b>itsVersion=last update date</b>, so it's not too expensive and it will update only outdated items.
+        It's also update only dedicated types of items, e.g. only goods/services belonging to S.E. seller who invoke refresh.
+        Statistics specifics like goods/service/seller rating is checked/updated either automatically when customer give mark or by admin.
+      </p>
+      <p>
+        queries for check own goods to update items list is very easy of each goods characteristic - specific, price,
+        availability is done by retrieveListWithConditions where conditions is:
+        <pre>
+where ITSVERSION>:LASTUPDATEDVERSION
+order by ITSVERSION;
+        </pre>
+        where :LASTUPDATEDVERSION is equals max(ITSVERSION) of characteristic from previous update transaction
+      </p>
+      <p>
+        In case of big data it's used [N]-records per transaction method, e.g. if total needed to update GoodsSpecific
+        is 10000, then they processed in cycle per 100 records. There is SettingsAdd.recordsPerTransaction=100 by default.
+        So processor that handle this is transactional, but request handler is not - SimpleRequestHandler.
+      </p>
+      <p>In case customer do not use filter "available since" and/or "pickup place" and TradingSettings.isUsePriceForCustomer=false
+        this model contains actual information, so no need make additional SQL requests (price for customers category).
+      </p>
+      <p>
+    Sub-query for own goods in selected catalog when auctioning is not used in webstore/goodsInListForCatalogNotAucSamePrice.sql:
+<pre style="white-space: pre-wrap;">
+select ITSTYPE, ITEMID, ITSNAME, IMAGEURL, SPECIFICINLIST, ITSPRICE, PREVIOUSPRICE, AVAILABLEQUANTITY, ITSRATING
+from (
+  select ITSTYPE, ITEMID, ITSNAME, IMAGEURL, SPECIFICINLIST, ITSPRICE, PREVIOUSPRICE, AVAILABLEQUANTITY, ITSRATING
+  from ITEMINLIST
+  where AVAILABLEQUANTITY>0
+ ) as ALLGOODS
+join (
+  select GOODS as GOODSINCATALOG from GOODSCATALOGS where ITSCATALOG=:ITSCATALOG
+ ) as GOODSINCATALOGALL on GOODSINCATALOGALL.GOODSINCATALOG=ALLGOODS.ITEMID
+</pre>
+where :ITSCATALOG is ID of selected catalog or "catalog on start".
+      </p>
+      <p>
+        Whole query that may has filter and order clause. It may consist of only that single sub-query if
+        it's only own goods store with no auctioning, and price same for all customers and user didn't choose filter/order.
+      </p>
+            
+      <h4>WEB-interface</h4>
+      <p>It based on <a href="http://getbootstrap.com/">bootstrap</a>.
+        There is only interface for both desktop and mobile device.
+        Catalog 1-st level appeared on top-stuck menu, 2-nd on dropdown menu, 3-d and others in hidden modal dialog
+        that appeared when user select 2-nd menu element. No Ajax - whole page is refreshed. Filter (search) is modal dialog that hidden created
+        after page filled of goods/services that has filterable specific,
+        and filter button will be appeared on menu. If there is no catalog, then page of available goods/services is appeared.
+        If 1-st level items exceed first row place then dropdown menu "others" created for exceeded items
+        and their 2-nd level subitems not shown, so on click on them modal dialog will contains subcatalogs from 2-nd level.
+        TradingSettings.maxQuantityOfTopLevelCatalogs is settled that issue. When user click on catalog that contains of subcatalogs
+        then list of goods for all subcatalogs will be appeared.
+      </p>
+      <p>
+        Query for catalog 1 and 2 level in webstore/catalogs1And2Level.sql:
+<pre style="white-space: pre-wrap;">
+select CAT1LID,  CAT1LNAME, CAT1HS, SUBCATALOG as CAT2LID, CATALOGGS.ITSNAME as CAT2LNAME, HASSUBCATALOGS as CAT2HS
+from
+  (
+    select ITSID as CAT1LID, ITSNAME as CAT1LNAME, ITSINDEX as CAT1LINDEX, HASSUBCATALOGS as CAT1HS
+    from CATALOGGS
+    left join SUBCATALOGSCATALOGSGS on SUBCATALOGSCATALOGSGS.SUBCATALOG=CATALOGGS.ITSID
+    where SUBCATALOG is null and ISINMENU=1
+  ) as CAT1L
+left join SUBCATALOGSCATALOGSGS on SUBCATALOGSCATALOGSGS.ITSCATALOG=CAT1L.CAT1LID
+left join CATALOGGS on CATALOGGS.ITSID=SUBCATALOG
+where ISINMENU is null or ISINMENU=1
+order by CAT1LINDEX, ITSINDEX;
+</pre>
+      </p>
+      <p>
+        Catalog 3d and lower level revealed cyclic by ORM.
+      </p>
+      <p>
+        Model non-persistable Store Catalogs (goods/services) - List&lt;TradingCatalog&gt;<br></br>
+        Model TradingCatalog:
+        <ul>
+          <li>itsName - String appearance</li>
+          <li>itsLink - String URL target</li>
+          <li>subcatalogs - List&lt;TradingCatalog&gt;</li>
+        </ul>
+        Catalog that has subcatalog can't has goods.
+        User can invoke 1-st and 2-nd level catalog's goods in modal dialog, in menu they invoke just menu.
+      </p>
+      <p>Webstore home processor - invoked on URL
+        <b>[http-base-url]beige-accounting-web/service?nmHnd=handlerWebstoreRequest&amp;nmRnd=webstore&amp;nmPrc=PrcWebstoreStart</b>
+      </p>
+      
+      <p>Models that passed to JSP for rendering page of goods or services:
+        <ul>
+          <li>listFilter - ListFilter if exist</li>
+          <li>itemsList - List&lt;ItemInList&gt;</li>
+          <li>totalItems - row count</li>
+          <li>pages - List&lt;org.beigesoft.model.Page&gt; if exist</li>
+        </ul>
+      </p>
+      <h6>List on start</h6>
+      <p>In case of little catalog TradingSettings has catalogOnStart to list all goods on start without clicking on "menu-[catalog]".
+      Or it's catalog that offers different goods/services for all on start</p>
+      <p>TODO At start it could be sets of goods that previous have been seen/bought by customer and/or advising goods for any reason.
+        Model persistable OfferedGoodsOnStart:
+        <ul>
+          
+        </ul>
+        Model non-persistable OffersOnStart (goods and/or services):
+        <ul>
+          
+        </ul>
+      </p>
+      
+      <h5>Menu</h5>
+      <p>It consist of:
+        <ul>
+          <li>WEB-store Logo if TradingSettings.isShowLogo - file static/img/logo-web-store.png, this is home link</li>
+          <li>WEB-store name from TradingSettings.webStoreName if it's not empty, this is home link</li>
+          <li>catalogs 1-st level</li>
+          <li>filter if present</li>
+          <li>Shopping cart</li>
+          <li>Log in/out</li>
+          <li>about page - file webStoreAbout.jsp that contains information about business owner and Beigesoft that MUST NOT BE REMOVED.
+            Full customized main page must has link to Beigesoft.
+          </li>
+        </ul>
+      </p>
+
+    </section>
+
+  </body>
+
+</document>
