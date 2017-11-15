@@ -88,11 +88,6 @@ public class CartItem extends AHasNameIdLongVersion
   private BigDecimal availableQuantity;
 
   /**
-   * <p>Pick up (e.g. storage) place, not null.</p>
-   **/
-  private PickUpPlace pickUpPlace;
-
-  /**
    * <p>Getter for itsOwner.</p>
    * @return ShoppingCart
    **/
@@ -269,21 +264,5 @@ public class CartItem extends AHasNameIdLongVersion
    **/
   public final void setAvailableQuantity(final BigDecimal pAvailableQuantity) {
     this.availableQuantity = pAvailableQuantity;
-  }
-
-  /**
-   * <p>Getter for pickUpPlace.</p>
-   * @return PickUpPlace
-   **/
-  public final PickUpPlace getPickUpPlace() {
-    return this.pickUpPlace;
-  }
-
-  /**
-   * <p>Setter for pickUpPlace.</p>
-   * @param pPickUpPlace reference
-   **/
-  public final void setPickUpPlace(final PickUpPlace pPickUpPlace) {
-    this.pickUpPlace = pPickUpPlace;
   }
 }

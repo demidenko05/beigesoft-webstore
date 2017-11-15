@@ -160,10 +160,13 @@ public class PrcItemInCart<RS> implements IProcessor {
       }
       cartItem.setItsPrice(price);
     }
+    cartItem.setTotalTaxes(BigDecimal.ZERO);
     cartItem.setItsQuantity(cartItemQuantity);
     cartItem.setAvailableQuantity(cartItemAvailableQuantity);
-    cartItem.setItsTotal(cartItem.getItsPrice()
+    cartItem.setSubtotal(cartItem.getItsPrice()
       .multiply(cartItem.getItsQuantity()));
+    cartItem.setItsTotal(cartItem.getSubtotal()
+      .add(cartItem.getTotalTaxes()));
     if (cartItem.getIsNew()) {
       this.prcWebstorePage.getSrvOrm().insertEntity(pAddParam, cartItem);
     } else {
