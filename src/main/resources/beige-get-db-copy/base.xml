@@ -106,7 +106,6 @@
   org.beigesoft.persistable.EmailMsg,
   org.beigesoft.persistable.Eattachment,
   org.beigesoft.persistable.Erecipient,
-  org.beigesoft.webstore.persistable.TradingSettings,
   org.beigesoft.webstore.persistable.PriceCategoryOfItems,
   org.beigesoft.webstore.persistable.PriceCategoryOfBuyers,
   org.beigesoft.webstore.persistable.PriceCategory,
@@ -141,7 +140,8 @@
   org.beigesoft.webstore.persistable.CustomerOrderService,
   org.beigesoft.webstore.persistable.CustomerOrderSeService,
   org.beigesoft.webstore.persistable.CustomerOrderTaxLine,
-  org.beigesoft.webstore.persistable.CustomerGoodsSeen</entry>
+  org.beigesoft.webstore.persistable.CustomerGoodsSeen,
+  org.beigesoft.webstore.persistable.TradingSettings</entry>
 <entry key="settingsKeysForClasses">excludeFields</entry>
 <entry key="settingsKeysForFields">isEnabled, ISrvFieldWriter, ISrvEntityFieldFiller</entry>
 <entry key="excludeFields">isNew</entry>
