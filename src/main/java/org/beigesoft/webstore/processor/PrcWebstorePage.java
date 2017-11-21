@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.math.BigDecimal;
 
-import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.model.ICookie;
 import org.beigesoft.model.CookieTmp;
 import org.beigesoft.model.IRequestData;
@@ -245,10 +244,12 @@ public class PrcWebstorePage<RS> implements IProcessor {
       final boolean pIsNeedToCreate) throws Exception {
     ICookie[] cookies = pRequestData.getCookies();
     Long buyerId = null;
+    ICookie cookieWas = null;
     if (cookies != null) {
       for (ICookie cookie : cookies) {
         if (cookie.getName().equals("cBuyerId")) {
           buyerId = Long.valueOf(cookie.getValue());
+          cookieWas = cookie;
         }
       }
     }
@@ -269,9 +270,9 @@ public class PrcWebstorePage<RS> implements IProcessor {
     } else {
       onlineBuyer = getSrvOrm()
         .retrieveEntityById(pAddParam, OnlineBuyer.class, buyerId);
-      if (onlineBuyer == null) {
-        throw new ExceptionWithCode(ExceptionWithCode.WRONG_PARAMETER,
-          "cookie_buyer_id_not_found");
+      if (onlineBuyer == null) { // deleted for any reason, so create new:
+        onlineBuyer = createOnlineBuyer(pAddParam, pRequestData);
+        cookieWas.setValue(onlineBuyer.getItsId().toString());
       }
     }
     ShoppingCart shoppingCart = getSrvOrm()
