@@ -162,11 +162,12 @@ public class PrcWebstorePage<RS> implements IProcessor {
       .lazyGetTradingSettings(pAddParam);
     pRequestData.setAttribute("tradingSettings", tradingSettings);
     String catalogId = pRequestData.getParameter("catalogId");
+    String catalogName = pRequestData.getParameter("catalogName");
     if (catalogId == null && tradingSettings.getCatalogOnStart() != null) {
       catalogId = tradingSettings.getCatalogOnStart().getItsId().toString();
+      catalogName = tradingSettings.getCatalogOnStart().getItsName();
     }
     if (catalogId != null) {
-      String catalogName = pRequestData.getParameter("catalogName");
       pRequestData.setAttribute("catalogName", catalogName);
       pRequestData.setAttribute("catalogId", catalogId);
       if (this.queryGilForCatNoAucSmPr == null) {
