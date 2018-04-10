@@ -422,6 +422,9 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
     } else if (pOutdGdSp.getSpecifics().getItsType()
       .equals(ESpecificsItemType.TEXT)) {
       itemInList.setSpecificInList(pOutdGdSp.getStringValue1());
+    } else if (pOutdGdSp.getSpecifics().getChooseableSpecificsType() != null) {
+      itemInList.setSpecificInList(" <b>" + pOutdGdSp.getStringValue2()
+        + "</b>: " + pOutdGdSp.getStringValue1() + ".");
     }
     if (itemInList.getIsNew()) {
       getSrvOrm().insertEntity(pAddParam, itemInList);

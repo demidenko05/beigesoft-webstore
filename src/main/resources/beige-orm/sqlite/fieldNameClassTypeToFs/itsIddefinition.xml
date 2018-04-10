@@ -26,4 +26,5 @@
 <entry key="org.beigesoft.webstore.persistable.base.ACustomerOrderLine">integer not null primary key autoincrement</entry>
 <entry key="org.beigesoft.webstore.persistable.base.ATaxLine">integer not null primary key autoincrement</entry>
 <entry key="org.beigesoft.webstore.persistable.ItemInList">integer not null primary key autoincrement</entry>
+<entry key="org.beigesoft.webstore.persistable.HtmlTemplate">integer not null primary key autoincrement</entry>
 </properties>

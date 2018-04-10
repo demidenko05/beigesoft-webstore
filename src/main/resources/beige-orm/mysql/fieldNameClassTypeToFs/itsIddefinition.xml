@@ -26,5 +26,6 @@
 <entry key="org.beigesoft.webstore.persistable.base.ACustomerOrderLine">serial primary key</entry>
 <entry key="org.beigesoft.webstore.persistable.base.ATaxLine">serial primary key</entry>
 <entry key="org.beigesoft.webstore.persistable.ItemInList">serial primary key</entry>
+<entry key="org.beigesoft.webstore.persistable.HtmlTemplate">serial primary key</entry>
 </properties>
 

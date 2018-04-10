@@ -14,6 +14,7 @@ package org.beigesoft.webstore.persistable;
 
 import org.beigesoft.persistable.AHasIdLongVersion;
 import org.beigesoft.accounting.persistable.DebtorCreditorCategory;
+import org.beigesoft.webstore.model.EPaymentMethod;
 
 /**
  * <pre>
@@ -146,7 +147,12 @@ public class TradingSettings extends AHasIdLongVersion {
    * Usually it's online payment. For small shop or service maker
    * payment usually made by cash.</p>
    **/
-  private Boolean isUsedSeveralPaymentMethods;
+  private Boolean isUsedSeveralPaymentMethods = Boolean.FALSE;
+
+  /**
+   * <p>Default payment method, not null, ONLINE default.</p>
+   **/
+  private EPaymentMethod defaultPaymentMethod = EPaymentMethod.ONLINE;
 
   //Simple getters and setters:
   /**
@@ -475,5 +481,22 @@ public class TradingSettings extends AHasIdLongVersion {
   public final void setIsUsedSeveralPaymentMethods(
     final Boolean pIsUsedSeveralPaymentMethods) {
     this.isUsedSeveralPaymentMethods = pIsUsedSeveralPaymentMethods;
+  }
+
+  /**
+   * <p>Getter for defaultPaymentMethod.</p>
+   * @return EPaymentMethod
+   **/
+  public final EPaymentMethod getDefaultPaymentMethod() {
+    return this.defaultPaymentMethod;
+  }
+
+  /**
+   * <p>Setter for defaultPaymentMethod.</p>
+   * @param pDefaultPaymentMethod reference
+   **/
+  public final void setDefaultPaymentMethod(
+    final EPaymentMethod pDefaultPaymentMethod) {
+    this.defaultPaymentMethod = pDefaultPaymentMethod;
   }
 }

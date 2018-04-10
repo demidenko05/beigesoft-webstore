@@ -26,4 +26,5 @@
 <entry key="org.beigesoft.webstore.persistable.base.ACustomerOrderLine">identity not null primary key</entry>
 <entry key="org.beigesoft.webstore.persistable.base.ATaxLine">identity not null primary key</entry>
 <entry key="org.beigesoft.webstore.persistable.ItemInList">identity not null primary key</entry>
+<entry key="org.beigesoft.webstore.persistable.HtmlTemplate">identity not null primary key</entry>
 </properties>

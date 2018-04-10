@@ -56,6 +56,11 @@ public class SpecificsOfItem extends AHasNameIdLongVersion {
    **/
   private String description;
 
+  /**
+   * <p>ChooseableSpecificsType if it is chooseable.</p>
+   **/
+  private ChooseableSpecificsType chooseableSpecificsType;
+
   //Simple getters and setters:
   /**
    * <p>Getter for description.</p>
@@ -151,5 +156,23 @@ public class SpecificsOfItem extends AHasNameIdLongVersion {
    **/
   public final void setItsIndex(final Integer pItsIndex) {
     this.itsIndex = pItsIndex;
+  }
+
+
+  /**
+   * <p>Getter for chooseableSpecificsType.</p>
+   * @return ChooseableSpecificsType
+   **/
+  public final ChooseableSpecificsType getChooseableSpecificsType() {
+    return this.chooseableSpecificsType;
+  }
+
+  /**
+   * <p>Setter for chooseableSpecificsType.</p>
+   * @param pChooseableSpecificsType reference
+   **/
+  public final void setChooseableSpecificsType(
+    final ChooseableSpecificsType pChooseableSpecificsType) {
+    this.chooseableSpecificsType = pChooseableSpecificsType;
   }
 }

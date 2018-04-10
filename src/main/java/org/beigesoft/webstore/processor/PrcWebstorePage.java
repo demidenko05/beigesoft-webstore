@@ -185,11 +185,11 @@ public class PrcWebstorePage<RS> implements IProcessor {
       neededFieldNames.add("previousPrice");
       neededFieldNames.add("availableQuantity");
       neededFieldNames.add("itsRating");
-      pAddParam.put("neededFieldNames", neededFieldNames);
+      pAddParam.put("ItemInListneededFieldNames", neededFieldNames);
       List<ItemInList> itemsList = getSrvOrm()
         .retrievePageByQuery(pAddParam, ItemInList.class,
           query, 0, tradingSettings.getItemsPerPage());
-      pAddParam.remove("neededFieldNames");
+      pAddParam.remove("ItemInListneededFieldNames");
       Integer rowCount = this.srvOrm
         .evalRowCountByQuery(pAddParam, ItemInList.class,
           "select count(*) as TOTALROWS from (" + query + ") as ALLRC;");

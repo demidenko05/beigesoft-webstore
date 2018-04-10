@@ -82,6 +82,14 @@ public class PrcGoodsSpecificSave<RS>
         final IRequestData pRequestData) throws Exception {
     //Beige-ORM refresh:
     pEntity.setGoods(getSrvOrm().retrieveEntity(pAddParam, pEntity.getGoods()));
+    pEntity.setSpecifics(getSrvOrm().retrieveEntity(pAddParam,
+      pEntity.getSpecifics()));
+    if (pEntity.getSpecifics().getChooseableSpecificsType() != null) {
+      pEntity.setLongValue2(pEntity.getSpecifics().getChooseableSpecificsType()
+        .getItsId());
+      pEntity.setStringValue2(pEntity.getSpecifics()
+        .getChooseableSpecificsType().getItsName());
+    }
     if (!(InvItem.FINISHED_PRODUCT_ID.equals(pEntity.getGoods().getItsType()
       .getItsId()) || InvItem.MERCHANDISE_ID.equals(pEntity.getGoods()
         .getItsType().getItsId()))) {
