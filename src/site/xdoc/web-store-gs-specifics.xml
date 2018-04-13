@@ -40,6 +40,9 @@
         <ul>
           <li>AHasNameIdLongVersion fields</li>
           <li>description - String, e.g. "for notebooks".</li>
+          <li>templateStart - HtmlTemplate if assigned.</li>
+          <li>templateEnd - HtmlTemplate if assigned.</li>
+          <li>templateDetail - HtmlTemplate if assigned.</li>
         </ul>
       </p>
       <p>Model GoodsSpecific, e.g. "Monitor AJK A4565"-"Screen size = 17inch":
@@ -89,31 +92,22 @@
         </ul>
       </p>
       
-      <h5>Refreshing goods specific</h5>
+      <h5>Refreshing goods specific in the list.</h5>
       <p>
-        Custom SQL query for Beige-ORM that retrieve GS that must be refreshed:
-<pre>
-select GOODSSPECIFIC.NUMERICVALUE1 as NUMERICVALUE1, GOODSSPECIFIC.STRINGVALUE2 as STRINGVALUE2,
-GOODSSPECIFIC.STRINGVALUE1 as STRINGVALUE1, GOODSSPECIFIC.NUMERICVALUE2 as NUMERICVALUE2,
-GOODSSPECIFIC.ITSVERSION as ITSVERSION, GOODSSPECIFIC.LONGVALUE2 as LONGVALUE2, GOODS.ITSID as GOODSITSID,
-GOODS.ITSNAME as GOODSITSNAME, GOODS.IDDATABASEBIRTH as GOODSIDDATABASEBIRTH, GOODS.ITSCATEGORY as GOODSITSCATEGORY,
-GOODS.DEFUNITOFMEASURE as GOODSDEFUNITOFMEASURE, GOODS.ITSTYPE as GOODSITSTYPE, GOODS.TAXCATEGORY as GOODSTAXCATEGORY,
-GOODS.KNOWNCOST as GOODSKNOWNCOST, GOODS.ITSVERSION as GOODSITSVERSION, GOODS.IDBIRTH as GOODSIDBIRTH,
-GOODSSPECIFIC.LONGVALUE1 as LONGVALUE1, SPECIFICS.ITSVERSION as SPECIFICSITSVERSION,
-SPECIFICS.ISUSEINFILTER as SPECIFICSISUSEINFILTER, SPECIFICS.ITSNAME as SPECIFICSITSNAME,
-SPECIFICS.ITSGROOP as SPECIFICSITSGROOP, SPECIFICS.ISSHOWINLIST as SPECIFICSISSHOWINLIST,
-SPECIFICS.ITSINDEX as SPECIFICSITSINDEX, SPECIFICS.DESCRIPTION as SPECIFICSDESCRIPTION,
-SPECIFICS.ITSTYPE as SPECIFICSITSTYPE, SPECIFICS.CHOOSEABLESPECIFICSTYPE as SPECIFICSCHOOSEABLESPECIFICSTYPE,
-SPECIFICS.ITSID as SPECIFICSITSID,
-HTMLTEMPLATE.ITSID as HTMLTEMPLATEITSID,
-HTMLTEMPLATE.HTMLTEMPLATE as HTMLTEMPLATEHTMLTEMPLATE
-from GOODSSPECIFIC
-join INVITEM as GOODS on GOODSSPECIFIC.GOODS=GOODS.ITSID
-join SPECIFICSOFITEM as SPECIFICS on GOODSSPECIFIC.SPECIFICS=SPECIFICS.ITSID
-left join CHOOSEABLESPECIFICSTYPE on SPECIFICS.CHOOSEABLESPECIFICSTYPE=CHOOSEABLESPECIFICSTYPE.ITSID
-left join HTMLTEMPLATE on HTMLTEMPLATE.ITSID=CHOOSEABLESPECIFICSTYPE.HTMLTEMPLATE 
-where ISSHOWINLIST=1 and GOODS in
-(select distinct  GOODS from GOODSSPECIFIC where ISSHOWINLIST=1 and GOODSSPECIFIC.ITSVERSION>:LASTREFRESHEDVERSION)
+        Set of goods specifics that must be refreshed is retrieved with needed fields include:
+        <ul>
+          <li>GoodsSpecific.[all_fields] specifics - level 3</li>
+          <li>GoodsSpecific.goods[itsName]</li>
+          <li>GoodsSpecific.specifics.itsName</li>
+          <li>GoodsSpecific.specifics.itsType</li>
+          <li>GoodsSpecific.specifics.itsGroup.[templateStart/End/Detail(only ID), itsName]</li>
+          <li>GoodsSpecific.specifics.chooseableSpecificsType.htmlTemplate(only ID)</li>
+          Retrieving full HTML templates is memory unfriendly in this case.
+        </ul>  
+        where clause for Beige-ORM that retrieve GS is:
+<pre style="white-space: pre-wrap;"> 
+where SPECIFICS.ISSHOWINLIST=1 and GOODSSPECIFIC.GOODS in
+(select distinct  GOODS from GOODSSPECIFIC join SPECIFICSOFITEM on GOODSSPECIFIC.SPECIFICS=SPECIFICSOFITEM.ITSID where ISSHOWINLIST=1 and GOODSSPECIFIC.ITSVERSION>:LASTREFRESHEDVERSION)
 order by GOODS.ITSID, SPECIFICS.ITSINDEX;
 </pre>
       </p>

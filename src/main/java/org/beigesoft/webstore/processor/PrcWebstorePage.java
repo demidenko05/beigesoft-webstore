@@ -175,21 +175,21 @@ public class PrcWebstorePage<RS> implements IProcessor {
       }
       String query = this.queryGilForCatNoAucSmPr
         .replace(":ITSCATALOG", catalogId);
-      Set<String> neededFieldNames = new HashSet<String>();
-      neededFieldNames.add("itsType");
-      neededFieldNames.add("itemId");
-      neededFieldNames.add("itsName");
-      neededFieldNames.add("imageUrl");
-      neededFieldNames.add("specificInList");
-      neededFieldNames.add("itsPrice");
-      neededFieldNames.add("previousPrice");
-      neededFieldNames.add("availableQuantity");
-      neededFieldNames.add("itsRating");
-      pAddParam.put("ItemInListneededFieldNames", neededFieldNames);
+      Set<String> neededFields = new HashSet<String>();
+      neededFields.add("itsType");
+      neededFields.add("itemId");
+      neededFields.add("itsName");
+      neededFields.add("imageUrl");
+      neededFields.add("specificInList");
+      neededFields.add("itsPrice");
+      neededFields.add("previousPrice");
+      neededFields.add("availableQuantity");
+      neededFields.add("itsRating");
+      pAddParam.put("ItemInListneededFields", neededFields);
       List<ItemInList> itemsList = getSrvOrm()
         .retrievePageByQuery(pAddParam, ItemInList.class,
           query, 0, tradingSettings.getItemsPerPage());
-      pAddParam.remove("ItemInListneededFieldNames");
+      pAddParam.remove("ItemInListneededFields");
       Integer rowCount = this.srvOrm
         .evalRowCountByQuery(pAddParam, ItemInList.class,
           "select count(*) as TOTALROWS from (" + query + ") as ALLRC;");

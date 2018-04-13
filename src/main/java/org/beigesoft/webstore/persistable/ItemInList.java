@@ -136,17 +136,13 @@ public class ItemInList extends AHasNameIdLongVersion {
    **/
   private Boolean isSoldAuc;
 
-  //Hiding reference SGS:
+  //Simple getters and setters:
   /**
    * <p>Getter for dateStartAuc.</p>
    * @return Date
    **/
   public final Date getDateStartAuc() {
-    if (this.dateStartAuc == null) {
-      return null;
-    } else {
-      return new Date(this.dateStartAuc.getTime());
-    }
+    return this.dateStartAuc;
   }
 
   /**
@@ -154,11 +150,7 @@ public class ItemInList extends AHasNameIdLongVersion {
    * @param pDateStartAuc reference
    **/
   public final void setDateStartAuc(final Date pDateStartAuc) {
-    if (this.dateStartAuc == null) {
-      this.dateStartAuc = null;
-    } else {
-      this.dateStartAuc = new Date(pDateStartAuc.getTime());
-    }
+    this.dateStartAuc = pDateStartAuc;
   }
 
   /**
@@ -166,11 +158,7 @@ public class ItemInList extends AHasNameIdLongVersion {
    * @return Date
    **/
   public final Date getDateEndAuc() {
-    if (this.dateEndAuc == null) {
-      return null;
-    } else {
-      return new Date(this.dateEndAuc.getTime());
-    }
+    return this.dateEndAuc;
   }
 
   /**
@@ -178,14 +166,9 @@ public class ItemInList extends AHasNameIdLongVersion {
    * @param pDateEndAuc reference
    **/
   public final void setDateEndAuc(final Date pDateEndAuc) {
-    if (this.dateEndAuc == null) {
-      this.dateEndAuc = null;
-    } else {
-      this.dateEndAuc = new Date(pDateEndAuc.getTime());
-    }
+    this.dateEndAuc = pDateEndAuc;
   }
 
-  //Simple getters and setters:
   /**
    * <p>Getter for itemId.</p>
    * @return Long
