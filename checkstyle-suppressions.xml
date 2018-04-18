@@ -6,7 +6,7 @@
 
 <suppressions>
   <suppress checks="MagicNumberCheck"
-    files="PrcGoodsSpecificSave|PrcRefreshGoodsInList"/>
+    files="PrcGoodsSpecificSave|PrcRefreshGoodsInList|PrcDetailPage"/>
   <suppress checks="LineLength"
     files="PrcRefreshGoodsInList"/>
 </suppressions>

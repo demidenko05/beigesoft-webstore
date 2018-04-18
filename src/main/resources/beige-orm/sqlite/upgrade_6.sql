@@ -5,4 +5,7 @@ alter table CHOOSEABLESPECIFICSTYPE add column HTMLTEMPLATE integer default null
 alter table SPECIFICSOFITEMGROUP add column TEMPLATESTART integer default null references HTMLTEMPLATE(ITSID);
 alter table SPECIFICSOFITEMGROUP add column TEMPLATEEND integer default null references HTMLTEMPLATE(ITSID);
 alter table SPECIFICSOFITEMGROUP add column TEMPLATEDETAIL integer default null references HTMLTEMPLATE(ITSID);
+alter table PICKUPPLACE add column LATITUDE real default null;
+alter table PICKUPPLACE add column LONGITUDE real default null;
+alter table ITEMINLIST add column DETAILSMETHOD integer default null;
 update DATABASEINFO set DATABASEVERSION=6, DESCRIPTION='Beige Accounting OIO DB version 6';

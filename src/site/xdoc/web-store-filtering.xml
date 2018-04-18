@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns="http://maven.apache.org/XDOC/2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+
+  <properties>
+    <title>Beigesoftware, Beige-WEB-Store</title>
+   </properties>
+
+  <body>
+
+    <section name="Beige WEB Store specification. Filtering list of goods/services.">
+
+    <h4>List filtering</h4>
+    <p>Buyer can search needed merchandise by selecting desired specifics e.g. "weight, manufacturing year/date, type operation system...".
+      It also can filter list with "non-specifics" attributes like price, availability in chosen place...
+      Filter is always applied to the merchandise of same type, e.g. notebooks, computers (set), CPU block, cars, trucks, motorcycles...
+      List (catalog) "on start" can consist of merchandises of different types. Catalog/sub-catalog is set of already filtered items.
+      Only big catalogs (of similar items) needs/allows to be filtered. Web-shop can use only catalog and use filter to filter items.
+      E.g. catalog "cars", any car has choosable specific "manufacture" that can be used in filter.
+      So web-store admin should itself choose catalog that can be filtered and set of specifics for filter.
+      If buyer select such catalog or its subcatalog then filter will be enabled for using.
+    </p>
+    <h5>Availability in pickup place filtering.</h5>
+    <p>Pickup place is tied with availability. This is no reason to add it as goods/service specifics.
+      For hotel booking this filter is often used. To use this filter set "usePickupPlaceFilter" in a catalog.
+      There are two kinds of this filter:
+      <ul>
+        <li>list of selected pickup places</li>
+        <li>distance from a point, e.g. 20km around latitude/longitude 41.12312/45.1231232</li>
+      </ul>
+      Model EPickupPlaceFilterType:
+      <ul>
+        <li>LIST</li>
+        <li>DISTANCE</li>
+      </ul>
+    </p>
+    <h5>Filter "available since/at/from-till".</h5>
+    <p>
+      This is the main filter for booking hotel and many other service. In that case (booking hotel)
+      when buyer selected catalog then it will be empty list and opened filter for date selecting.
+      Model EDateFilterType:
+      <ul>
+        <li>SINCE_DAY</li>
+        <li>AT_DAY</li>
+        <li>AT_TIME - day, hour, minutes</li>
+        <li>FROM_TILL_DAY</li>
+        <li>FROM_TILL_TIME - day, hour, minutes (e.g. for hourly rent of something).</li>
+      </ul>
+    </p>
+    <h5>Filter price</h5>
+    <p>If catalog has any filter then filter "price" will be added automatically. No one uses only filter "price".</p>
+
+    </section>
+
+  </body>
+
+</document>

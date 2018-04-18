@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns="http://maven.apache.org/XDOC/2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+
+  <properties>
+    <title>Beigesoftware, Beige-WEB-Store</title>
+   </properties>
+
+  <body>
+
+    <section name="Beige WEB Store specification. Detail view of goods/services.">
+
+    <h4>Detail view of goods/services.</h4>
+    <p>There are cases when goods/services list contains of full information and no more details need.
+      If there is goods/service specifics that should not show in the list then this item
+      will contains of link to its detail page according Integer ItemInList.detailsMethod and other fields.
+      For example item of type SE Seller good and detailsMethod=2 means that will be used concrete JSP page designed for this.
+    </p>
+    <h5>Customizing view</h5>
+    <p>In opposite to the list view detail one should be customized by using JSP code.
+      For example JSP will check that SpecificOfItemGroup.description="method1" and render it with this method.
+      So SpecificOfItemGroup.teplateStart/End/Detail is useless for detail view cause this is less flexible method.
+    </p>
+    <h5>Embedded HTML, e.g. SE seller made full description of its goods.</h5>
+    <p>It's hard to make reliable view from foreign embedded HTML.
+      It must be restricted(current style friendly), embedded HTML editor and the HTML content can be stored in a file (in case of big content).
+      This HTML content can uses/contains user downloaded images.
+    </p>
+    </section>
+
+  </body>
+
+</document>

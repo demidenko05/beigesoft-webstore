@@ -15,6 +15,7 @@ package org.beigesoft.webstore.factory;
 import java.util.Map;
 import java.util.HashMap;
 
+import org.beigesoft.log.ILogger;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvPage;
@@ -29,10 +30,12 @@ import org.beigesoft.webstore.service.ISrvSettingsAdd;
 import org.beigesoft.webstore.processor.PrcAssignGoodsToCatalog;
 import org.beigesoft.webstore.processor.PrcTradeEntitiesPage;
 import org.beigesoft.webstore.processor.PrcWebstorePage;
+import org.beigesoft.webstore.processor.PrcDetailPage;
 import org.beigesoft.webstore.processor.PrcRefreshGoodsInList;
 import org.beigesoft.webstore.processor.PrcDelItemFromCart;
 import org.beigesoft.webstore.processor.PrcItemInCart;
 import org.beigesoft.webstore.service.ISrvTradingSettings;
+import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
  * <p>Trade processors factory.
@@ -92,11 +95,21 @@ public class FctBnTradeProcessors<RS>
   private IMngSettings mngUvdSettings;
 
   /**
+   * <p>Logger.</p>
+   **/
+  private ILogger logger;
+
+  /**
    * <p>Converters map "converter name"-"object' s converter".</p>
    **/
   private final Map<String, IProcessor>
     processorsMap =
       new HashMap<String, IProcessor>();
+
+  /**
+   * <p>Shopping Cart service.</p>
+   **/
+  private ISrvShoppingCart srvShoppingCart;
 
   /**
    * <p>Get bean in lazy mode (if bean is null then initialize it).</p>
@@ -125,6 +138,9 @@ public class FctBnTradeProcessors<RS>
           } else if (pBeanName.equals(PrcItemInCart
             .class.getSimpleName())) {
             proc = lazyGetPrcItemInCart(pAddParam);
+          } else if (pBeanName.equals(PrcDetailPage
+            .class.getSimpleName())) {
+            proc = lazyGetPrcDetailPage(pAddParam);
           } else if (pBeanName.equals(PrcWebstorePage
             .class.getSimpleName())) {
             proc = lazyGetPrcWebstorePage(pAddParam);
@@ -167,7 +183,12 @@ public class FctBnTradeProcessors<RS>
         .get(PrcDelItemFromCart.class.getSimpleName());
     if (proc == null) {
       proc = new PrcDelItemFromCart<RS>();
-      proc.setPrcWebstorePage(lazyGetPrcWebstorePage(pAddParam));
+      proc.setSrvOrm(getSrvOrm());
+      proc.setSrvDatabase(getSrvDatabase());
+      proc.setSrvTradingSettings(getSrvTradingSettings());
+      proc.setSrvAccSettings(getSrvAccSettings());
+      proc.setSrvShoppingCart(getSrvShoppingCart());
+      proc.setProcessorsFactory(this);
       //assigning fully initialized object:
       this.processorsMap
         .put(PrcDelItemFromCart.class.getSimpleName(), proc);
@@ -189,10 +210,41 @@ public class FctBnTradeProcessors<RS>
         .get(PrcItemInCart.class.getSimpleName());
     if (proc == null) {
       proc = new PrcItemInCart<RS>();
-      proc.setPrcWebstorePage(lazyGetPrcWebstorePage(pAddParam));
+      proc.setSrvOrm(getSrvOrm());
+      proc.setSrvDatabase(getSrvDatabase());
+      proc.setSrvTradingSettings(getSrvTradingSettings());
+      proc.setSrvShoppingCart(getSrvShoppingCart());
+      proc.setSrvAccSettings(getSrvAccSettings());
+      proc.setProcessorsFactory(this);
       //assigning fully initialized object:
       this.processorsMap
         .put(PrcItemInCart.class.getSimpleName(), proc);
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Lazy get PrcDetailPage.</p>
+   * @param pAddParam additional param
+   * @return requested PrcDetailPage
+   * @throws Exception - an exception
+   */
+  protected final PrcDetailPage<RS> lazyGetPrcDetailPage(
+    final Map<String, Object> pAddParam) throws Exception {
+    @SuppressWarnings("unchecked")
+    PrcDetailPage<RS> proc = (PrcDetailPage<RS>)
+      this.processorsMap
+        .get(PrcDetailPage.class.getSimpleName());
+    if (proc == null) {
+      proc = new PrcDetailPage<RS>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setSrvTradingSettings(getSrvTradingSettings());
+      proc.setSrvAccSettings(getSrvAccSettings());
+      proc.setSrvShoppingCart(getSrvShoppingCart());
+      proc.setLogger(getLogger());
+      //assigning fully initialized object:
+      this.processorsMap
+        .put(PrcDetailPage.class.getSimpleName(), proc);
     }
     return proc;
   }
@@ -215,6 +267,7 @@ public class FctBnTradeProcessors<RS>
       proc.setSrvDatabase(getSrvDatabase());
       proc.setSrvTradingSettings(getSrvTradingSettings());
       proc.setSrvAccSettings(getSrvAccSettings());
+      proc.setSrvShoppingCart(getSrvShoppingCart());
       proc.setSrvPage(getSrvPage());
       proc.setMngUvdSettings(getMngUvdSettings());
       //assigning fully initialized object:
@@ -450,5 +503,38 @@ public class FctBnTradeProcessors<RS>
    **/
   public final void setMngUvdSettings(final IMngSettings pMngUvdSettings) {
     this.mngUvdSettings = pMngUvdSettings;
+  }
+
+  /**
+   * <p>Getter for srvShoppingCart.</p>
+   * @return ISrvShoppingCart
+   **/
+  public final ISrvShoppingCart getSrvShoppingCart() {
+    return this.srvShoppingCart;
+  }
+
+  /**
+   * <p>Setter for srvShoppingCart.</p>
+   * @param pSrvShoppingCart reference
+   **/
+  public final void setSrvShoppingCart(
+    final ISrvShoppingCart pSrvShoppingCart) {
+    this.srvShoppingCart = pSrvShoppingCart;
+  }
+
+  /**
+   * <p>Geter for logger.</p>
+   * @return ILogger
+   **/
+  public final ILogger getLogger() {
+    return this.logger;
+  }
+
+  /**
+   * <p>Setter for logger.</p>
+   * @param pLogger reference
+   **/
+  public final void setLogger(final ILogger pLogger) {
+    this.logger = pLogger;
   }
 }

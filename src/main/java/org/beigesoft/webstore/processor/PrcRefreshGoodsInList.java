@@ -387,10 +387,10 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
       this.srvDatabase.
         setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
       this.srvDatabase.beginTransaction();
-      String verCondGs = " where SPECIFICS.ISSHOWINLIST=1";
+      String verCondGs = "";
       if (pGoodsInListLuv.getGoodsSpecificLuv() != null) {
-        verCondGs += " and GOODSSPECIFIC.GOODS in "
-  + " (select distinct  GOODS from GOODSSPECIFIC join SPECIFICSOFITEM on GOODSSPECIFIC.SPECIFICS=SPECIFICSOFITEM.ITSID where ISSHOWINLIST=1 and GOODSSPECIFIC.ITSVERSION>"
+        verCondGs = " where GOODSSPECIFIC.GOODS in "
+  + " (select distinct  GOODS from GOODSSPECIFIC join SPECIFICSOFITEM on GOODSSPECIFIC.SPECIFICS=SPECIFICSOFITEM.ITSID where GOODSSPECIFIC.ITSVERSION>"
   + pGoodsInListLuv.getGoodsSpecificLuv().toString() + ")";
       }
       pAddParam.put("GoodsSpecificspecificsdeepLevel", 3); //HTML templates only ID
@@ -401,6 +401,7 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
       HashSet<String> soiFldNms = new HashSet<String>();
       soiFldNms.add("itsId");
       soiFldNms.add("itsName");
+      soiFldNms.add("isShowInList");
       soiFldNms.add("itsType");
       soiFldNms.add("itsGroop");
       soiFldNms.add("chooseableSpecificsType");
@@ -514,10 +515,16 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
       .equals(ESpecificsItemType.BIGDECIMAL)) {
       spNm = pOutdGdSp.getSpecifics().getItsName();
       spVal = pOutdGdSp.getNumericValue1().toString();
+      if (pOutdGdSp.getStringValue1() != null) {
+        spVal += " " + pOutdGdSp.getStringValue1();
+      }
     } else if (pOutdGdSp.getSpecifics().getItsType()
       .equals(ESpecificsItemType.INTEGER)) {
       spNm = pOutdGdSp.getSpecifics().getItsName();
       spVal = pOutdGdSp.getLongValue1().toString();
+      if (pOutdGdSp.getStringValue1() != null) {
+        spVal += " " + pOutdGdSp.getStringValue1();
+      }
     } else if (pOutdGdSp.getSpecifics().getChooseableSpecificsType() != null) {
       if (pOutdGdSp.getSpecifics().getChooseableSpecificsType()
         .getHtmlTemplate() != null) {
@@ -657,9 +664,14 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
           }
           int j = findFirstIdxFor(pOutdGdSpList, goods);
           SpecificsOfItemGroup specificsOfItemGroupWas = null;
+          itemInList.setDetailsMethod(null); //reset any way
           do {
-            updateForGoodsSpecific(pAddParam, pOutdGdSpList.get(j), itemInList, specificsOfItemGroupWas);
-            specificsOfItemGroupWas = pOutdGdSpList.get(j).getSpecifics().getItsGroop();
+            if (pOutdGdSpList.get(j).getSpecifics().getIsShowInList()) {
+              updateForGoodsSpecific(pAddParam, pOutdGdSpList.get(j), itemInList, specificsOfItemGroupWas);
+              specificsOfItemGroupWas = pOutdGdSpList.get(j).getSpecifics().getItsGroop();
+            } else {
+              itemInList.setDetailsMethod(1);
+            }
             j++;
           } while (j < pOutdGdSpList.size() && pOutdGdSpList.get(j).getGoods().getItsId().equals(goods.getItsId()));
           if (itemInList.getIsNew()) {

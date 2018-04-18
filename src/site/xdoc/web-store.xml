@@ -702,13 +702,6 @@
         near Nikl subway station at 11 Jul. There is small pizzeria near that place and another and flower's store is  far away,
         but webstore can ensure this order.
       </p>
-      <h5>Filter "available since" and/or "pickup place".</h5>
-      <p>Customer can use filter "available since" and/or "pickup place" to list available goods.
-        Service that makes this filter select all GoodsAvailable with itsQuantity > 0 and retrieve list
-        of "pickup places". If there is only pickup place then filter "pickup place" disabled. If maximum
-        of "sinceDate" is less than "now" then filter "available since" is disabled.
-        This filter is used together with other goods filters - catalog, goods spec, S.E. seller etc.
-      </p>
       <p>Goods is listed in store always if it's either available now or (may be) in future.</p>
       <p>Model GoodsAvailable:
           <li>goods - InvItem, not null.</li>
@@ -725,7 +718,9 @@
         It's used for goods/service availability and can be used for buyer that prefer pick up goods/get service at chosen place:
         <ul>
           <li>AHasNameIdLongVersion fields</li>
-       +   <li>description - String.</li>
+          <li>description - String.</li>
+          <li>latitude - BigDecimal if used</li>
+          <li>longitude - BigDecimal if used</li>
         </ul>
       </p>
       <p>To improve performance for customer that did not prefer any pickUpPlace (he prefer delivery) it's used SQL subquery
@@ -787,6 +782,7 @@
           <li>totalBidsAuc - Integer, default=0, totalBids.</li>
           <li>isEndedAuc - Boolean, default=false</li>
           <li>isSoldAuc - Boolean, default=false</li>
+          <li>detailsMethod - Integer, method to render details (page), NULL - no detail page.</li>
         </ul>
       </p>
       <p>This is simple model that contains of full HTML appearance of goods/service in the list (page), i.e.
@@ -819,9 +815,9 @@ order by ITSVERSION;
       <p>
     Sub-query for own goods in selected catalog when auctioning is not used in webstore/goodsInListForCatalogNotAucSamePrice.sql:
 <pre style="white-space: pre-wrap;">
-select ITSTYPE, ITEMID, ITSNAME, IMAGEURL, SPECIFICINLIST, ITSPRICE, PREVIOUSPRICE, AVAILABLEQUANTITY, ITSRATING
+select ITSTYPE, ITEMID, ITSNAME, IMAGEURL, SPECIFICINLIST, ITSPRICE, PREVIOUSPRICE, AVAILABLEQUANTITY, ITSRATING, DETAILSMETHOD
 from (
-  select ITSTYPE, ITEMID, ITSNAME, IMAGEURL, SPECIFICINLIST, ITSPRICE, PREVIOUSPRICE, AVAILABLEQUANTITY, ITSRATING
+  select ITSTYPE, ITEMID, ITSNAME, IMAGEURL, SPECIFICINLIST, ITSPRICE, PREVIOUSPRICE, AVAILABLEQUANTITY, ITSRATING, DETAILSMETHOD
   from ITEMINLIST
   where AVAILABLEQUANTITY>0
  ) as ALLGOODS
@@ -919,7 +915,6 @@ order by CAT1LINDEX, ITSINDEX;
           </li>
         </ul>
       </p>
-
     </section>
 
   </body>

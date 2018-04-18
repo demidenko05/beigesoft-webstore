@@ -23,6 +23,10 @@ import java.net.URL;
 import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.service.IProcessor;
+import org.beigesoft.service.ISrvDatabase;
+import org.beigesoft.service.ISrvOrm;
+import org.beigesoft.factory.IFactoryAppBeansByName;
+import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.accounting.persistable.AccSettings;
 import org.beigesoft.webstore.model.EShopItemType;
@@ -32,6 +36,8 @@ import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.persistable.BuyerPriceCategory;
 import org.beigesoft.webstore.persistable.GoodsPriceId;
 import org.beigesoft.webstore.persistable.GoodsPrice;
+import org.beigesoft.webstore.service.ISrvTradingSettings;
+import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
  * <p>Service that add item to cart or change quantity
@@ -48,9 +54,34 @@ public class PrcItemInCart<RS> implements IProcessor {
   private String queryCartTotals;
 
   /**
-   * <p>Processor Webstore Page.</p>
+   * <p>Database service.</p>
    **/
-  private PrcWebstorePage<RS> prcWebstorePage;
+  private ISrvDatabase<RS> srvDatabase;
+
+  /**
+   * <p>ORM service.</p>
+   **/
+  private ISrvOrm<RS> srvOrm;
+
+  /**
+   * <p>Business service for accounting settings.</p>
+   **/
+  private ISrvAccSettings srvAccSettings;
+
+  /**
+   * <p>Business service for trading settings.</p>
+   **/
+  private ISrvTradingSettings srvTradingSettings;
+
+  /**
+   * <p>Shopping Cart service.</p>
+   **/
+  private ISrvShoppingCart srvShoppingCart;
+
+  /**
+   * <p>Processors factory.</p>
+   **/
+  private IFactoryAppBeansByName<IProcessor> processorsFactory;
 
   /**
    * <p>Process entity request.</p>
@@ -61,9 +92,9 @@ public class PrcItemInCart<RS> implements IProcessor {
   @Override
   public final void process(final Map<String, Object> pAddParam,
     final IRequestData pRequestData) throws Exception {
-    TradingSettings tradingSettings = this.prcWebstorePage
-      .getSrvTradingSettings().lazyGetTradingSettings(pAddParam);
-    ShoppingCart shoppingCart = this.prcWebstorePage
+    TradingSettings tradingSettings = getSrvTradingSettings()
+      .lazyGetTradingSettings(pAddParam);
+    ShoppingCart shoppingCart = this.srvShoppingCart
       .getShoppingCart(pAddParam, pRequestData, true);
     CartItem cartItem = null;
     String cartItemItsIdStr = pRequestData.getParameter("cartItemItsId");
@@ -113,7 +144,7 @@ public class PrcItemInCart<RS> implements IProcessor {
       BigDecimal price = null;
       if (tradingSettings.getIsUsePriceForCustomer()) {
         //try to reveal price dedicated for customer:
-        List<BuyerPriceCategory> buyerPrCats = this.prcWebstorePage.getSrvOrm()
+        List<BuyerPriceCategory> buyerPrCats = this.getSrvOrm()
           .retrieveListWithConditions(pAddParam, BuyerPriceCategory.class,
             "where BUYER=" + shoppingCart.getBuyer().getItsId());
         for (BuyerPriceCategory buyerPrCat : buyerPrCats) {
@@ -125,7 +156,7 @@ public class PrcItemInCart<RS> implements IProcessor {
             gpId.setPriceCategory(buyerPrCat.getPriceCategory());
             GoodsPrice goodsPrice = new GoodsPrice();
             goodsPrice.setItsId(gpId);
-            goodsPrice = this.prcWebstorePage.getSrvOrm().
+            goodsPrice = this.getSrvOrm().
               retrieveEntity(pAddParam, goodsPrice);
             if (goodsPrice != null) {
               price = goodsPrice.getItsPrice();
@@ -139,7 +170,7 @@ public class PrcItemInCart<RS> implements IProcessor {
       if (price == null) {
         //retrieve price for all:
         if (cartItemType.equals(EShopItemType.GOODS)) {
-          List<GoodsPrice> goodsPrices = this.prcWebstorePage.getSrvOrm().
+          List<GoodsPrice> goodsPrices = this.getSrvOrm().
             retrieveListWithConditions(pAddParam, GoodsPrice.class,
               "where GOODS=" + cartItemId);
           if (goodsPrices.size() == 0) {
@@ -168,15 +199,15 @@ public class PrcItemInCart<RS> implements IProcessor {
     cartItem.setItsTotal(cartItem.getSubtotal()
       .add(cartItem.getTotalTaxes()));
     if (cartItem.getIsNew()) {
-      this.prcWebstorePage.getSrvOrm().insertEntity(pAddParam, cartItem);
+      this.getSrvOrm().insertEntity(pAddParam, cartItem);
     } else {
-      this.prcWebstorePage.getSrvOrm().updateEntity(pAddParam, cartItem);
+      this.getSrvOrm().updateEntity(pAddParam, cartItem);
     }
     String query = lazyGetQueryCartTotals();
     query = query.replace(":CARTID", shoppingCart.getItsId()
       .getItsId().toString());
     String[] columns = new String[]{"ITSTOTAL", "TOTALITEMS"};
-    Double[] totals = this.prcWebstorePage.getSrvDatabase()
+    Double[] totals = this.getSrvDatabase()
       .evalDoubleResults(query, columns);
     if (totals[0] == null) {
       totals[0] = 0d;
@@ -184,14 +215,16 @@ public class PrcItemInCart<RS> implements IProcessor {
     if (totals[1] == null) {
       totals[1] = 0d;
     }
-    AccSettings accSettings = this.prcWebstorePage.getSrvAccSettings()
+    AccSettings accSettings = this.getSrvAccSettings()
       .lazyGetAccSettings(pAddParam);
     shoppingCart.setItsTotal(BigDecimal.valueOf(totals[0]).
       setScale(accSettings.getPricePrecision(), accSettings.getRoundingMode()));
     shoppingCart.setTotalItems(totals[1].intValue());
-    this.prcWebstorePage.getSrvOrm().updateEntity(pAddParam, shoppingCart);
+    this.getSrvOrm().updateEntity(pAddParam, shoppingCart);
     pRequestData.setAttribute("shoppingCart", shoppingCart);
-    this.prcWebstorePage.process(pAddParam, pRequestData);
+    String processorName = pRequestData.getParameter("nmPrcRedirect");
+    IProcessor proc = this.processorsFactory.lazyGet(pAddParam, processorName);
+    proc.process(pAddParam, pRequestData);
   }
 
   /**
@@ -287,19 +320,101 @@ public class PrcItemInCart<RS> implements IProcessor {
   }
 
   /**
-   * <p>Getter for prcWebstorePage.</p>
-   * @return PrcWebstorePage<RS>
+   * <p>Getter for srvDatabase.</p>
+   * @return ISrvDatabase<RS>
    **/
-  public final PrcWebstorePage<RS> getPrcWebstorePage() {
-    return this.prcWebstorePage;
+  public final ISrvDatabase<RS> getSrvDatabase() {
+    return this.srvDatabase;
   }
 
   /**
-   * <p>Setter for prcWebstorePage.</p>
-   * @param pPrcWebstorePage reference
+   * <p>Setter for srvDatabase.</p>
+   * @param pSrvDatabase reference
    **/
-  public final void setPrcWebstorePage(
-    final PrcWebstorePage<RS> pPrcWebstorePage) {
-    this.prcWebstorePage = pPrcWebstorePage;
+  public final void setSrvDatabase(final ISrvDatabase<RS> pSrvDatabase) {
+    this.srvDatabase = pSrvDatabase;
+  }
+
+  /**
+   * <p>Geter for srvOrm.</p>
+   * @return ISrvOrm<RS>
+   **/
+  public final ISrvOrm<RS> getSrvOrm() {
+    return this.srvOrm;
+  }
+
+  /**
+   * <p>Setter for srvOrm.</p>
+   * @param pSrvOrm reference
+   **/
+  public final void setSrvOrm(final ISrvOrm<RS> pSrvOrm) {
+    this.srvOrm = pSrvOrm;
+  }
+
+  /**
+   * <p>Getter for srvAccSettings.</p>
+   * @return ISrvAccSettings
+   **/
+  public final ISrvAccSettings getSrvAccSettings() {
+    return this.srvAccSettings;
+  }
+
+  /**
+   * <p>Setter for srvAccSettings.</p>
+   * @param pSrvAccSettings reference
+   **/
+  public final void setSrvAccSettings(final ISrvAccSettings pSrvAccSettings) {
+    this.srvAccSettings = pSrvAccSettings;
+  }
+
+  /**
+   * <p>Getter for srvTradingSettings.</p>
+   * @return ISrvTradingSettings
+   **/
+  public final ISrvTradingSettings getSrvTradingSettings() {
+    return this.srvTradingSettings;
+  }
+
+  /**
+   * <p>Setter for srvTradingSettings.</p>
+   * @param pSrvTradingSettings reference
+   **/
+  public final void setSrvTradingSettings(
+    final ISrvTradingSettings pSrvTradingSettings) {
+    this.srvTradingSettings = pSrvTradingSettings;
+  }
+
+  /**
+   * <p>Getter for srvShoppingCart.</p>
+   * @return ISrvShoppingCart
+   **/
+  public final ISrvShoppingCart getSrvShoppingCart() {
+    return this.srvShoppingCart;
+  }
+
+  /**
+   * <p>Setter for srvShoppingCart.</p>
+   * @param pSrvShoppingCart reference
+   **/
+  public final void setSrvShoppingCart(
+    final ISrvShoppingCart pSrvShoppingCart) {
+    this.srvShoppingCart = pSrvShoppingCart;
+  }
+
+  /**
+   * <p>Getter for processorsFactory.</p>
+   * @return IFactoryAppBeansByName<IProcessor>
+   **/
+  public final IFactoryAppBeansByName<IProcessor> getProcessorsFactory() {
+    return this.processorsFactory;
+  }
+
+  /**
+   * <p>Setter for processorsFactory.</p>
+   * @param pProcessorsFactory reference
+   **/
+  public final void setProcessorsFactory(
+    final IFactoryAppBeansByName<IProcessor> pProcessorsFactory) {
+    this.processorsFactory = pProcessorsFactory;
   }
 }

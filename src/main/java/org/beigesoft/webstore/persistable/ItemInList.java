@@ -136,6 +136,12 @@ public class ItemInList extends AHasNameIdLongVersion {
    **/
   private Boolean isSoldAuc;
 
+  //other:
+  /**
+   * <p>Method to render details (page), NULL - no detail page.</p>
+   **/
+  private Integer detailsMethod;
+
   //Simple getters and setters:
   /**
    * <p>Getter for dateStartAuc.</p>
@@ -439,5 +445,21 @@ public class ItemInList extends AHasNameIdLongVersion {
    **/
   public final void setIsSoldAuc(final Boolean pIsSoldAuc) {
     this.isSoldAuc = pIsSoldAuc;
+  }
+
+  /**
+   * <p>Getter for detailsMethod.</p>
+   * @return Integer
+   **/
+  public final Integer getDetailsMethod() {
+    return this.detailsMethod;
+  }
+
+  /**
+   * <p>Setter for detailsMethod.</p>
+   * @param pDetailsMethod reference
+   **/
+  public final void setDetailsMethod(final Integer pDetailsMethod) {
+    this.detailsMethod = pDetailsMethod;
   }
 }

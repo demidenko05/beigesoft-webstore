@@ -10,4 +10,7 @@ alter table SPECIFICSOFITEMGROUP add column TEMPLATEEND bigint default null;
 alter table SPECIFICSOFITEMGROUP add constraint fkspoigrtmpend FOREIGN KEY (TEMPLATEEND) REFERENCES HTMLTEMPLATE(ITSID);
 alter table SPECIFICSOFITEMGROUP add column TEMPLATEDETAIL bigint default null;
 alter table SPECIFICSOFITEMGROUP add constraint fkspoigrtmdet FOREIGN KEY (TEMPLATEDETAIL) REFERENCES HTMLTEMPLATE(ITSID);
+alter table PICKUPPLACE add column LATITUDE decimal(2,6) default null;
+alter table PICKUPPLACE add column LONGITUDE decimal(3,6) default null;
+alter table ITEMINLIST add column DETAILSMETHOD integer null default not;
 update DATABASEINFO set DATABASEVERSION=6, DESCRIPTION='Beige Accounting OIO DB version 6';

@@ -12,7 +12,6 @@ package org.beigesoft.webstore.processor;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import java.util.Date;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
@@ -22,10 +21,7 @@ import java.util.ArrayList;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.math.BigDecimal;
 
-import org.beigesoft.model.ICookie;
-import org.beigesoft.model.CookieTmp;
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.model.Page;
 import org.beigesoft.service.IProcessor;
@@ -38,12 +34,12 @@ import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.webstore.model.TradingCatalog;
 import org.beigesoft.webstore.model.EShopItemType;
 import org.beigesoft.webstore.persistable.SubcatalogsCatalogsGs;
-import org.beigesoft.webstore.persistable.OnlineBuyer;
 import org.beigesoft.webstore.persistable.ShoppingCart;
 import org.beigesoft.webstore.persistable.CartItem;
 import org.beigesoft.webstore.persistable.ItemInList;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.service.ISrvTradingSettings;
+import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
  * <p>Service that retrieve webstore page.</p>
@@ -93,6 +89,11 @@ public class PrcWebstorePage<RS> implements IProcessor {
    * <p>Manager UVD settings.</p>
    **/
   private IMngSettings mngUvdSettings;
+
+  /**
+   * <p>Shopping Cart service.</p>
+   **/
+  private ISrvShoppingCart srvShoppingCart;
 
   /**
    * <p>Process entity request.</p>
@@ -168,6 +169,10 @@ public class PrcWebstorePage<RS> implements IProcessor {
       catalogName = tradingSettings.getCatalogOnStart().getItsName();
     }
     if (catalogId != null) {
+      if (tradingSettings.getIsUsePriceForCustomer()) {
+        throw new Exception(
+          "Method price depends of customer's category not yet implemented!");
+      }
       pRequestData.setAttribute("catalogName", catalogName);
       pRequestData.setAttribute("catalogId", catalogId);
       if (this.queryGilForCatNoAucSmPr == null) {
@@ -185,6 +190,7 @@ public class PrcWebstorePage<RS> implements IProcessor {
       neededFields.add("previousPrice");
       neededFields.add("availableQuantity");
       neededFields.add("itsRating");
+      neededFields.add("detailsMethod");
       pAddParam.put("ItemInListneededFields", neededFields);
       List<ItemInList> itemsList = getSrvOrm()
         .retrievePageByQuery(pAddParam, ItemInList.class,
@@ -205,8 +211,8 @@ public class PrcWebstorePage<RS> implements IProcessor {
     pRequestData.setAttribute("accSettings",
       this.srvAccSettings.lazyGetAccSettings(pAddParam));
     if (pRequestData.getAttribute("shoppingCart") == null) {
-      ShoppingCart shoppingCart = getShoppingCart(pAddParam,
-        pRequestData, false);
+      ShoppingCart shoppingCart = this.srvShoppingCart
+        .getShoppingCart(pAddParam, pRequestData, false);
       if (shoppingCart != null) {
         pRequestData.setAttribute("shoppingCart", shoppingCart);
       }
@@ -230,86 +236,6 @@ public class PrcWebstorePage<RS> implements IProcessor {
         pRequestData.setAttribute("cartMap", cartMap);
       }
     }
-  }
-
-  /**
-   * <p>Get/Create ShoppingCart.</p>
-   * @param pAddParam additional param
-   * @param pRequestData Request Data
-   * @param pIsNeedToCreate Is Need To Create cart
-   * @return shopping cart or null
-   * @throws Exception - an exception
-   **/
-  public final ShoppingCart getShoppingCart(final Map<String, Object> pAddParam,
-    final IRequestData pRequestData,
-      final boolean pIsNeedToCreate) throws Exception {
-    ICookie[] cookies = pRequestData.getCookies();
-    Long buyerId = null;
-    ICookie cookieWas = null;
-    if (cookies != null) {
-      for (ICookie cookie : cookies) {
-        if (cookie.getName().equals("cBuyerId")) {
-          buyerId = Long.valueOf(cookie.getValue());
-          cookieWas = cookie;
-        }
-      }
-    }
-    OnlineBuyer onlineBuyer;
-    if (buyerId == null) {
-      TradingSettings tradingSettings = srvTradingSettings
-        .lazyGetTradingSettings(pAddParam);
-      if (pIsNeedToCreate
-        || tradingSettings.getIsCreateOnlineUserOnFirstVisit()) {
-        onlineBuyer = createOnlineBuyer(pAddParam, pRequestData);
-        CookieTmp cookie = new CookieTmp();
-        cookie.setName("cBuyerId");
-        cookie.setValue(onlineBuyer.getItsId().toString());
-        pRequestData.addCookie(cookie);
-      } else {
-        return null;
-      }
-    } else {
-      onlineBuyer = getSrvOrm()
-        .retrieveEntityById(pAddParam, OnlineBuyer.class, buyerId);
-      if (onlineBuyer == null) { // deleted for any reason, so create new:
-        onlineBuyer = createOnlineBuyer(pAddParam, pRequestData);
-        cookieWas.setValue(onlineBuyer.getItsId().toString());
-      }
-    }
-    ShoppingCart shoppingCart = getSrvOrm()
-      .retrieveEntityById(pAddParam, ShoppingCart.class, onlineBuyer);
-    if (shoppingCart != null) {
-      CartItem ci = new CartItem();
-      ci.setItsOwner(shoppingCart);
-      List<CartItem> cartItems = getSrvOrm()
-        .retrieveListForField(pAddParam, ci, "itsOwner");
-      shoppingCart.setItsItems(cartItems);
-    } else if (pIsNeedToCreate) {
-      shoppingCart = new ShoppingCart();
-      shoppingCart.setItsId(onlineBuyer);
-      shoppingCart.setBuyer(onlineBuyer);
-      shoppingCart.setItsTotal(BigDecimal.ZERO);
-      shoppingCart.setTotalItems(0);
-      getSrvOrm().insertEntity(pAddParam, shoppingCart);
-    }
-    return shoppingCart;
-  }
-
-  /**
-   * <p>Create OnlineBuyer.</p>
-   * @param pAddParam additional param
-   * @param pRequestData Request Data
-   * @return shopping cart or null
-   * @throws Exception - an exception
-   **/
-  public final OnlineBuyer createOnlineBuyer(
-    final Map<String, Object> pAddParam,
-      final IRequestData pRequestData) throws Exception {
-    OnlineBuyer onlineBuyer = new OnlineBuyer();
-    onlineBuyer.setIsNew(true);
-    onlineBuyer.setItsName("newbe" + new Date());
-    getSrvOrm().insertEntity(pAddParam, onlineBuyer);
-    return onlineBuyer;
   }
 
   /**
@@ -537,5 +463,22 @@ public class PrcWebstorePage<RS> implements IProcessor {
    **/
   public final void setSrvPage(final ISrvPage pSrvPage) {
     this.srvPage = pSrvPage;
+  }
+
+  /**
+   * <p>Getter for srvShoppingCart.</p>
+   * @return ISrvShoppingCart
+   **/
+  public final ISrvShoppingCart getSrvShoppingCart() {
+    return this.srvShoppingCart;
+  }
+
+  /**
+   * <p>Setter for srvShoppingCart.</p>
+   * @param pSrvShoppingCart reference
+   **/
+  public final void setSrvShoppingCart(
+    final ISrvShoppingCart pSrvShoppingCart) {
+    this.srvShoppingCart = pSrvShoppingCart;
   }
 }

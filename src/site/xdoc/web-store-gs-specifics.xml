@@ -99,6 +99,7 @@
           <li>GoodsSpecific.[all_fields] specifics - level 3</li>
           <li>GoodsSpecific.goods[itsName]</li>
           <li>GoodsSpecific.specifics.itsName</li>
+          <li>GoodsSpecific.specifics.isShowInList</li>
           <li>GoodsSpecific.specifics.itsType</li>
           <li>GoodsSpecific.specifics.itsGroup.[templateStart/End/Detail(only ID), itsName]</li>
           <li>GoodsSpecific.specifics.chooseableSpecificsType.htmlTemplate(only ID)</li>
@@ -106,10 +107,11 @@
         </ul>  
         where clause for Beige-ORM that retrieve GS is:
 <pre style="white-space: pre-wrap;"> 
-where SPECIFICS.ISSHOWINLIST=1 and GOODSSPECIFIC.GOODS in
-(select distinct  GOODS from GOODSSPECIFIC join SPECIFICSOFITEM on GOODSSPECIFIC.SPECIFICS=SPECIFICSOFITEM.ITSID where ISSHOWINLIST=1 and GOODSSPECIFIC.ITSVERSION>:LASTREFRESHEDVERSION)
+where GOODSSPECIFIC.GOODS in
+(select distinct  GOODS from GOODSSPECIFIC join SPECIFICSOFITEM on GOODSSPECIFIC.SPECIFICS=SPECIFICSOFITEM.ITSID where GOODSSPECIFIC.ITSVERSION>:LASTREFRESHEDVERSION)
 order by GOODS.ITSID, SPECIFICS.ITSINDEX;
 </pre>
+This query retrieves all goods specifics include "not in the list", if there is any detail specific then "hasDetails" will be true, so goods name will be link to the detail page.
       </p>
 
     </section>
