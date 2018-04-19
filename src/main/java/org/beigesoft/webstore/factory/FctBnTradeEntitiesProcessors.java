@@ -39,7 +39,8 @@ import org.beigesoft.webstore.processor.PrcGoodsSpecificDelete;
 
 /**
  * <p>Webstore entities processors factory.
- * It is inner inside ACC-Processor factory.</p>
+ * It is inner inside ACC-Processor factory.
+ * These are non-public processors.</p>
  *
  * @param <RS> platform dependent record set type
  * @author Yury Demidenko

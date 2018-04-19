@@ -22,6 +22,7 @@ import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.webstore.model.EShopItemType;
+import org.beigesoft.webstore.model.ESpecificsItemType;
 import org.beigesoft.webstore.persistable.GoodsSpecific;
 import org.beigesoft.webstore.persistable.GoodsPrice;
 import org.beigesoft.webstore.persistable.GoodsAvailable;
@@ -32,7 +33,7 @@ import org.beigesoft.webstore.service.ISrvTradingSettings;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
- * <p>Service that retrieve goods/service details. It passes itemPrice=null
+ * <p>Service that retrieve goods/service details. It passes goodsPrice=null
  * in case of outdated or inconsistent price data.
  * JSP should handle wrong price or availability data.</p>
  *
@@ -97,12 +98,25 @@ public class PrcDetailPage<RS> implements IProcessor {
   public final void processInvItem(final Map<String, Object> pAddParam,
     final IRequestData pRequestData) throws Exception {
     Long itemId = Long.valueOf(pRequestData.getParameter("itemId"));
-    List<GoodsSpecific> specificsList;
-    List<GoodsAvailable> availabilityList;
-    GoodsPrice itemPrice;
-    specificsList = retrieveGoodsSpecifics(pAddParam, itemId);
-    itemPrice = retrieveGoodsPrice(pAddParam, itemId);
-    availabilityList = getSrvOrm().retrieveListWithConditions(pAddParam,
+    List<GoodsSpecific> gsList;
+    List<GoodsAvailable> gaList;
+    GoodsPrice goodsPrice;
+    gsList = retrieveGoodsSpecifics(pAddParam, itemId);
+    //extract main image if exist:
+    int miIdx = -1;
+    for (int i = 0; i < gsList.size(); i++) {
+      if (gsList.get(i).getSpecifics().getItsType()
+        .equals(ESpecificsItemType.IMAGE)) {
+        pRequestData.setAttribute("gsMainImage", gsList.get(i));
+        miIdx = i;
+        break;
+      }
+    }
+    if (miIdx != -1) {
+      gsList.remove(miIdx);
+    }
+    goodsPrice = retrieveGoodsPrice(pAddParam, itemId);
+    gaList = getSrvOrm().retrieveListWithConditions(pAddParam,
         GoodsAvailable.class, " where goods=" + itemId);
     if (pRequestData.getAttribute("shoppingCart") == null) {
       ShoppingCart shoppingCart = this.srvShoppingCart
@@ -125,9 +139,9 @@ public class PrcDetailPage<RS> implements IProcessor {
         }
       }
     }
-    pRequestData.setAttribute("specificsList", specificsList);
-    pRequestData.setAttribute("availabilityList", availabilityList);
-    pRequestData.setAttribute("itemPrice", itemPrice);
+    pRequestData.setAttribute("gsList", gsList);
+    pRequestData.setAttribute("gaList", gaList);
+    pRequestData.setAttribute("goodsPrice", goodsPrice);
   }
 
   /**

@@ -43,7 +43,8 @@ import org.beigesoft.webstore.service.ISrvTradingSettings;
 
 /**
  * <p>Service that refresh webstore goods in ItemInList according current
- * GoodsAvailiable, GoodsSpecific, GoodsPrice, GoodsRating.</p>
+ * GoodsAvailiable, GoodsSpecific, GoodsPrice, GoodsRating.
+ * This is non-public processor.</p>
  *
  * @param <RS> platform dependent record set type
  * @author Yury Demidenko

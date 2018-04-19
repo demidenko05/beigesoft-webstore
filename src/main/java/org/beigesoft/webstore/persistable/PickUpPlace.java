@@ -38,12 +38,12 @@ public class PickUpPlace extends AHasNameIdLongVersion {
   private String description;
 
   /**
-   * <p>Latitude f used.</p>
+   * <p>Latitude if used.</p>
    **/
   private BigDecimal latitude;
 
   /**
-   * <p>Longitude f used.</p>
+   * <p>Longitude if used.</p>
    **/
   private BigDecimal longitude;
 

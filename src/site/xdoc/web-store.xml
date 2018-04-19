@@ -915,6 +915,13 @@ order by CAT1LINDEX, ITSINDEX;
           </li>
         </ul>
       </p>
+      
+      <p>Public not require authorization) request handlers (that can be invoked through public servlet WServicePublic):
+        <ul>
+          <li>hndPubWebStrTr of type TransactionalRequestHandler can invoke only WEB-store public processors
+          (WEB-store admin and SE sellers use another request handlers).</li>
+        </ul>
+      </p>
     </section>
 
   </body>
