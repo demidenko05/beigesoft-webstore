@@ -74,6 +74,16 @@ public class GoodsSpecific extends AEditableHasVersion
   private String stringValue2;
 
   /**
+   * <p>String Value3 if present.</p>
+   **/
+  private String stringValue3;
+
+  /**
+   * <p>String Value4 if present.</p>
+   **/
+  private String stringValue4;
+
+  /**
    * <p>Usually it's simple getter that return model ID.</p>
    * @return ID model ID
    **/
@@ -233,5 +243,37 @@ public class GoodsSpecific extends AEditableHasVersion
    **/
   public final void setStringValue2(final String pStringValue2) {
     this.stringValue2 = pStringValue2;
+  }
+
+  /**
+   * <p>Getter for stringValue3.</p>
+   * @return String
+   **/
+  public final String getStringValue3() {
+    return this.stringValue3;
+  }
+
+  /**
+   * <p>Setter for stringValue3.</p>
+   * @param pStringValue3 reference
+   **/
+  public final void setStringValue3(final String pStringValue3) {
+    this.stringValue3 = pStringValue3;
+  }
+
+  /**
+   * <p>Getter for stringValue4.</p>
+   * @return String
+   **/
+  public final String getStringValue4() {
+    return this.stringValue4;
+  }
+
+  /**
+   * <p>Setter for stringValue4.</p>
+   * @param pStringValue4 reference
+   **/
+  public final void setStringValue4(final String pStringValue4) {
+    this.stringValue4 = pStringValue4;
   }
 }

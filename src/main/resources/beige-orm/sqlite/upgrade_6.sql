@@ -8,4 +8,6 @@ alter table SPECIFICSOFITEMGROUP add column TEMPLATEDETAIL integer default null 
 alter table PICKUPPLACE add column LATITUDE real default null;
 alter table PICKUPPLACE add column LONGITUDE real default null;
 alter table ITEMINLIST add column DETAILSMETHOD integer default null;
+alter table GOODSSPECIFIC add column STRINGVALUE3 text default null;
+alter table GOODSSPECIFIC add column STRINGVALUE4 text default null;
 update DATABASEINFO set DATABASEVERSION=6, DESCRIPTION='Beige Accounting OIO DB version 6';

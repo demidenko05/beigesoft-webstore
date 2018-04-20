@@ -27,6 +27,12 @@
       It must be restricted(current style friendly), embedded HTML editor and the HTML content can be stored in a file (in case of big content).
       This HTML content can uses/contains user downloaded images.
     </p>
+    <p>
+      The easiest and reliable way is using HTML template in which SE Seller will edit <b>container</b> (part of template) that holds content.
+      Then SE Seller will upload this HTML file as item specifics "File embedded". This template (bundle of files) already has all bootstrap CSS files.
+      During setting item specifics content in "container" will be verified for using non-accepted HTML tags...
+    </p>
+    <p>Using embedded HTML (file) describing item is performance friendly method, because SQL server is freed from this and other server (device) may hold these files.</p>
     </section>
 
   </body>

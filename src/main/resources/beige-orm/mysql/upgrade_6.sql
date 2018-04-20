@@ -13,4 +13,6 @@ alter table SPECIFICSOFITEMGROUP add FOREIGN KEY (TEMPLATEDETAIL) REFERENCES HTM
 alter table PICKUPPLACE add column LATITUDE decimal(2,6) default null;
 alter table PICKUPPLACE add column LONGITUDE decimal(3,6) default null;
 alter table ITEMINLIST add column DETAILSMETHOD int default null;
+alter table GOODSSPECIFIC add column STRINGVALUE3 varchar(255) default null;
+alter table GOODSSPECIFIC add column STRINGVALUE4 varchar(255) default null;
 update DATABASEINFO set DATABASEVERSION=6, DESCRIPTION='Beige Accounting OIO DB version 6';

@@ -55,6 +55,8 @@
           <li>longValue2 - Long, if present</li>
           <li>stringValue1 - String, if present</li>
           <li>stringValue2 - String, if present</li>
+          <li>stringValue3 - String, if present</li>
+          <li>stringValue4 - String, if present</li>
         </ul>
         Pair {"googs", "specifics"} is primary key
       </p>
@@ -65,8 +67,10 @@
           <li>INTEGER - 2, for specifics like "MemorySize", stringValue1 may hold unit of measure.</li>
           <li>IMAGE - 3, stringValue1 hold URL to image, stringValue2 - uploaded file path if it was uploaded.</li>
           <li>IMAGE_IN_SET - 4, stringValue1 hold URL to image, stringValue2 - uploaded file path if it was uploaded. Image that belongs to set of images ordered and gathered
-            (they must have adjacent indexes) by itsIndex, longValue1 may hold "showSizeTypeClass".</li>
-          <li>FILE - 5, stringValue1 hold URL to file, e.g. "get brochure", stringValue2 - uploaded file path if it was uploaded.</li>
+            (they must have adjacent indexes) by itsIndex, longValue1 may hold "showSizeTypeClass".
+            stringValue3 may hold image description. stringValue4 may hold images set description (the first in set).</li>
+          <li>FILE - 5, stringValue1 hold URL to file, e.g. "get brochure", stringValue2 - uploaded file path if it was uploaded.
+            stringValue3 may hold file description. stringValue4 may hold files set description (the first in the group).</li>
           <li>FILE_EMBEDDED - 6, show it on page, stringValue1 hold URL to file e.g. a PDF,
             longValue1 may hold "showSizeTypeClass", e.g. class=1 means show 30% of page size, stringValue2 - uploaded file path if it was uploaded.</li>
           <li>LINK - 7, stringValue1 hold URL.</li>
