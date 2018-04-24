@@ -28,6 +28,11 @@ public class SettingsAdd extends AHasIdLongVersion {
    **/
   private Integer recordsPerTransaction;
 
+  /**
+   * <p>Minimum list size for enable ordering, 20 default.</p>
+   **/
+  private Integer minimumListSizeForOrdering;
+
   //Simple getters and setters:
   /**
    * <p>Getter for recordsPerTransaction.</p>
@@ -44,5 +49,22 @@ public class SettingsAdd extends AHasIdLongVersion {
   public final void setRecordsPerTransaction(
     final Integer pRecordsPerTransaction) {
     this.recordsPerTransaction = pRecordsPerTransaction;
+  }
+
+  /**
+   * <p>Getter for minimumListSizeForOrdering.</p>
+   * @return Integer
+   **/
+  public final Integer getMinimumListSizeForOrdering() {
+    return this.minimumListSizeForOrdering;
+  }
+
+  /**
+   * <p>Setter for minimumListSizeForOrdering.</p>
+   * @param pMinimumListSizeForOrdering reference
+   **/
+  public final void setMinimumListSizeForOrdering(
+    final Integer pMinimumListSizeForOrdering) {
+    this.minimumListSizeForOrdering = pMinimumListSizeForOrdering;
   }
 }

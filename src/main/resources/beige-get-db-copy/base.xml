@@ -142,6 +142,7 @@
   org.beigesoft.webstore.persistable.CustomerOrderSeService,
   org.beigesoft.webstore.persistable.CustomerOrderTaxLine,
   org.beigesoft.webstore.persistable.CustomerGoodsSeen,
+  org.beigesoft.webstore.persistable.CatalogSpecifics,
   org.beigesoft.webstore.persistable.TradingSettings</entry>
 <entry key="settingsKeysForClasses">excludeFields</entry>
 <entry key="settingsKeysForFields">isEnabled, ISrvFieldWriter, ISrvEntityFieldFiller</entry>

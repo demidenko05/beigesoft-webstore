@@ -12,6 +12,8 @@ package org.beigesoft.webstore.persistable;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
+import java.util.List;
+
 import org.beigesoft.persistable.AHasNameIdLongVersion;
 
 /**
@@ -43,6 +45,33 @@ public class CatalogGs extends AHasNameIdLongVersion {
    * or for catalog that shows only on start.</p>
    **/
   private Boolean isInMenu = true;
+
+  /**
+   * <p>Use filter specifics for this catalog/sub-catalogs.</p>
+   **/
+  private Boolean useFilterSpecifics = false;
+
+  /**
+   * <p>Use filter sub-catalogs for this catalog/sub-catalogs.</p>
+   **/
+  private Boolean useFilterSubcatalog = false;
+
+  /**
+   * <p>Use pickup place filter for this catalog/sub-catalogs.</p>
+   **/
+  private Boolean usePickupPlaceFilter = false;
+
+  /**
+   * <p>Use availability filter for this catalog/sub-catalogs.</p>
+   **/
+  private Boolean useAvailableFilter = false;
+
+  /**
+   * <p>List of filterable/orderable specifics that are used for items
+   * in that catalog and its sub-catalogs.
+   * It's used to make filter/order for item's list.</p>
+   **/
+  private List<CatalogSpecifics> usedSpecifics;
 
   //Simple getters and setters:
   /**
@@ -107,5 +136,87 @@ public class CatalogGs extends AHasNameIdLongVersion {
    **/
   public final void setIsInMenu(final Boolean pIsInMenu) {
     this.isInMenu = pIsInMenu;
+  }
+
+  /**
+   * <p>Getter for useFilterSpecifics.</p>
+   * @return Boolean
+   **/
+  public final Boolean getUseFilterSpecifics() {
+    return this.useFilterSpecifics;
+  }
+
+  /**
+   * <p>Setter for useFilterSpecifics.</p>
+   * @param pUseFilterSpecifics reference
+   **/
+  public final void setUseFilterSpecifics(final Boolean pUseFilterSpecifics) {
+    this.useFilterSpecifics = pUseFilterSpecifics;
+  }
+
+  /**
+   * <p>Getter for useFilterSubcatalog.</p>
+   * @return Boolean
+   **/
+  public final Boolean getUseFilterSubcatalog() {
+    return this.useFilterSubcatalog;
+  }
+
+  /**
+   * <p>Setter for useFilterSubcatalog.</p>
+   * @param pUseFilterSubcatalog reference
+   **/
+  public final void setUseFilterSubcatalog(final Boolean pUseFilterSubcatalog) {
+    this.useFilterSubcatalog = pUseFilterSubcatalog;
+  }
+
+  /**
+   * <p>Getter for usePickupPlaceFilter.</p>
+   * @return Boolean
+   **/
+  public final Boolean getUsePickupPlaceFilter() {
+    return this.usePickupPlaceFilter;
+  }
+
+  /**
+   * <p>Setter for usePickupPlaceFilter.</p>
+   * @param pUsePickupPlaceFilter reference
+   **/
+  public final void setUsePickupPlaceFilter(
+    final Boolean pUsePickupPlaceFilter) {
+    this.usePickupPlaceFilter = pUsePickupPlaceFilter;
+  }
+
+  /**
+   * <p>Getter for useAvailableFilter.</p>
+   * @return Boolean
+   **/
+  public final Boolean getUseAvailableFilter() {
+    return this.useAvailableFilter;
+  }
+
+  /**
+   * <p>Setter for useAvailableFilter.</p>
+   * @param pUseAvailableFilter reference
+   **/
+  public final void setUseAvailableFilter(final Boolean pUseAvailableFilter) {
+    this.useAvailableFilter = pUseAvailableFilter;
+  }
+
+  /**
+   * <p>Getter for usedSpecifics.</p>
+   * @return List<CatalogSpecifics>
+   **/
+  public final List<CatalogSpecifics> getUsedSpecifics() {
+    return this.usedSpecifics;
+  }
+
+  /**
+   * <p>Setter for usedSpecifics.</p>
+   * @param pUsedSpecifics reference
+   **/
+  public final void setUsedSpecifics(
+    final List<CatalogSpecifics> pUsedSpecifics) {
+    this.usedSpecifics = pUsedSpecifics;
   }
 }

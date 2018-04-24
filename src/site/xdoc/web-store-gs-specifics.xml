@@ -4,15 +4,15 @@
   xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
 
   <properties>
-    <title>Beigesoftware, Beige-WEB-Store</title>
+    <title>Beigesoft ™ WEB Store. Specifics of goods/service.</title>
    </properties>
 
   <body>
 
-    <section name="Beige WEB Store specification. Specifics of goods/service.">
+    <section name="Beigesoft ™ WEB Store specification. Specifics of goods/service.">
       
-      <h4>Goods/services specifics</h4>
-      <p>Used to describe and filter goods/services.</p>
+      <h4>Goods/services specifics (characteristics/features/traits/exact details)</h4>
+      <p>It's used to describe and to filter goods/services.</p>
       <p>Model SpecificsOfItem, e.g. "Screen size":
         <ul>
           <li>AHasNameIdLongVersion fields</li>
@@ -23,6 +23,7 @@
 !!NOT NULL not fixed in old DB, only programmatically - it's enough       <li>itsIndex - Integer, not null, used for ordering when printing.</li>
           <li>description - String.</li>
           <li>chooseableSpecificsType - ChooseableSpecificsType, if it is chooseable</li>
+          <li>useForOrdering - Boolean, if used for list ordering, false default</li>
         </ul>
       </p>
       <h5>Rendering of specifics</h5>
@@ -33,8 +34,7 @@
             :VALUE1/2 will be changed to actual ones.</li>
         </ul>
       </p>
-      <p>Its useful to use separate specifics for same thing for filtering and other purposes.
-      But it's need to group them (e.g. when printing) by using Specific Group, e.g. "Memory" has child "MemorySize" and "MemoryType" e.g. 8GB and DDR3.
+      <p>If it's need to group specifics (e.g. when printing) by using Specifics Group, e.g. "Memory" has child "MemorySize" and "MemoryType" e.g. 8GB and DDR3.
       So they should be printed together in their group.</p>
       <p>Entity SpecificsOfItemGroup:
         <ul>
@@ -115,7 +115,7 @@ where GOODSSPECIFIC.GOODS in
 (select distinct  GOODS from GOODSSPECIFIC join SPECIFICSOFITEM on GOODSSPECIFIC.SPECIFICS=SPECIFICSOFITEM.ITSID where GOODSSPECIFIC.ITSVERSION>:LASTREFRESHEDVERSION)
 order by GOODS.ITSID, SPECIFICS.ITSINDEX;
 </pre>
-This query retrieves all goods specifics include "not in the list", if there is any detail specific then "hasDetails" will be true, so goods name will be link to the detail page.
+This query retrieves all goods specifics include "not in the list", if there is any detail specific then "detailsMethod" will be not null, so goods name will be link to the detail page.
       </p>
 
     </section>

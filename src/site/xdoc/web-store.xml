@@ -96,6 +96,7 @@
       <p>
         <ul>
           <li>recordsPerTransaction - Integer not null,  Records per transactions for bulk operations</li>
+          <li>minimumListSizeForOrdering - Integer, not null, default 20, minimum list size for enable ordering.</li>
         </ul>
       </p>
       
@@ -334,9 +335,12 @@
           <li>AHasNameIdLongVersion fields</li>
           <li>hasSubcatalogs - Boolean, not null, false default.</li>
           <li>description - String.</li>
-          <li>itsIndex - Integer, not null, ordering</li>
+!!!not null not fixed in old DB          <li>itsIndex - Integer, not null, ordering</li>
           <li>isInMenu - Boolean, default true, Is it in the menu, default true, to quick switch on/off from menu
             or for catalog that shows only on start</li>
+          <li>usedSpecifics - List&lt;SpecificsOfItem&gt; automatically maintained, not shown in form.
+            List of filterable/orderable specifics that are used for items in that catalog and its sub-catalogs.
+            It's used to make filter/order for item's list.</li>
         </ul>
       </p>
       <p>Entity GoodsCatalogs:
@@ -721,6 +725,7 @@
           <li>description - String.</li>
           <li>latitude - BigDecimal if used</li>
           <li>longitude - BigDecimal if used</li>
+          <li>timeZone - Integer, Time zone GMT+ minutes if used</li>
         </ul>
       </p>
       <p>To improve performance for customer that did not prefer any pickUpPlace (he prefer delivery) it's used SQL subquery
@@ -845,31 +850,10 @@ where :ITSCATALOG is ID of selected catalog or "catalog on start".
         then list of goods for all subcatalogs will be appeared.
       </p>
       <p>
-        Query for catalog 1 and 2 level in webstore/catalogs1And2Level.sql:
-<pre style="white-space: pre-wrap;">
-select CAT1LID,  CAT1LNAME, CAT1HS, SUBCATALOG as CAT2LID, CATALOGGS.ITSNAME as CAT2LNAME, HASSUBCATALOGS as CAT2HS
-from
-  (
-    select ITSID as CAT1LID, ITSNAME as CAT1LNAME, ITSINDEX as CAT1LINDEX, HASSUBCATALOGS as CAT1HS
-    from CATALOGGS
-    left join SUBCATALOGSCATALOGSGS on SUBCATALOGSCATALOGSGS.SUBCATALOG=CATALOGGS.ITSID
-    where SUBCATALOG is null and ISINMENU=1
-  ) as CAT1L
-left join SUBCATALOGSCATALOGSGS on SUBCATALOGSCATALOGSGS.ITSCATALOG=CAT1L.CAT1LID
-left join CATALOGGS on CATALOGGS.ITSID=SUBCATALOG
-where ISINMENU is null or ISINMENU=1
-order by CAT1LINDEX, ITSINDEX;
-</pre>
-      </p>
-      <p>
-        Catalog 3d and lower level revealed cyclic by ORM.
-      </p>
-      <p>
         Model non-persistable Store Catalogs (goods/services) - List&lt;TradingCatalog&gt;<br></br>
         Model TradingCatalog:
         <ul>
-          <li>itsName - String appearance</li>
-          <li>itsLink - String URL target</li>
+          <li>catalog - CatalogGs</li>
           <li>subcatalogs - List&lt;TradingCatalog&gt;</li>
         </ul>
         Catalog that has subcatalog can't has goods.

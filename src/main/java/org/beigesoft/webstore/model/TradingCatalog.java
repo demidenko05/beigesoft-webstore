@@ -13,6 +13,9 @@ package org.beigesoft.webstore.model;
  */
 
 import java.util.List;
+import java.util.ArrayList;
+
+import org.beigesoft.webstore.persistable.CatalogGs;
 
 /**
  * <pre>
@@ -24,72 +27,30 @@ import java.util.List;
 public class TradingCatalog  {
 
   /**
-   * <p>ID.</p>
+   * <p>Persistable catalog.</p>
    **/
-  private Long itsId;
-
-  /**
-   * <p>Name.</p>
-   **/
-  private String itsName;
-
-  /**
-   * <p>URL.</p>
-   **/
-  private String itsLink;
+  private CatalogGs catalog;
 
   /**
    * <p>Subcatalogs.</p>
    **/
-  private List<TradingCatalog> subcatalogs;
+  private List<TradingCatalog> subcatalogs = new ArrayList<TradingCatalog>();
 
   //Simple getters and setters:
   /**
-   * <p>Getter for itsId.</p>
-   * @return Long
+   * <p>Getter for catalog.</p>
+   * @return CatalogGs
    **/
-  public final Long getItsId() {
-    return this.itsId;
+  public final CatalogGs getCatalog() {
+    return this.catalog;
   }
 
   /**
-   * <p>Setter for itsId.</p>
-   * @param pItsId reference
+   * <p>Setter for catalog.</p>
+   * @param pCatalog reference
    **/
-  public final void setItsId(final Long pItsId) {
-    this.itsId = pItsId;
-  }
-
-  /**
-   * <p>Getter for itsName.</p>
-   * @return String
-   **/
-  public final String getItsName() {
-    return this.itsName;
-  }
-
-  /**
-   * <p>Setter for itsName.</p>
-   * @param pItsName reference
-   **/
-  public final void setItsName(final String pItsName) {
-    this.itsName = pItsName;
-  }
-
-  /**
-   * <p>Getter for itsLink.</p>
-   * @return String
-   **/
-  public final String getItsLink() {
-    return this.itsLink;
-  }
-
-  /**
-   * <p>Setter for itsLink.</p>
-   * @param pItsLink reference
-   **/
-  public final void setItsLink(final String pItsLink) {
-    this.itsLink = pItsLink;
+  public final void setCatalog(final CatalogGs pCatalog) {
+    this.catalog = pCatalog;
   }
 
   /**

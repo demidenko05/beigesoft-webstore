@@ -47,6 +47,11 @@ public class PickUpPlace extends AHasNameIdLongVersion {
    **/
   private BigDecimal longitude;
 
+  /**
+   * <p>Time zone GMT+ minutes if used.</p>
+   **/
+  private Integer timeZone;
+
   //Simple getters and setters:
   /**
    * <p>Getter for description.</p>
@@ -94,5 +99,21 @@ public class PickUpPlace extends AHasNameIdLongVersion {
    **/
   public final void setLongitude(final BigDecimal pLongitude) {
     this.longitude = pLongitude;
+  }
+
+  /**
+   * <p>Getter for timeZone.</p>
+   * @return Integer
+   **/
+  public final Integer getTimeZone() {
+    return this.timeZone;
+  }
+
+  /**
+   * <p>Setter for timeZone.</p>
+   * @param pTimeZone reference
+   **/
+  public final void setTimeZone(final Integer pTimeZone) {
+    this.timeZone = pTimeZone;
   }
 }

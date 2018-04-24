@@ -4,12 +4,12 @@
   xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
 
   <properties>
-    <title>Beigesoftware, Beige-WEB-Store</title>
+    <title>Beigesoft ™ WEB Store specification. Detail view of goods/services.</title>
    </properties>
 
   <body>
 
-    <section name="Beige WEB Store specification. Detail view of goods/services.">
+    <section name="Beigesoft ™ WEB Store specification. Detail view of goods/services.">
 
     <h4>Detail view of goods/services.</h4>
     <p>There are cases when goods/services list contains of full information and no more details need.
@@ -33,6 +33,10 @@
       During setting item specifics content in "container" will be verified for using non-accepted HTML tags...
     </p>
     <p>Using embedded HTML (file) describing item is performance friendly method, because SQL server is freed from this and other server (device) may hold these files.</p>
+
+    <h4>Current implementation's peculiarities</h4>
+    <p>Specifics of type "FILE" and "IMAGE_IN_SET" must belongs to a group.</p>
+
     </section>
 
   </body>

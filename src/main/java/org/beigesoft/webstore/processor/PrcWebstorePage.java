@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -27,12 +28,14 @@ import org.beigesoft.model.Page;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvPage;
 import org.beigesoft.settings.IMngSettings;
-import org.beigesoft.model.IRecordSet;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.webstore.model.TradingCatalog;
+import org.beigesoft.webstore.model.CmprTradingCatalog;
 import org.beigesoft.webstore.model.EShopItemType;
+import org.beigesoft.webstore.persistable.CatalogSpecifics;
+import org.beigesoft.webstore.persistable.CatalogGs;
 import org.beigesoft.webstore.persistable.SubcatalogsCatalogsGs;
 import org.beigesoft.webstore.persistable.ShoppingCart;
 import org.beigesoft.webstore.persistable.CartItem;
@@ -40,6 +43,8 @@ import org.beigesoft.webstore.persistable.ItemInList;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.service.ISrvTradingSettings;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
+import org.beigesoft.webstore.service.ILstnCatalogChanged;
+import org.beigesoft.webstore.service.ILstnFoSpecificsChanged;
 
 /**
  * <p>Service that retrieve webstore page.</p>
@@ -47,7 +52,8 @@ import org.beigesoft.webstore.service.ISrvShoppingCart;
  * @param <RS> platform dependent record set type
  * @author Yury Demidenko
  */
-public class PrcWebstorePage<RS> implements IProcessor {
+public class PrcWebstorePage<RS> implements IProcessor,
+  ILstnCatalogChanged, ILstnFoSpecificsChanged {
 
   /**
    * <p>Database service.</p>
@@ -58,11 +64,6 @@ public class PrcWebstorePage<RS> implements IProcessor {
    * <p>ORM service.</p>
    **/
   private ISrvOrm<RS> srvOrm;
-
-  /**
-   * <p>Query catalog 1 and 2 level.</p>
-   **/
-  private String queryCatalogs1And2Level;
 
   /**
    * <p>Query goods in list for catalog not auctioning
@@ -96,6 +97,36 @@ public class PrcWebstorePage<RS> implements IProcessor {
   private ISrvShoppingCart srvShoppingCart;
 
   /**
+   * <p>Cached catalogs.</p>
+   **/
+  private List<TradingCatalog> catalogs;
+
+  /**
+   * <p>Comparator of catalogs by index.</p>
+   **/
+  private CmprTradingCatalog cmprCatalogs = new CmprTradingCatalog();
+
+  /**
+   * <p>Handle FO specifics changed event.</p>
+   * @throws Exception an Exception
+   **/
+  @Override
+  public final void onFoSpecificsChanged() throws Exception {
+    if (this.catalogs != null) {
+      refreshCatalogsFilters(new HashMap<String, Object>(), this.catalogs);
+    }
+  }
+
+  /**
+   * <p>Handle catalog changed event.</p>
+   * @throws Exception an Exception
+   **/
+  @Override
+  public final void onCatalogChanged() throws Exception {
+    this.catalogs = null;
+  }
+
+  /**
    * <p>Process entity request.</p>
    * @param pAddParam additional param
    * @param pRequestData Request Data
@@ -104,61 +135,7 @@ public class PrcWebstorePage<RS> implements IProcessor {
   @Override
   public final void process(final Map<String, Object> pAddParam,
     final IRequestData pRequestData) throws Exception {
-    List<TradingCatalog> cat1and2l = new ArrayList<TradingCatalog>();
-    Map<TradingCatalog, List<TradingCatalog>> cat3aml =
-      new HashMap<TradingCatalog, List<TradingCatalog>>();
-    if (this.queryCatalogs1And2Level == null) {
-      lazyGetQueryCatalogs1And2Level();
-    }
-    IRecordSet<RS> recordSet = null;
-    try {
-      recordSet = getSrvDatabase()
-        .retrieveRecords(this.queryCatalogs1And2Level);
-      if (recordSet.moveToFirst()) {
-        do {
-          Long cat1lId = recordSet.getLong("CAT1LID");
-          Integer cat1lHs = recordSet.getInteger("CAT1HS");
-          String cat1lName = recordSet.getString("CAT1LNAME");
-          Long cat2lId = recordSet.getLong("CAT2LID");
-          String cat2lName = recordSet.getString("CAT2LNAME");
-          Integer cat2lHs = recordSet.getInteger("CAT2HS");
-          TradingCatalog catalog1l = findById(cat1and2l, cat1lId);
-          if (catalog1l == null) {
-            catalog1l = new TradingCatalog();
-            catalog1l.setItsId(cat1lId);
-            catalog1l.setItsName(cat1lName);
-            if (cat1lHs == 1) {
-              catalog1l.setSubcatalogs(new ArrayList<TradingCatalog>());
-            }
-            cat1and2l.add(catalog1l);
-          }
-          if (cat2lId != null) {
-            TradingCatalog catalog2l = new TradingCatalog();
-            catalog2l.setItsId(cat2lId);
-            catalog2l.setItsName(cat2lName);
-            catalog1l.getSubcatalogs().add(catalog2l);
-            if (cat2lHs == 1) {
-              catalog2l.setSubcatalogs(new ArrayList<TradingCatalog>());
-            }
-          }
-        } while (recordSet.moveToNext());
-      }
-    } finally {
-      if (recordSet != null) {
-        recordSet.close();
-      }
-    }
-    for (TradingCatalog cat1l : cat1and2l) {
-      if (cat1l.getSubcatalogs() != null) {
-        for (TradingCatalog cat2l : cat1l.getSubcatalogs()) {
-          if (cat2l.getSubcatalogs() != null) {
-            addCat3aml(pAddParam, cat3aml, cat2l);
-          }
-        }
-      }
-    }
-    pRequestData.setAttribute("cat1and2l", cat1and2l);
-    pRequestData.setAttribute("cat3aml", cat3aml);
+    pRequestData.setAttribute("catalogs", lazyRetrieveCatalogs(pAddParam));
     TradingSettings tradingSettings = srvTradingSettings
       .lazyGetTradingSettings(pAddParam);
     pRequestData.setAttribute("tradingSettings", tradingSettings);
@@ -173,12 +150,25 @@ public class PrcWebstorePage<RS> implements IProcessor {
         throw new Exception(
           "Method price depends of customer's category not yet implemented!");
       }
+      if (tradingSettings.getIsServiceStore()) {
+        throw new Exception(
+          "Service store not yet implemented!");
+      }
+      if (tradingSettings.getIsSeServiceStore()) {
+        throw new Exception(
+          "SE-service store not yet implemented!");
+      }
+      if (tradingSettings.getIsSeGoodsStore()) {
+        throw new Exception(
+          "SE-goods store not yet implemented!");
+      }
+      if (tradingSettings.getIsUseAuction()) {
+        throw new Exception(
+          "Auctioning not yet implemented!");
+      }
       pRequestData.setAttribute("catalogName", catalogName);
       pRequestData.setAttribute("catalogId", catalogId);
-      if (this.queryGilForCatNoAucSmPr == null) {
-        lazyGetQueryGilForCatNoAucSmPr();
-      }
-      String query = this.queryGilForCatNoAucSmPr
+      String query = lazyGetQueryGilForCatNoAucSmPr()
         .replace(":ITSCATALOG", catalogId);
       Set<String> neededFields = new HashSet<String>();
       neededFields.add("itsType");
@@ -239,73 +229,178 @@ public class PrcWebstorePage<RS> implements IProcessor {
   }
 
   /**
-   * <p>Add catalogs 3 and more levels into 2l catalog.</p>
-   * @param pAddParam additional param
-   * @param pCat3aml Catalogs 3 and more levels map
-   * @param pCat2l Catalog 2 level
+   * <p>Build catalogs in lazy mode.</p>
+   * @param pAddParam params
+   * @return trading catalogs
    * @throws Exception - an exception
    **/
-  protected final void addCat3aml(final Map<String, Object> pAddParam,
-    final Map<TradingCatalog, List<TradingCatalog>> pCat3aml,
-    final TradingCatalog pCat2l) throws Exception {
-    pCat3aml.put(pCat2l, pCat2l.getSubcatalogs());
-    addSubcatalogsRecurcively(pAddParam, pCat2l);
+  public final List<TradingCatalog> lazyRetrieveCatalogs(
+    final Map<String, Object> pAddParam) throws Exception {
+    if (this.catalogs == null) {
+      synchronized (this) {
+        List<CatalogGs> catalogsGs = getSrvOrm().retrieveListWithConditions(
+          pAddParam, CatalogGs.class, " where ISINMENU=1 order by ITSINDEX");
+        pAddParam.put("SubcatalogsCatalogsGsitsCatalogdeepLevel", 1); //only ID
+        pAddParam.put("SubcatalogsCatalogsGssubcatalogdeepLevel", 1); //only ID
+        List<SubcatalogsCatalogsGs> scList = getSrvOrm().retrieveList(pAddParam,
+          SubcatalogsCatalogsGs.class);
+        pAddParam.remove("SubcatalogsCatalogsGsitsCatalogdeepLevel");
+        pAddParam.remove("SubcatalogsCatalogsGssubcatalogdeepLevel");
+        List<TradingCatalog> result = new ArrayList<TradingCatalog>();
+        Set<Long> firstLevel = new HashSet<Long>();
+        Set<Long> allLevels = new HashSet<Long>();
+        for (SubcatalogsCatalogsGs catSubc : scList) {
+          firstLevel.add(catSubc.getItsCatalog().getItsId());
+          allLevels.add(catSubc.getItsCatalog().getItsId());
+          allLevels.add(catSubc.getSubcatalog().getItsId());
+        }
+        for (SubcatalogsCatalogsGs catSubc : scList) {
+          firstLevel.remove(catSubc.getSubcatalog().getItsId());
+        }
+        //first level is from tree and not (that has no sub-catalogsGs)
+        for (Long id : firstLevel) {
+          TradingCatalog tc = new TradingCatalog();
+          tc.setCatalog(findCatalogById(catalogsGs, id));
+          result.add(tc);
+        }
+        for (CatalogGs cat : catalogsGs) {
+          boolean inTree = false;
+          for (Long id : allLevels) {
+            if (cat.getItsId().equals(id)) {
+              inTree = true;
+              break;
+            }
+          }
+          if (!inTree) {
+            TradingCatalog tc = new TradingCatalog();
+            tc.setCatalog(findCatalogById(catalogsGs, cat.getItsId()));
+            result.add(tc);
+          }
+        }
+        //2-nd .. levels:
+        retrieveSubcatalogs(result, catalogsGs, scList);
+        //Sorting all levels recursively:
+        sortCatalogs(result);
+        refreshCatalogsFilters(pAddParam,  result);
+        this.catalogs = result;
+      }
+    }
+    return this.catalogs;
   }
 
   /**
-   * <p>Add catalogs 3 and more levels recursively.</p>
-   * @param pAddParam additional param
-   * @param pCat Catalog N level
-   * @throws Exception - an exception
+   * <p>Refresh catalog filters, the first catalog in which filter is enabled
+   * is propagated into sub-catalogs.</p>
+   * @param pAddParam params
+   * @param pCurrentList Catalog List current
+   * @throws Exception an Exception
    **/
-  protected final void addSubcatalogsRecurcively(
-    final Map<String, Object> pAddParam,
-      final TradingCatalog pCat) throws Exception {
-    String whereStr = "where ITSCATALOG=" + pCat.getItsId();
-    List<SubcatalogsCatalogsGs> gscList = getSrvOrm()
-      .retrieveListWithConditions(pAddParam, SubcatalogsCatalogsGs.class,
-        whereStr);
-    for (SubcatalogsCatalogsGs gsc : gscList) {
-      TradingCatalog subCat = new TradingCatalog();
-      subCat.setItsId(gsc.getSubcatalog().getItsId());
-      subCat.setItsName(gsc.getSubcatalog().getItsName());
-      pCat.getSubcatalogs().add(subCat);
-      if (gsc.getSubcatalog().getHasSubcatalogs()) {
-        subCat.setSubcatalogs(new ArrayList<TradingCatalog>());
-        addSubcatalogsRecurcively(pAddParam, subCat);
+  public final void refreshCatalogsFilters(final Map<String, Object> pAddParam,
+    final List<TradingCatalog> pCurrentList) throws Exception {
+    for (TradingCatalog tc : pCurrentList) {
+      if (tc.getSubcatalogs().size() > 0
+        && (tc.getCatalog().getUseAvailableFilter()
+          || tc.getCatalog().getUseFilterSpecifics()
+            || tc.getCatalog().getUseFilterSubcatalog()
+              || tc.getCatalog().getUsePickupPlaceFilter())) {
+        if (tc.getCatalog().getUseFilterSpecifics()) {
+          CatalogSpecifics cs = new CatalogSpecifics();
+          cs.setItsOwner(tc.getCatalog());
+          pAddParam.put("CatalogSpecificsitsOwnerdeepLevel", 1); //only ID
+          tc.getCatalog().setUsedSpecifics(getSrvOrm().retrieveListForField(
+            pAddParam, cs, "itsOwner"));
+          pAddParam.remove("CatalogSpecificsitsOwnerdeepLevel");
+        }
+        setSubcatalogsFilters(tc);
+      } else if (tc.getSubcatalogs().size() > 0) {
+        tc.getCatalog().setUsedSpecifics(null); //reset if not null
+        //recursion:
+        refreshCatalogsFilters(pAddParam, tc.getSubcatalogs());
+      } else {
+        tc.getCatalog().setUsedSpecifics(null); //reset if not null
       }
+    }
+  }
+
+  /**
+   * <p>Sort recursively catalogs in tree.</p>
+   * @param pCurrentList Catalog List current
+   **/
+  public final void sortCatalogs(final List<TradingCatalog> pCurrentList) {
+    Collections.sort(pCurrentList, this.cmprCatalogs);
+    for (TradingCatalog tc : pCurrentList) {
+      if (tc.getSubcatalogs().size() > 0) {
+        sortCatalogs(tc.getSubcatalogs());
+      }
+    }
+  }
+
+  /**
+   * <p>Set filters/orders for all sub-catalogs same as main-catalog.</p>
+   * @param pMainCatalog main catalog
+   * @throws Exception an Exception
+   **/
+  protected final void setSubcatalogsFilters(
+    final TradingCatalog pMainCatalog) throws Exception {
+    for (TradingCatalog tc : pMainCatalog.getSubcatalogs()) {
+      //copy filters/specifics:
+      tc.getCatalog().setUseAvailableFilter(pMainCatalog.getCatalog()
+        .getUseAvailableFilter());
+      tc.getCatalog().setUseFilterSpecifics(pMainCatalog.getCatalog()
+        .getUseFilterSpecifics());
+      tc.getCatalog().setUseFilterSubcatalog(pMainCatalog.getCatalog()
+        .getUseFilterSubcatalog());
+      tc.getCatalog().setUsePickupPlaceFilter(pMainCatalog.getCatalog()
+        .getUsePickupPlaceFilter());
+      tc.getCatalog().setUsedSpecifics(pMainCatalog.getCatalog()
+        .getUsedSpecifics());
+      if (tc.getSubcatalogs().size() > 0) {
+        //recursion:
+        setSubcatalogsFilters(tc);
+      }
+    }
+  }
+
+  /**
+   * <p>Retrieve recursively sub-catalogs for current level catalogs.</p>
+   * @param pCurrentList Catalog List current
+   * @param pCatalogs CatalogGs List
+   * @param pCatalogsSubcatalogs Catalogs-Subcatalogs
+   * @throws Exception an Exception
+   **/
+  protected final void retrieveSubcatalogs(
+    final List<TradingCatalog> pCurrentList, final List<CatalogGs> pCatalogs,
+      final List<SubcatalogsCatalogsGs> pCatalogsSubcatalogs) throws Exception {
+    for (TradingCatalog tc : pCurrentList) {
+      for (SubcatalogsCatalogsGs catSubc : pCatalogsSubcatalogs) {
+        if (tc.getCatalog().getItsId().equals(catSubc.getItsCatalog()
+          .getItsId())) {
+          TradingCatalog tci = new TradingCatalog();
+          tci.setCatalog(findCatalogById(pCatalogs, catSubc.getSubcatalog()
+            .getItsId()));
+          tc.getSubcatalogs().add(tci);
+        }
+      }
+      retrieveSubcatalogs(tc.getSubcatalogs(), pCatalogs, pCatalogsSubcatalogs);
     }
   }
 
   /**
    * <p>Find catalog by ID.</p>
-   * @param pCatalogList Catalog List
+   * @param pCatalogs Catalog List
    * @param pId Catalog ID
-   * @return TradingCatalog Trading Catalog
+   * @return CatalogGs Catalog
+   * @throws Exception if not found
    **/
-  protected final TradingCatalog findById(
-    final List<TradingCatalog> pCatalogList,
-      final Long pId) {
-    for (TradingCatalog tc : pCatalogList) {
-      if (tc.getItsId().equals(pId)) {
-        return tc;
+  protected final CatalogGs findCatalogById(
+    final List<CatalogGs> pCatalogs,
+      final Long pId) throws Exception {
+    for (CatalogGs cat : pCatalogs) {
+      if (cat.getItsId().equals(pId)) {
+        return cat;
       }
     }
-    return null;
-  }
-
-  /**
-   * <p>Lazy Get queryCatalogs1And2Level.</p>
-   * @return String
-   * @throws Exception - an exception
-   **/
-  public final String
-    lazyGetQueryCatalogs1And2Level() throws Exception {
-    if (this.queryCatalogs1And2Level == null) {
-      String flName = "/webstore/catalogs1And2Level.sql";
-      this.queryCatalogs1And2Level = loadString(flName);
-    }
-    return this.queryCatalogs1And2Level;
+    throw new Exception("Algorithm error! Can't find catalog #" + pId);
   }
 
   /**
@@ -380,15 +475,6 @@ public class PrcWebstorePage<RS> implements IProcessor {
    **/
   public final void setSrvOrm(final ISrvOrm<RS> pSrvOrm) {
     this.srvOrm = pSrvOrm;
-  }
-
-  /**
-   * <p>Setter for queryCatalogs1And2Level.</p>
-   * @param pQueryCatalogs1And2Level reference
-   **/
-  public final void setQueryCatalogs1And2Level(
-    final String pQueryCatalogs1And2Level) {
-    this.queryCatalogs1And2Level = pQueryCatalogs1And2Level;
   }
 
   /**
@@ -480,5 +566,37 @@ public class PrcWebstorePage<RS> implements IProcessor {
   public final void setSrvShoppingCart(
     final ISrvShoppingCart pSrvShoppingCart) {
     this.srvShoppingCart = pSrvShoppingCart;
+  }
+
+  /**
+   * <p>Getter for catalogs.</p>
+   * @return List<TradingCatalog>
+   **/
+  public final List<TradingCatalog> getCatalogs() {
+    return this.catalogs;
+  }
+
+  /**
+   * <p>Setter for catalogs.</p>
+   * @param pCatalogs reference
+   **/
+  public final void setCatalogs(final List<TradingCatalog> pCatalogs) {
+    this.catalogs = pCatalogs;
+  }
+
+  /**
+   * <p>Getter for cmprCatalogs.</p>
+   * @return CmprTradingCatalog
+   **/
+  public final CmprTradingCatalog getCmprCatalogs() {
+    return this.cmprCatalogs;
+  }
+
+  /**
+   * <p>Setter for cmprCatalogs.</p>
+   * @param pCmprCatalogs reference
+   **/
+  public final void setCmprCatalogs(final CmprTradingCatalog pCmprCatalogs) {
+    this.cmprCatalogs = pCmprCatalogs;
   }
 }

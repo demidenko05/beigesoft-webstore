@@ -4,12 +4,12 @@
   xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
 
   <properties>
-    <title>Beigesoftware, Beige-WEB-Store</title>
+    <title>Beigesoft ™ WEB Store specification. Filtering/ordering list of goods/services.</title>
    </properties>
 
   <body>
 
-    <section name="Beige WEB Store specification. Filtering list of goods/services.">
+    <section name="Beigesoft ™ WEB Store specification. Filtering/ordering list of goods/services.">
 
     <h4>List filtering</h4>
     <p>Buyer can search needed merchandise by selecting desired specifics e.g. "weight, manufacturing year/date, type operation system...".
@@ -18,27 +18,37 @@
       List (catalog) "on start" can consist of merchandises of different types. Catalog/sub-catalog is set of already filtered items.
       Only big catalogs (of similar items) needs/allows to be filtered. Web-shop can use only catalog and use filter to filter items.
       E.g. catalog "cars", any car has choosable specific "manufacture" that can be used in filter.
-      So web-store admin should itself choose catalog that can be filtered and set of specifics for filter.
+      So web-store admin should itself choose catalog that can be filtered with specifics by setting property "useFilterSpecifics=true".
+      Used specifics with isUseInFilter==true will be added for such catalogs by bulk service ISrvRefreshCatalogSpecifics.
       If buyer select such catalog or its subcatalog then filter will be enabled for using.
+      <h6>Filter "in subcatalog"</h6>
+      This filter is used if filter "filterSpecifics" is enabled.
+      User can use filter "in subcatalog" for any sub-catalog(s) in tree of the root catalog if "useFilterSubcatalog=true" for the root catalog.
+      <h6>Subcatalogs vs Specifics</h6>
+      Item characteristics (specifics) like "brand" may be implemented either as sub-catalog or as specifics.
+      Sub-catalog is used for quick navigation and for filtering. Specifics can be used only for filtering.
     </p>
     <h5>Availability in pickup place filtering.</h5>
     <p>Pickup place is tied with availability. This is no reason to add it as goods/service specifics.
       For hotel booking this filter is often used. To use this filter set "usePickupPlaceFilter" in a catalog.
-      There are two kinds of this filter:
+      There are three kinds of this filter:
       <ul>
         <li>list of selected pickup places</li>
         <li>distance from a point, e.g. 20km around latitude/longitude 41.12312/45.1231232</li>
+        <li>time zone, e.g. GMT+0..3 hours - to find remote chess trainer</li>
       </ul>
       Model EPickupPlaceFilterType:
       <ul>
         <li>LIST</li>
         <li>DISTANCE</li>
+        <li>TIME_ZONE</li>
       </ul>
     </p>
     <h5>Filter "available since/at/from-till".</h5>
     <p>
       This is the main filter for booking hotel and many other service. In that case (booking hotel)
       when buyer selected catalog then it will be empty list and opened filter for date selecting.
+      Use CatalogGs.useAvailableFilter for using this filter.
       Model EDateFilterType:
       <ul>
         <li>SINCE_DAY</li>
@@ -50,6 +60,89 @@
     </p>
     <h5>Filter price</h5>
     <p>If catalog has any filter then filter "price" will be added automatically. No one uses only filter "price".</p>
+    <h5>Goods/services/both filter.</h5>
+    <p>If it's goods and services store then this filter will be added automatically as price one (above).</p>
+
+    <h4>Filter implementation</h4>
+    <p>
+      Model FilterGoodsCatalog
+      <ul>
+        <li>catalogsAll - Set&lt;CataloGs&gt; - all existing ones</li>
+        <li>catalogs - Set&lt;CataloGs&gt; - chosen ones</li>
+        <li>operator - EFilterListOperator(IN/NOT_IN), default null.</li>
+      </ul>
+    </p>
+    <p>
+      Model persistable CatalogSpecifics
+      <ul>
+        <li>AHasIdLong fields (auto-generated ID)</li>
+        <li>owner - CatalogGs, not null</li>
+        <li>specifics - SpecificsOfItem, not null</li>
+      </ul>
+      Service refresh(bulk) ISrvRefreshCatalogSpecifics will refresh those lists that used for items in its catalogs.
+      If Catalog.useFilterSpecifics==true then list will be updated for contained items, otherwise - will be emptied.
+    </p>
+    <p>
+      Model FilterItemSpecifics
+      <ul>
+        <li>specifics - SpecificsOfItem</li>
+        <li>operator1 - EFilterOperator(IN/NOT_IN/EQUAL/NOT_EQUAL/GREATER_THAN/GREATER_THAN_EQUAL/LESS_THAN/LESS_THAN_EQUAL/LIKE), default null.</li>
+        <li>operator2 - EFilterOperator(IN/NOT_IN/EQUAL/NOT_EQUAL/GREATER_THAN/GREATER_THAN_EQUAL/LESS_THAN/LESS_THAN_EQUAL/LIKE), default null.</li>
+        <li>ids - Set&lt;Long&gt; if used - set of ID of choosable specifics</li>
+        <li>longValue1 - Long if used</li>
+        <li>longValue2 - Long if used</li>
+        <li>numericValue1 - BigDecimal if used</li>
+        <li>numericValue2 - BigDecimal if used</li>
+        <li>stringValue - String if used</li>
+      </ul>
+      A goods can has the same specifics as a service, e.g. rent a bike(service) and buying helmet(goods) has choosable specifics "sport=biking".
+      <p>String filter seems to be useless and expensive (performance unfriendly).</p>
+    </p>
+    <p>When user choose catalog/sub-catalog in which filter is enabled then filers data will be retrieved and passed to the page view.
+      <ul>
+        <li>filterItemCatalog - FilterItemCatalogGs</li>
+        <li>filtersItemSpecifics - List&lt;FilterItemSpecifics&gt;</li>
+      </ul>
+    </p>
+
+    <h4>List ordering</h4>
+    <p>Item list can be ordered if ordered methods is set to ON. Order by price/name is enabled automatically when list exceed SettingsAdd.minimumListSizeForOrdering items.
+      Order by goods/seller rating is enabled automatically when they are used and list exceed SettingsAdd.minimumListSizeForOrdering items.
+      If used SpecificsOfItem.useForOrdering==true then its ordering will be added if list exceed SettingsAdd.minimumListSizeForOrdering items.
+    </p>
+
+    <h4>Example - results of filtering SQL queries:</h4>
+    <p> Goods/services list from catalogs#2,3,4, Item specifics#2(Sport) with value 3(Biking):
+<pre style="white-space: pre-wrap;">
+select ITSTYPE, ITEMID, ITSNAME, IMAGEURL, SPECIFICINLIST, ITSPRICE, PREVIOUSPRICE, AVAILABLEQUANTITY, ITSRATING, DETAILSMETHOD
+from (
+  select ITSTYPE, ITEMID, ITSNAME, IMAGEURL, SPECIFICINLIST, ITSPRICE, PREVIOUSPRICE, AVAILABLEQUANTITY, ITSRATING, DETAILSMETHOD
+  from ITEMINLIST
+  where AVAILABLEQUANTITY>0 and ITSTYPE=0
+ ) as ALLGOODS
+join (
+  select GOODSCATALOGS.GOODS as GOODSINCATALOG
+  from GOODSCATALOGS
+  join GOODSSPECIFIC on GOODSSPECIFIC.GOODS=GOODSCATALOGS.GOODS
+  where ITSCATALOG in (2, 3, 4) and SPECIFICS=2 and LONGVALUE1=3
+ ) as GOODSINCATALOGALL on GOODSINCATALOGALL.GOODSINCATALOG=ALLGOODS.ITEMID
+
+union all
+
+select ITSTYPE, ITEMID, ITSNAME, IMAGEURL, SPECIFICINLIST, ITSPRICE, PREVIOUSPRICE, AVAILABLEQUANTITY, ITSRATING, DETAILSMETHOD
+from (
+  select ITSTYPE, ITEMID, ITSNAME, IMAGEURL, SPECIFICINLIST, ITSPRICE, PREVIOUSPRICE, AVAILABLEQUANTITY, ITSRATING, DETAILSMETHOD
+  from ITEMINLIST
+  where AVAILABLEQUANTITY>0 and ITSTYPE=1
+ ) as ALLSERVICES
+join (
+  select SERVICECATALOG.SERVICES as SERVICEINCATALOG
+  from SERVICECATALOG
+  join SERVICESPECIFICS on SERVICESPECIFICS.SERVICES=SERVICECATALOG.SERVICES
+  where ITSCATALOG in (2, 3, 4) and SPECIFICS=2 and LONGVALUE1=3
+ ) as SERVICEINCATALOGALL on SERVICEINCATALOGALL.SERVICEINCATALOG=ALLSERVICES.ITEMID
+</pre>
+    </p>
 
     </section>
 

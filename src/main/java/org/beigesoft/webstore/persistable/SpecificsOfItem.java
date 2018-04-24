@@ -61,6 +61,11 @@ public class SpecificsOfItem extends AHasNameIdLongVersion {
    **/
   private ChooseableSpecificsType chooseableSpecificsType;
 
+  /**
+   * <p>If used for ordering list, default false.</p>
+   **/
+  private Boolean useForOrdering;
+
   //Simple getters and setters:
   /**
    * <p>Getter for description.</p>
@@ -174,5 +179,21 @@ public class SpecificsOfItem extends AHasNameIdLongVersion {
   public final void setChooseableSpecificsType(
     final ChooseableSpecificsType pChooseableSpecificsType) {
     this.chooseableSpecificsType = pChooseableSpecificsType;
+  }
+
+  /**
+   * <p>Getter for useForOrdering.</p>
+   * @return Boolean
+   **/
+  public final Boolean getUseForOrdering() {
+    return this.useForOrdering;
+  }
+
+  /**
+   * <p>Setter for useForOrdering.</p>
+   * @param pUseForOrdering reference
+   **/
+  public final void setUseForOrdering(final Boolean pUseForOrdering) {
+    this.useForOrdering = pUseForOrdering;
   }
 }
