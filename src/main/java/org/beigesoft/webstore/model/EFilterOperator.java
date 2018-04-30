@@ -64,5 +64,15 @@ public enum EFilterOperator {
   /**
    * <p>8, like.</p>
    **/
-  LIKE;
+  LIKE,
+
+  /**
+   * <p>9, greater than value#1 and less than value#2.</p>
+   **/
+  BETWEEN,
+
+  /**
+   * <p>10, greater/equal than value#1 and less/equal than value#2.</p>
+   **/
+  BETWEEN_INCLUDE;
 }

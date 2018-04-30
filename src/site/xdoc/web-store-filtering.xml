@@ -65,29 +65,49 @@
 
     <h4>Filter implementation</h4>
     <p>
-      Model FilterGoodsCatalog
+      Model FilterInteger
+      <ul>
+        <li>operator - EFilterOperator(IN/NOT_IN/EQUAL/NOT_EQUAL/GREATER_THAN/GREATER_THAN_EQUAL/LESS_THAN/LESS_THAN_EQUAL/LIKE/BETWEEN/BETWEEN_INCLUDE), default null.</li>
+        <li>value1 - Integer</li>
+        <li>value2 - Integer, if used</li>
+      </ul>
+      filter price HTTP params:
+      <ul>
+        <li>fltPriOp - operator</li>
+        <li>fltPriVal1/2 - value1/2</li>
+      </ul> 
+    </p>
+    <p>
+      Model FilterCatalog
       <ul>
         <li>catalogsAll - Set&lt;CataloGs&gt; - all existing ones</li>
         <li>catalogs - Set&lt;CataloGs&gt; - chosen ones</li>
-        <li>operator - EFilterListOperator(IN/NOT_IN), default null.</li>
+        <li>operator - EFilterOperator, default null.</li>
       </ul>
+      HTTP params:
+      <ul>
+        <li>fltCtOp - operator</li>
+        <li>fltCtVal - catalog's ID</li>
+      </ul> 
     </p>
     <p>
       Model persistable CatalogSpecifics
       <ul>
-        <li>AHasIdLong fields (auto-generated ID)</li>
+        <li>AHasIdLongVersion fields (auto-generated ID)</li>
         <li>owner - CatalogGs, not null</li>
         <li>specifics - SpecificsOfItem, not null</li>
+        <li>filterId - Integer, if used, means ID of customized filter, e.g. "231" means using custom filter231.jsp for RAM size (set of size ranges) instead of regular(usual/default) filter integer (less, greater, from-to value1/2)</li>
       </ul>
+      It's made either by hand - admin add FO specifics to a catalog,
+      or by service that checked items with FO specifics and added to catalog.
       Service refresh(bulk) ISrvRefreshCatalogSpecifics will refresh those lists that used for items in its catalogs.
       If Catalog.useFilterSpecifics==true then list will be updated for contained items, otherwise - will be emptied.
     </p>
     <p>
-      Model FilterItemSpecifics
+      Model FilterSpecifics
       <ul>
         <li>specifics - SpecificsOfItem</li>
-        <li>operator1 - EFilterOperator(IN/NOT_IN/EQUAL/NOT_EQUAL/GREATER_THAN/GREATER_THAN_EQUAL/LESS_THAN/LESS_THAN_EQUAL/LIKE), default null.</li>
-        <li>operator2 - EFilterOperator(IN/NOT_IN/EQUAL/NOT_EQUAL/GREATER_THAN/GREATER_THAN_EQUAL/LESS_THAN/LESS_THAN_EQUAL/LIKE), default null.</li>
+        <li>operator - EFilterOperator, default null.</li>
         <li>ids - Set&lt;Long&gt; if used - set of ID of choosable specifics</li>
         <li>longValue1 - Long if used</li>
         <li>longValue2 - Long if used</li>
@@ -95,13 +115,21 @@
         <li>numericValue2 - BigDecimal if used</li>
         <li>stringValue - String if used</li>
       </ul>
-      A goods can has the same specifics as a service, e.g. rent a bike(service) and buying helmet(goods) has choosable specifics "sport=biking".
+      HTTP params:
+      <ul>
+        <li>fltSpOp1/2[specifics_ID] - operator1/2, e.g. fltSpOp11 - operator1 for specifics#1</li>
+        <li>fltSpIds[specifics_ID] - comma delimited chooseable specifics's ID</li>
+        <li>fltSpVal/1/2[specifics_ID] - value</li>
+      </ul> 
+      A goods can has the same specifics as a service, e.g. renting a bike(service) and buying helmet(goods) has choosable specifics "sport=biking".
       <p>String filter seems to be useless and expensive (performance unfriendly).</p>
     </p>
-    <p>When user choose catalog/sub-catalog in which filter is enabled then filers data will be retrieved and passed to the page view.
+    <p>When user choose catalog/sub-catalog in which filter is enabled
+      then filers data will be retrieved and passed to the page view:
       <ul>
-        <li>filterItemCatalog - FilterItemCatalogGs</li>
-        <li>filtersItemSpecifics - List&lt;FilterItemSpecifics&gt;</li>
+        <li>filterCatalog - FilterCatalog</li>
+        <li>filtersSpecifics - List&lt;FilterSpecifics&gt;</li>
+        <li>filterPrice - FilterInteger</li>
       </ul>
     </p>
 
@@ -121,7 +149,7 @@ from (
   where AVAILABLEQUANTITY>0 and ITSTYPE=0
  ) as ALLGOODS
 join (
-  select GOODSCATALOGS.GOODS as GOODSINCATALOG
+  select distinct GOODSCATALOGS.GOODS as GOODSINCATALOG
   from GOODSCATALOGS
   join GOODSSPECIFIC on GOODSSPECIFIC.GOODS=GOODSCATALOGS.GOODS
   where ITSCATALOG in (2, 3, 4) and SPECIFICS=2 and LONGVALUE1=3
@@ -136,11 +164,33 @@ from (
   where AVAILABLEQUANTITY>0 and ITSTYPE=1
  ) as ALLSERVICES
 join (
-  select SERVICECATALOG.SERVICES as SERVICEINCATALOG
+  select distinct SERVICECATALOG.SERVICES as SERVICEINCATALOG
   from SERVICECATALOG
   join SERVICESPECIFICS on SERVICESPECIFICS.SERVICES=SERVICECATALOG.SERVICES
   where ITSCATALOG in (2, 3, 4) and SPECIFICS=2 and LONGVALUE1=3
  ) as SERVICEINCATALOGALL on SERVICEINCATALOGALL.SERVICEINCATALOG=ALLSERVICES.ITEMID
+</pre>
+    </p>
+    <p> Goods list from catalogs#2,3,4; price less than 45; Item specifics#3(OS) is either 3(Linux) or 14(Without OS); Item specifics#4(Weight) less than 2.33 (numericValue1):
+<pre style="white-space: pre-wrap;">
+select ITSTYPE, ITEMID, ITSNAME, IMAGEURL, SPECIFICINLIST, ITSPRICE, PREVIOUSPRICE, AVAILABLEQUANTITY, ITSRATING, DETAILSMETHOD
+from (
+  select ITSTYPE, ITEMID, ITSNAME, IMAGEURL, SPECIFICINLIST, ITSPRICE, PREVIOUSPRICE, AVAILABLEQUANTITY, ITSRATING, DETAILSMETHOD
+  from ITEMINLIST
+  where AVAILABLEQUANTITY>0 and ITSTYPE=0 and ITSPRICE&lt;45
+ ) as ALLGOODS
+join (
+  select distinct GOODS as GOODSINCATALOG
+  from GOODSCATALOGS
+  where ITSCATALOG in (2, 3, 4)
+ ) as GOODSINCATALOGALL on GOODSINCATALOGALL.GOODSINCATALOG=ALLGOODS.ITEMID
+join (
+  select GOODS as GOODSFORSPEC
+  from GOODSSPECIFIC
+  where (SPECIFICS=3 and LONGVALUE1 in (3, 14)) or (SPECIFICS=4 and NUMERICVALUE1&lt;2.33)
+  group by GOODS
+  having count(GOODS)=2
+ ) as GOODSFORSPECALL on GOODSINCATALOGALL.GOODSINCATALOG=GOODSFORSPECALL.GOODSFORSPEC;
 </pre>
     </p>
 

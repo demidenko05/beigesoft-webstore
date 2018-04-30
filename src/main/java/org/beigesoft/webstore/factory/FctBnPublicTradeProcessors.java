@@ -251,6 +251,7 @@ public class FctBnPublicTradeProcessors<RS>
     if (proc == null) {
       proc = new PrcWebstorePage<RS>();
       proc.setSrvOrm(getSrvOrm());
+      proc.setLogger(getLogger());
       proc.setSrvDatabase(getSrvDatabase());
       proc.setSrvTradingSettings(getSrvTradingSettings());
       proc.setSrvAccSettings(getSrvAccSettings());

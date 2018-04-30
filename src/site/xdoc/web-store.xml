@@ -95,6 +95,7 @@
       <h4>Persistable model SettingsAdd</h4>
       <p>
         <ul>
+          <li>AHasIdLongVersion fields (ID by hand)</li>
           <li>recordsPerTransaction - Integer not null,  Records per transactions for bulk operations</li>
           <li>minimumListSizeForOrdering - Integer, not null, default 20, minimum list size for enable ordering.</li>
         </ul>
@@ -332,7 +333,7 @@
       <p>A goods may has only catalog.</p>
       <p>Entity CatalogGs:
         <ul>
-          <li>AHasNameIdLongVersion fields</li>
+          <li>AHasNameIdLongVersion fields (ID by hand)</li>
           <li>hasSubcatalogs - Boolean, not null, false default.</li>
           <li>description - String.</li>
 !!!not null not fixed in old DB          <li>itsIndex - Integer, not null, ordering</li>
@@ -454,7 +455,7 @@
       </p>
       <p>Model PriceCategory:
         <ul>
-          <li>AHasNameIdLongVersion fields</li>
+          <li>AHasNameIdLongVersion fields (ID by hand)</li>
           <li>priceCategoryGoods - PriceCategory, not null, e.g. "cheap goods"</li>
           <li>priceCategoryCustomer - PriceCategoryOfBuyer, e.g. "rich", if null then used "Price for all"</li>
           <li>description - String.</li>
@@ -577,7 +578,7 @@
       </p>
       <p>Model AdviseCategoryOfGs:
         <ul>
-          <li>AHasNameIdLongVersion fields</li>
+          <li>AHasNameIdLongVersion fields (ID by hand)</li>
           <li>description - String.</li>
         </ul>
       </p>
@@ -721,7 +722,7 @@
         service maker/s location (for services that performed in the buyer territory e.g. fix faucet by plumber).
         It's used for goods/service availability and can be used for buyer that prefer pick up goods/get service at chosen place:
         <ul>
-          <li>AHasNameIdLongVersion fields</li>
+          <li>AHasNameIdLongVersion fields (ID by hand)</li>
           <li>description - String.</li>
           <li>latitude - BigDecimal if used</li>
           <li>longitude - BigDecimal if used</li>
@@ -824,13 +825,13 @@ select ITSTYPE, ITEMID, ITSNAME, IMAGEURL, SPECIFICINLIST, ITSPRICE, PREVIOUSPRI
 from (
   select ITSTYPE, ITEMID, ITSNAME, IMAGEURL, SPECIFICINLIST, ITSPRICE, PREVIOUSPRICE, AVAILABLEQUANTITY, ITSRATING, DETAILSMETHOD
   from ITEMINLIST
-  where AVAILABLEQUANTITY>0
+  where AVAILABLEQUANTITY>0 and ITSTYPE=0 :WHEREADD
  ) as ALLGOODS
 join (
-  select GOODS as GOODSINCATALOG from GOODSCATALOGS where ITSCATALOG=:ITSCATALOG
+  select distinct GOODS as GOODSINCATALOG from GOODSCATALOGS where ITSCATALOG :CATALOGFILTER
  ) as GOODSINCATALOGALL on GOODSINCATALOGALL.GOODSINCATALOG=ALLGOODS.ITEMID
 </pre>
-where :ITSCATALOG is ID of selected catalog or "catalog on start".
+where :CATALOGFILTER is ID of selected catalog or "catalog on start" or set of catalogs, e.g. "=1" or "in (12, 14, 67)".
       </p>
       <p>
         Whole query that may has filter and order clause. It may consist of only that single sub-query if

@@ -11,21 +11,31 @@
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
 <comment>Correspondence of class types to id definition. ORDER is essential, the LAST value will be used.</comment>
-<entry key="org.beigesoft.persistable.AHasIdLong">bigint unsigned not null primary key</entry>
-<entry key="org.beigesoft.accounting.persistable.SubaccountLine">serial primary key</entry>
-<entry key="org.beigesoft.accounting.persistable.BalanceAt">serial primary key</entry>
-<entry key="org.beigesoft.persistable.EmailMsg">serial primary key</entry>
-<entry key="org.beigesoft.persistable.EmailIntegerProperty">serial primary key</entry>
-<entry key="org.beigesoft.persistable.EmailStringProperty">serial primary key</entry>
-<entry key="org.beigesoft.persistable.Eattachment">serial primary key</entry>
-<entry key="org.beigesoft.persistable.Erecipient">serial primary key</entry>
-<entry key="org.beigesoft.webstore.persistable.ChooseableSpecifics">serial primary key</entry>
-<entry key="org.beigesoft.webstore.persistable.OnlineBuyer">serial primary key</entry>
-<entry key="org.beigesoft.webstore.persistable.CartItem">serial primary key</entry>
-<entry key="org.beigesoft.webstore.persistable.CustomerOrder">serial primary key</entry>
-<entry key="org.beigesoft.webstore.persistable.base.ACustomerOrderLine">serial primary key</entry>
-<entry key="org.beigesoft.webstore.persistable.base.ATaxLine">serial primary key</entry>
-<entry key="org.beigesoft.webstore.persistable.ItemInList">serial primary key</entry>
-<entry key="org.beigesoft.webstore.persistable.HtmlTemplate">serial primary key</entry>
+<!--Only ID by hand-->
+<entry key="org.beigesoft.accounting.persistable.base.ASubaccount">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.accounting.persistable.base.ADrawItemSourcesLine">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.accounting.persistable.AccEntriesSourcesLine">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.accounting.persistable.AccSettings">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.accounting.persistable.BalanceAtAllDirtyCheck">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.accounting.persistable.Currency">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.accounting.persistable.CogsMethod">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.accounting.persistable.InvItemType">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.accounting.persistable.ServicePurchasedCategory">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.accounting.persistable.UnitOfMeasure">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.accounting.persistable.WageTaxesMethod">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.accounting.persistable.Warehouse">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.accounting.persistable.WarehouseSite">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.webstore.persistable.AdviseCategoryOfGs">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.webstore.persistable.CatalogGs">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.webstore.persistable.ChooseableSpecificsType">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.webstore.persistable.GoodsInListLuv">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.webstore.persistable.PickUpPlace">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.webstore.persistable.PriceCategory">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.webstore.persistable.PriceCategoryOfBuyers">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.webstore.persistable.PriceCategoryOfItems">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.webstore.persistable.SettingsAdd">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.webstore.persistable.SpecificsOfItem">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.webstore.persistable.SpecificsOfItemGroup">bigint unsigned not null primary key</entry>
+<entry key="org.beigesoft.webstore.persistable.TradingSettings">bigint unsigned not null primary key</entry>
 </properties>
 

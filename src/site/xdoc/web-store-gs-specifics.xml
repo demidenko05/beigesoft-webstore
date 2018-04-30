@@ -15,7 +15,7 @@
       <p>It's used to describe and to filter goods/services.</p>
       <p>Model SpecificsOfItem, e.g. "Screen size":
         <ul>
-          <li>AHasNameIdLongVersion fields</li>
+          <li>AHasNameIdLongVersion fields (ID by hand)</li>
           <li>itsGroop - SpecificsOfItemGroup, if exist e.g. "Monitor" for its size, web-cam, LED-type</li>
           <li>itsType - ESpecificsItemType, not null, default ESpecificsItemType.STRING</li>
           <li>isUseInFilter - Boolean, not null, default false</li>
@@ -38,7 +38,7 @@
       So they should be printed together in their group.</p>
       <p>Entity SpecificsOfItemGroup:
         <ul>
-          <li>AHasNameIdLongVersion fields</li>
+          <li>AHasNameIdLongVersion fields (ID by hand)</li>
           <li>description - String, e.g. "for notebooks".</li>
           <li>templateStart - HtmlTemplate if assigned.</li>
           <li>templateEnd - HtmlTemplate if assigned.</li>
@@ -118,6 +118,29 @@ order by GOODS.ITSID, SPECIFICS.ITSINDEX;
 This query retrieves all goods specifics include "not in the list", if there is any detail specific then "detailsMethod" will be not null, so goods name will be link to the detail page.
       </p>
 
+      <h5>Specifics in list view</h5>
+      <p>List view is made by PrcRefreshGoods/ServicesInList and stored into ItemInList.specificInList</p>
+      <p>
+        It should be implemented automatically making "specifics in list" for such examples:
+<div>
+  (i6-2001M, 2000GHz; DDR3, 4 GB, 1600GHz; 17 In, 1600X800; HDD, 500 GB, 7400 RPM; WIFI; Bluetooth; Linux; 3.89 lbs)
+</div>
+<div>
+  <b>CPU:</b> Intel, I6-2001M, 4 Cores, 2000GHz; <b>RAM:</b> DDR3, 4 GB, 1600 GHz; <b>Monitor:</b> 17 In, 1600X800;
+  <b>Hard drive:</b> HDD, 500 GB, 7200RPM; <b>WIFI:</b> 802.11ac; <b>Bluetooth:</b> 4.1; <b>OS:</b> Linux; <b>Weight:</b> 3.89 lbs
+</div>
+<div>
+  <ul style="font-size: small;">
+    <li><b>CPU:</b> Intel, I6-2001M, 4 Cores, 2000GHz</li>
+    <li><b>RAM:</b> DDR3, 4 GB, 1600 GHz</li>
+    <li><b>Hard drive:</b> HDD, 500 GB, 7200 RPM</li>
+    <li><b>WIFI:</b> 802.11ac</li>
+    <li><b>Bluetooth:</b> 4.1</li>
+    <li><b>OS:</b> Linux</li>
+    <li><b>Weight:</b> 3.89 lbs</li>
+  </ul> 
+</div>
+      </p>
     </section>
 
   </body>
