@@ -22,8 +22,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
+import org.beigesoft.filter.FilterItems;
 import org.beigesoft.webstore.model.TradingCatalog;
-import org.beigesoft.webstore.model.FilterCatalog;
 import org.beigesoft.webstore.persistable.CatalogGs;
 
 /**
@@ -71,9 +71,9 @@ public class BaseTest {
     for (CatalogGs cgs : subcgs) {
       System.out.println(cgs.getItsName() + "#" + cgs.getItsId());
     }
-    FilterCatalog fltCat = new FilterCatalog();
+    FilterItems<CatalogGs> fltCat = new FilterItems<CatalogGs>();
     TradingCatalog tc1 = this.prcWebstorePage.findTradingCatalogById(cats, 1L);
-    this.prcWebstorePage.copySubcatalogsGs(tc1, fltCat.getCatalogsAll());
+    this.prcWebstorePage.copySubcatalogsGs(tc1, fltCat.getItemsAll());
     CatalogGs cgs3l1 = this.prcWebstorePage.findSubcatalogGsByIdInTc(tc1, 31L);
     assertNotNull(cgs3l1);
     assertEquals(31L, cgs3l1.getItsId().longValue());
@@ -81,7 +81,7 @@ public class BaseTest {
     assertTrue(tc2l2.getSubcatalogs().size() == 0);
     assertTrue(tc1l.getSubcatalogs().size() == 2);
     assertEquals(3, subcgs.size());
-    assertEquals(3, fltCat.getCatalogsAll().size());
+    assertEquals(3, fltCat.getItemsAll().size());
   }
 
 }

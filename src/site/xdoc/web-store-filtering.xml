@@ -37,7 +37,7 @@
         <li>distance from a point, e.g. 20km around latitude/longitude 41.12312/45.1231232</li>
         <li>time zone, e.g. GMT+0..3 hours - to find remote chess trainer</li>
       </ul>
-      Model EPickupPlaceFilterType:
+      Model org.beigesoft.filter.EPlaceFilterType:
       <ul>
         <li>LIST</li>
         <li>DISTANCE</li>
@@ -49,7 +49,7 @@
       This is the main filter for booking hotel and many other service. In that case (booking hotel)
       when buyer selected catalog then it will be empty list and opened filter for date selecting.
       Use CatalogGs.useAvailableFilter for using this filter.
-      Model EDateFilterType:
+      Model org.beigesoft.filter.EDateFilterType:
       <ul>
         <li>SINCE_DAY</li>
         <li>AT_DAY</li>
@@ -65,9 +65,23 @@
 
     <h4>Filter implementation</h4>
     <p>
-      Model FilterInteger
+      Model org.beigesoft.filter.AFilter
       <ul>
         <li>operator - EFilterOperator(IN/NOT_IN/EQUAL/NOT_EQUAL/GREATER_THAN/GREATER_THAN_EQUAL/LESS_THAN/LESS_THAN_EQUAL/LIKE/BETWEEN/BETWEEN_INCLUDE), default null.</li>
+      </ul>
+    </p>
+    <p>
+      Model org.beigesoft.filter.FilterBigDecimal
+      <ul>
+        <li>extends AFilter.</li>
+        <li>value1 - BigDecimal</li>
+        <li>value2 - BigDecimal, if used</li>
+      </ul>
+    </p>
+    <p>
+      Model org.beigesoft.filter.FilterInteger
+      <ul>
+        <li>extends AFilter.</li>
         <li>value1 - Integer</li>
         <li>value2 - Integer, if used</li>
       </ul>
@@ -78,11 +92,11 @@
       </ul> 
     </p>
     <p>
-      Model FilterCatalog
+      Model org.beigesoft.filter.FilterItems&lt;[TYPE]&gt;
       <ul>
-        <li>catalogsAll - Set&lt;CataloGs&gt; - all existing ones</li>
-        <li>catalogs - Set&lt;CataloGs&gt; - chosen ones</li>
-        <li>operator - EFilterOperator, default null.</li>
+        <li>extends AFilter.</li>
+        <li>itemsAll - Set&lt;[TYPE]&gt; - all existing ones</li>
+        <li>items - Set&lt;[TYPE]&gt; - chosen ones</li>
       </ul>
       HTTP params:
       <ul>
@@ -104,22 +118,15 @@
       If Catalog.useFilterSpecifics==true then list will be updated for contained items, otherwise - will be emptied.
     </p>
     <p>
-      Model FilterSpecifics
+      Model SpecificsFilter:
       <ul>
-        <li>specifics - SpecificsOfItem</li>
-        <li>operator - EFilterOperator, default null.</li>
-        <li>ids - Set&lt;Long&gt; if used - set of ID of choosable specifics</li>
-        <li>longValue1 - Long if used</li>
-        <li>longValue2 - Long if used</li>
-        <li>numericValue1 - BigDecimal if used</li>
-        <li>numericValue2 - BigDecimal if used</li>
-        <li>stringValue - String if used</li>
+        <li>catSpec - CatalogSpecifics</li>
+        <li>filter - AFilter - any filter</li>
       </ul>
       HTTP params:
       <ul>
-        <li>fltSpOp1/2[specifics_ID] - operator1/2, e.g. fltSpOp11 - operator1 for specifics#1</li>
-        <li>fltSpIds[specifics_ID] - comma delimited chooseable specifics's ID</li>
-        <li>fltSpVal/1/2[specifics_ID] - value</li>
+        <li>fltSp[specifics_ID]Op - operator, e.g. fltSp1Op - operator for specifics#1</li>
+        <li>fltSp[specifics_ID]Val/1/2 - value/s</li>
       </ul> 
       A goods can has the same specifics as a service, e.g. renting a bike(service) and buying helmet(goods) has choosable specifics "sport=biking".
       <p>String filter seems to be useless and expensive (performance unfriendly).</p>
@@ -127,8 +134,8 @@
     <p>When user choose catalog/sub-catalog in which filter is enabled
       then filers data will be retrieved and passed to the page view:
       <ul>
-        <li>filterCatalog - FilterCatalog</li>
-        <li>filtersSpecifics - List&lt;FilterSpecifics&gt;</li>
+        <li>filterCatalog - FilterItems</li>
+        <li>filtersSpecifics - List&lt;SpecificsFilter&gt;</li>
         <li>filterPrice - FilterInteger</li>
       </ul>
     </p>

@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.math.BigDecimal;
 
 import org.beigesoft.log.ILogger;
 import org.beigesoft.model.IRequestData;
@@ -31,13 +32,19 @@ import org.beigesoft.service.ISrvPage;
 import org.beigesoft.settings.IMngSettings;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.service.ISrvOrm;
+import org.beigesoft.filter.EFilterOperator;
+import org.beigesoft.filter.FilterInteger;
+import org.beigesoft.filter.FilterBigDecimal;
+import org.beigesoft.filter.FilterItems;
 import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.webstore.model.TradingCatalog;
 import org.beigesoft.webstore.model.CmprTradingCatalog;
 import org.beigesoft.webstore.model.EShopItemType;
-import org.beigesoft.webstore.model.EFilterOperator;
-import org.beigesoft.webstore.model.FilterInteger;
-import org.beigesoft.webstore.model.FilterCatalog;
+import org.beigesoft.webstore.model.ESpecificsItemType;
+import org.beigesoft.webstore.model.SpecificsFilter;
+import org.beigesoft.webstore.model.SpecificsFiltersWhere;
+import org.beigesoft.webstore.persistable.ChooseableSpecifics;
+import org.beigesoft.webstore.persistable.ChooseableSpecificsType;
 import org.beigesoft.webstore.persistable.CatalogSpecifics;
 import org.beigesoft.webstore.persistable.CatalogGs;
 import org.beigesoft.webstore.persistable.SubcatalogsCatalogsGs;
@@ -114,6 +121,11 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   private ILogger logger;
 
   /**
+   * <p>Query for specifics of goods filter.</p>
+   **/
+  private String querySpecificsGoodsFilter;
+
+  /**
    * <p>Handle catalog changed event.</p>
    * @throws Exception an Exception
    **/
@@ -174,12 +186,29 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
         }
         FilterInteger filterPrice = revialFilterPrice(tcat,
           pAddParam, pRequestData);
-        FilterCatalog filterCatalog = revialFilterCatalog(tcat,
+        FilterItems<CatalogGs> filterCatalog = revialFilterCatalog(tcat,
+          pAddParam, pRequestData);
+        List<SpecificsFilter> filtersSpecifics = revialFiltersSpecifics(tcat,
           pAddParam, pRequestData);
         String whereAdd = revealWhereAdd(filterPrice);
         String whereCatalog = revealWhereCatalog(tcat, filterCatalog);
         String query = lazyGetQueryGilForCatNoAucSmPr().replace(
           ":CATALOGFILTER", whereCatalog).replace(":WHEREADD", whereAdd);
+        if (filtersSpecifics != null) {
+          if (getLogger().getIsShowDebugMessagesFor(getClass())
+            && getLogger().getDetailLevel() > 2000) {
+            getLogger().debug(pAddParam, PrcWebstorePage.class,
+              "filters apecifics: size: " + filtersSpecifics.size());
+          }
+          SpecificsFiltersWhere whereSpec =
+            revealWhereSpecifics(filtersSpecifics);
+          if (whereSpec != null) {
+            String querySpec = lazyGetQuerySpecificsGoodsFilter().replace(
+              ":WHERESPGDFILTER", whereSpec.getWhere()).replace(
+                ":SPGDFILTERCOUNT", whereSpec.getWhereCount().toString());
+            query += querySpec;
+          }
+        }
         Integer rowCount = this.srvOrm
           .evalRowCountByQuery(pAddParam, ItemInList.class,
             "select count(*) as TOTALROWS from (" + query + ") as ALLRC;");
@@ -221,6 +250,9 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
         }
         if (filterCatalog != null) {
           pRequestData.setAttribute("filterCatalog", filterCatalog);
+        }
+        if (filtersSpecifics != null) {
+          pRequestData.setAttribute("filtersSpecifics", filtersSpecifics);
         }
         pRequestData.setAttribute("catalog", tcat.getCatalog());
         pRequestData.setAttribute("totalItems", rowCount);
@@ -271,6 +303,14 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
         if (this.catalogs == null) {
           List<CatalogGs> catalogsGs = getSrvOrm().retrieveListWithConditions(
             pAddParam, CatalogGs.class, " order by ITSINDEX");
+          pAddParam.put("CatalogSpecificsitsOwnerdeepLevel", 1); //only ID
+          for (CatalogGs cat : catalogsGs) {
+            CatalogSpecifics cs = new CatalogSpecifics();
+            cs.setItsOwner(cat);
+            cat.setUsedSpecifics(getSrvOrm().retrieveListForField(pAddParam,
+              cs, "itsOwner"));
+          }
+          pAddParam.remove("CatalogSpecificsitsOwnerdeepLevel");
           //only ID:
           pAddParam.put("SubcatalogsCatalogsGsitsCatalogdeepLevel", 1);
           pAddParam.put("SubcatalogsCatalogsGssubcatalogdeepLevel", 1);
@@ -402,6 +442,137 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   }
 
   /**
+   * <p>Reveal filters specifics for given catalog
+   * and fill it from request data.</p>
+   * @param pTcat Catalog
+   * @param pAddParam params
+   * @param pRequestData Request Data
+   * @return filter specifics or null
+   * @throws Exception an Exception
+   **/
+  public final List<SpecificsFilter> revialFiltersSpecifics(
+    final TradingCatalog pTcat, final Map<String, Object> pAddParam,
+      final IRequestData pRequestData) throws Exception {
+    if (pTcat.getCatalog().getUsedSpecifics() != null
+      && pTcat.getCatalog().getUsedSpecifics().size() > 0) {
+      List<SpecificsFilter> res = new ArrayList<SpecificsFilter>();
+      for (CatalogSpecifics cs : pTcat.getCatalog().getUsedSpecifics()) {
+        String operStr = pRequestData.getParameter("fltSp"
+          + cs.getSpecifics().getItsId() + "Op");
+        if (cs.getSpecifics().getChooseableSpecificsType() != null
+        && cs.getSpecifics().getChooseableSpecificsType().getItsId() != null) {
+          FilterItems<ChooseableSpecifics> fltItms =
+            new FilterItems<ChooseableSpecifics>();
+          SpecificsFilter spf = new SpecificsFilter();
+          spf.setFilter(fltItms);
+          spf.setCatSpec(cs);
+          res.add(spf);
+          fltItms.setItemsAll(retrieveAllChSpecifics(pAddParam,
+            cs.getSpecifics().getChooseableSpecificsType()));
+          String[] valStrs = pRequestData.getParameterValues("fltSp"
+            + cs.getSpecifics().getItsId() + "Val");
+          if (operStr != null && !"".equals(operStr)
+            && valStrs != null && valStrs.length > 0) {
+            fltItms.setOperator(Enum.valueOf(EFilterOperator.class, operStr));
+            for (String idStr : valStrs) {
+              Long id = Long.valueOf(idStr);
+              ChooseableSpecifics chs = findChSpecificsById(fltItms
+                .getItemsAll(), id);
+              if (chs == null) {
+                this.logger.warn(pAddParam, PrcWebstorePage.class,
+                  "Can't find chspecifics #: " + id);
+              } else {
+                fltItms.getItems().add(chs);
+              }
+            }
+          }
+        } else if (ESpecificsItemType.INTEGER
+          .equals(cs.getSpecifics().getItsType())) {
+          FilterInteger flt = new FilterInteger();
+          SpecificsFilter spf = new SpecificsFilter();
+          spf.setFilter(flt);
+          spf.setCatSpec(cs);
+          res.add(spf);
+          String val1Str = pRequestData.getParameter("fltSp"
+            + cs.getSpecifics().getItsId() + "Val1");
+          if (operStr != null && !"".equals(operStr)
+            && val1Str != null && val1Str.length() > 0) {
+            flt.setOperator(Enum.valueOf(EFilterOperator.class, operStr));
+            flt.setValue1(Integer.valueOf(val1Str));
+            String val2Str = pRequestData.getParameter("fltSp"
+              + cs.getSpecifics().getItsId() + "Val2");
+            if (val2Str != null && val2Str.length() > 0) {
+              flt.setValue2(Integer.valueOf(val2Str));
+            }
+          }
+        } else if (ESpecificsItemType.BIGDECIMAL
+          .equals(cs.getSpecifics().getItsType())) {
+          FilterBigDecimal flt = new FilterBigDecimal();
+          SpecificsFilter spf = new SpecificsFilter();
+          spf.setFilter(flt);
+          spf.setCatSpec(cs);
+          res.add(spf);
+          String val1Str = pRequestData.getParameter("fltSp"
+            + cs.getSpecifics().getItsId() + "Val1");
+          if (operStr != null && !"".equals(operStr)
+            && val1Str != null && val1Str.length() > 0) {
+            flt.setOperator(Enum.valueOf(EFilterOperator.class, operStr));
+            flt.setValue1(new BigDecimal(val1Str));
+            String val2Str = pRequestData.getParameter("fltSp"
+              + cs.getSpecifics().getItsId() + "Val2");
+            if (val2Str != null && val2Str.length() > 0) {
+              flt.setValue2(new BigDecimal(val2Str));
+            }
+          }
+        } else {
+          this.logger.error(pAddParam, PrcWebstorePage.class,
+            "Filter specifics not implemented yet, for - "
+              + cs.getSpecifics().getItsName());
+        }
+      }
+      return res;
+    } else {
+      return null;
+    }
+  }
+  /**
+   * <p>Retrieve all choseeable specifics.</p>
+   * @param pAddParam params
+   * @param pChSpecType Ch-Specifics Type
+   * @return List Ch-Specifics
+   * @throws Exception an Exception
+   **/
+  public final List<ChooseableSpecifics> retrieveAllChSpecifics(
+    final Map<String, Object> pAddParam,
+      final ChooseableSpecificsType pChSpecType) throws Exception {
+    ChooseableSpecifics chs = new ChooseableSpecifics();
+    chs.setItsType(pChSpecType);
+    pAddParam.put("ChooseableSpecificsitsTypedeepLevel", 1); //only ID
+    List<ChooseableSpecifics> result = getSrvOrm()
+      .retrieveListForField(pAddParam, chs, "itsType");
+    pAddParam.remove("ChooseableSpecificsitsTypedeepLevel");
+    return result;
+  }
+
+  /**
+   * <p>Find chooseable specifics in given list by ID.</p>
+   * @param pListChSpecifics List Ch-Specifics
+   * @param pId Id
+   * @return chooseable specifics or null
+   **/
+  public final ChooseableSpecifics findChSpecificsById(
+    final List<ChooseableSpecifics> pListChSpecifics,
+      final Long pId) {
+    for (ChooseableSpecifics chs : pListChSpecifics) {
+      if (chs.getItsId().equals(pId)) {
+        return chs;
+      }
+    }
+    return null;
+  }
+
+
+  /**
    * <p>Reveal filter catalog for catalog and fill it from request data.</p>
    * @param pTcat Catalog
    * @param pAddParam params
@@ -409,12 +580,12 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
    * @return filter catalog or null if catalog hasn't any filter
    * @throws Exception an Exception
    **/
-  public final FilterCatalog revialFilterCatalog(final TradingCatalog pTcat,
-    final Map<String, Object> pAddParam,
+  public final FilterItems<CatalogGs> revialFilterCatalog(
+    final TradingCatalog pTcat, final Map<String, Object> pAddParam,
       final IRequestData pRequestData) throws Exception {
     if (pTcat.getCatalog().getUseFilterSubcatalog()) {
-      FilterCatalog res = new FilterCatalog();
-      copySubcatalogsGs(pTcat, res.getCatalogsAll());
+      FilterItems<CatalogGs> res = new FilterItems<CatalogGs>();
+      copySubcatalogsGs(pTcat, res.getItemsAll());
       String operStr = pRequestData.getParameter("fltCtOp");
       String[] valStrs = pRequestData.getParameterValues("fltCtVal");
       if (operStr != null && !"".equals(operStr)
@@ -427,7 +598,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
             throw new Exception("Algorithm error! Can't find subcatalog #/in: "
               + id + "/" + pTcat.getCatalog().getItsName());
           }
-          res.getCatalogs().add(cgs);
+          res.getItems().add(cgs);
         }
       }
       return res;
@@ -459,7 +630,8 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
       if (EFilterOperator.BETWEEN.equals(pFilterPrice.getOperator())) {
         return " and ITSPRICE<" + pFilterPrice.getValue1()
           + " and ITSPRICE>" + pFilterPrice.getValue2();
-      } else if (EFilterOperator.BETWEEN.equals(pFilterPrice.getOperator())) {
+      } else if (EFilterOperator.BETWEEN_INCLUDE
+        .equals(pFilterPrice.getOperator())) {
         return " and ITSPRICE<=" + pFilterPrice.getValue1()
           + " and ITSPRICE>=" + pFilterPrice.getValue2();
       }
@@ -468,23 +640,136 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   }
 
   /**
+   * <p>Reveal part of where specifics clause e.g.:
+   * "(SPECIFICS=3 and LONGVALUE1 in (3, 14))
+   * or (SPECIFICS=4 and NUMERICVALUE1&lt;2.33)",
+   * and count of conditions, or null.</p>
+   * @param pFiltersSpecifics Filters Specifics
+   * @return SpecificsFiltersWhere bundle or null
+   * @throws Exception an Exception
+   **/
+  public final SpecificsFiltersWhere revealWhereSpecifics(
+    final List<SpecificsFilter> pFiltersSpecifics) throws Exception {
+    SpecificsFiltersWhere result = null;
+    StringBuffer sb = new StringBuffer();
+    boolean isFirst = true;
+    for (SpecificsFilter sf : pFiltersSpecifics) {
+      if (sf.getFilter().getOperator() != null) {
+        if (isFirst) {
+          sb.append("(SPECIFICS=" + sf.getCatSpec().getSpecifics().getItsId()
+            + " and ");
+          isFirst = false;
+        } else {
+          sb.append(" or (SPECIFICS=" + sf.getCatSpec().getSpecifics()
+            .getItsId() + " and ");
+        }
+        if (sf.getFilter().getClass() == FilterItems.class) {
+          @SuppressWarnings("unchecked")
+          FilterItems<ChooseableSpecifics> fltItms =
+            (FilterItems<ChooseableSpecifics>) sf.getFilter();
+          sb.append("LONGVALUE1");
+          if (EFilterOperator.IN.equals(fltItms.getOperator())
+            && fltItms.getItems().size() == 1) {
+            sb.append("=" + fltItms.getItems().get(0).getItsId());
+          } else if (EFilterOperator.NOT_IN.equals(fltItms.getOperator())
+            && fltItms.getItems().size() == 1) {
+            sb.append("!=" + fltItms.getItems().get(0).getItsId());
+          } else {
+            if (EFilterOperator.IN.equals(fltItms.getOperator())) {
+              sb.append(" in (");
+            } else {
+              sb.append(" not in (");
+            }
+            boolean isFstItm = true;
+            for (ChooseableSpecifics chs : fltItms.getItems()) {
+              if (isFstItm) {
+                isFstItm = false;
+              } else {
+                sb.append(",");
+              }
+              sb.append(chs.getItsId());
+            }
+            sb.append(")");
+          }
+        } else if (sf.getFilter().getClass() == FilterInteger.class) {
+          FilterInteger flt = (FilterInteger) sf.getFilter();
+          sb.append("LONGVALUE1");
+          if (EFilterOperator.LESS_THAN.equals(flt.getOperator())
+            || EFilterOperator.LESS_THAN_EQUAL.equals(flt.getOperator())
+              || EFilterOperator.GREATER_THAN.equals(flt.getOperator())
+            || EFilterOperator.GREATER_THAN_EQUAL.equals(flt.getOperator())) {
+            sb.append(toSqlOperator(flt.getOperator()) + flt.getValue1());
+          } else if (EFilterOperator.BETWEEN.equals(flt.getOperator())) {
+            sb.append(">" + flt.getValue1() + " and LONGVALUE2<"
+              + flt.getValue2());
+          } else if (EFilterOperator.BETWEEN_INCLUDE
+            .equals(flt.getOperator())) {
+            sb.append(">=" + flt.getValue1() + " and LONGVALUE2<="
+              + flt.getValue2());
+          } else {
+            throw new Exception(
+              "Algorithm error for where integer specifics/operator: "
+                + sf.getCatSpec().getSpecifics().getItsName()
+                  + "/" + flt.getOperator());
+          }
+        } else if (sf.getFilter().getClass() == FilterBigDecimal.class) {
+          FilterBigDecimal flt = (FilterBigDecimal) sf.getFilter();
+          sb.append("NUMERICVALUE11");
+          if (EFilterOperator.LESS_THAN.equals(flt.getOperator())
+            || EFilterOperator.LESS_THAN_EQUAL.equals(flt.getOperator())
+              || EFilterOperator.GREATER_THAN.equals(flt.getOperator())
+            || EFilterOperator.GREATER_THAN_EQUAL.equals(flt.getOperator())) {
+            sb.append(toSqlOperator(flt.getOperator()) + flt.getValue1());
+          } else if (EFilterOperator.BETWEEN.equals(flt.getOperator())) {
+            sb.append(">" + flt.getValue1() + " and NUMERICVALUE12<"
+              + flt.getValue2());
+          } else if (EFilterOperator.BETWEEN_INCLUDE
+            .equals(flt.getOperator())) {
+            sb.append(">=" + flt.getValue1() + " and NUMERICVALUE12<="
+              + flt.getValue2());
+          } else {
+            throw new Exception(
+              "Algorithm error for where integer specifics/operator: "
+                + sf.getCatSpec().getSpecifics().getItsName()
+                  + "/" + flt.getOperator());
+          }
+        } else {
+          throw new Exception(
+            "Making WHERE not implemented for specifics/filter: "
+              + sf.getCatSpec().getSpecifics().getItsName()
+                + "/" + sf.getFilter().getClass());
+        }
+        sb.append(")");
+        if (result == null) {
+          result = new SpecificsFiltersWhere();
+        }
+        result.setWhereCount(result.getWhereCount() + 1);
+      }
+    }
+    if (result != null) {
+      result.setWhere(sb.toString());
+    }
+    return result;
+  }
+
+  /**
    * <p>Reveal part of where catalog clause e.g. "=12",
    * " in (12,14)" or empty string.</p>
    * @param pTcat Catalog
    * @param pFilterCatalog Filter Catalog
-   * @return part of where clause e.g. "=12", " in (12,14)" or empty string
+   * @return part of where clause e.g. "=12", " in (12,14)"
    * @throws Exception an Exception
    **/
   public final String revealWhereCatalog(final TradingCatalog pTcat,
-    final FilterCatalog pFilterCatalog) throws Exception {
+    final FilterItems<CatalogGs> pFilterCatalog) throws Exception {
     if (pFilterCatalog != null && pFilterCatalog.getOperator() != null
-      && pFilterCatalog.getCatalogs().size() > 0) {
+      && pFilterCatalog.getItems().size() > 0) {
       if (EFilterOperator.IN.equals(pFilterCatalog.getOperator())
-        && pFilterCatalog.getCatalogs().size() == 1) {
-        return "=" + pFilterCatalog.getCatalogs().get(0).getItsId();
+        && pFilterCatalog.getItems().size() == 1) {
+        return "=" + pFilterCatalog.getItems().get(0).getItsId();
       } else if (EFilterOperator.NOT_IN.equals(pFilterCatalog.getOperator())
-        && pFilterCatalog.getCatalogs().size() == 1) {
-        return "!=" + pFilterCatalog.getCatalogs().get(0).getItsId();
+        && pFilterCatalog.getItems().size() == 1) {
+        return "!=" + pFilterCatalog.getItems().get(0).getItsId();
       } else {
         StringBuffer sb = new StringBuffer();
         if (EFilterOperator.IN.equals(pFilterCatalog.getOperator())) {
@@ -493,7 +778,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
           sb.append(" not in (");
         }
         boolean isFirst = true;
-        for (CatalogGs cgs : pFilterCatalog.getCatalogs()) {
+        for (CatalogGs cgs : pFilterCatalog.getItems()) {
           if (isFirst) {
             isFirst = false;
           } else {
@@ -507,8 +792,8 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
     } else {
       List<CatalogGs> subcgs;
       if (pFilterCatalog != null
-        && pFilterCatalog.getCatalogsAll().size() > 0) {
-        subcgs = pFilterCatalog.getCatalogsAll();
+        && pFilterCatalog.getItemsAll().size() > 0) {
+        subcgs = pFilterCatalog.getItemsAll();
       } else {
         subcgs = new ArrayList<CatalogGs>();
         copySubcatalogsGs(pTcat, subcgs);
@@ -703,6 +988,19 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
       this.queryGilForCatNoAucSmPr = loadString(flName);
     }
     return this.queryGilForCatNoAucSmPr;
+  }
+
+  /**
+   * <p>Lazy Get querySpecificsGoodsFilter.</p>
+   * @return String
+   * @throws Exception - an exception
+   **/
+  public final String lazyGetQuerySpecificsGoodsFilter() throws Exception {
+    if (this.querySpecificsGoodsFilter == null) {
+      String flName = "/webstore/specificsGoodsFilter.sql";
+      this.querySpecificsGoodsFilter = loadString(flName);
+    }
+    return this.querySpecificsGoodsFilter;
   }
 
   /**
@@ -903,5 +1201,22 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
    **/
   public final void setLogger(final ILogger pLogger) {
     this.logger = pLogger;
+  }
+
+  /**
+   * <p>Getter for querySpecificsGoodsFilter.</p>
+   * @return String
+   **/
+  public final String getQuerySpecificsGoodsFilter() {
+    return this.querySpecificsGoodsFilter;
+  }
+
+  /**
+   * <p>Setter for querySpecificsGoodsFilter.</p>
+   * @param pQuerySpecificsGoodsFilter reference
+   **/
+  public final void setQuerySpecificsGoodsFilter(
+    final String pQuerySpecificsGoodsFilter) {
+    this.querySpecificsGoodsFilter = pQuerySpecificsGoodsFilter;
   }
 }

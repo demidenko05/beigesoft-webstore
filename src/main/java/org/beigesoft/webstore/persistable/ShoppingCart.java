@@ -105,7 +105,7 @@ public class ShoppingCart extends AEditableHasVersion
 
   /**
    * <p>Usually it's simple setter for model ID.</p>
-   * @param pId model ID
+   * @param pItsId model ID
    **/
   @Override
   public final void setItsId(final OnlineBuyer pItsId) {
