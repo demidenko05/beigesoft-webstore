@@ -25,6 +25,7 @@ import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.webstore.service.ISrvSettingsAdd;
 import org.beigesoft.webstore.processor.PrcAssignGoodsToCatalog;
 import org.beigesoft.webstore.processor.PrcRefreshGoodsInList;
+import org.beigesoft.webstore.processor.PrcRefreshCatalog;
 import org.beigesoft.webstore.service.ISrvTradingSettings;
 
 /**
@@ -73,6 +74,11 @@ public class FctBnTradeProcessors<RS>
   private ILogger logger;
 
   /**
+   * <p>FctBnPublicTradeProcessors.</p>
+   **/
+  private FctBnPublicTradeProcessors<RS> fctBnPublicTradeProcessors;
+
+  /**
    * <p>Converters map "converter name"-"object' s converter".</p>
    **/
   private final Map<String, IProcessor>
@@ -101,6 +107,9 @@ public class FctBnTradeProcessors<RS>
           if (pBeanName.equals(PrcRefreshGoodsInList
             .class.getSimpleName())) {
             proc = lazyGetPrcRefreshGoodsInList(pAddParam);
+          } else if (pBeanName.equals(PrcRefreshCatalog
+            .class.getSimpleName())) {
+            proc = lazyGetPrcRefreshCatalog(pAddParam);
           } else if (pBeanName.equals(PrcAssignGoodsToCatalog
             .class.getSimpleName())) {
             proc = lazyGetPrcAssignGoodsToCatalog(pAddParam);
@@ -121,6 +130,28 @@ public class FctBnTradeProcessors<RS>
   public final synchronized void set(final String pBeanName,
     final IProcessor pBean) throws Exception {
     this.processorsMap.put(pBeanName, pBean);
+  }
+
+  /**
+   * <p>Lazy get PrcRefreshCatalog.</p>
+   * @param pAddParam additional param
+   * @return requested PrcRefreshCatalog
+   * @throws Exception - an exception
+   */
+  protected final PrcRefreshCatalog
+    lazyGetPrcRefreshCatalog(
+      final Map<String, Object> pAddParam) throws Exception {
+    PrcRefreshCatalog proc = (PrcRefreshCatalog) this.processorsMap
+      .get(PrcRefreshCatalog.class.getSimpleName());
+    if (proc == null) {
+      proc = new PrcRefreshCatalog();
+      proc.getListeners().add(this.fctBnPublicTradeProcessors
+        .lazyGetPrcWebstorePage(pAddParam));
+      //assigning fully initialized object:
+      this.processorsMap
+        .put(PrcRefreshCatalog.class.getSimpleName(), proc);
+    }
+    return proc;
   }
 
   /**
@@ -289,5 +320,22 @@ public class FctBnTradeProcessors<RS>
    **/
   public final void setLogger(final ILogger pLogger) {
     this.logger = pLogger;
+  }
+
+  /**
+   * <p>Getter for fctBnPublicTradeProcessors.</p>
+   * @return FctBnPublicTradeProcessors
+   **/
+  public final FctBnPublicTradeProcessors<RS> getFctBnPublicTradeProcessors() {
+    return this.fctBnPublicTradeProcessors;
+  }
+
+  /**
+   * <p>Setter for fctBnPublicTradeProcessors.</p>
+   * @param pFctBnPublicTradeProcessors reference
+   **/
+  public final void setFctBnPublicTradeProcessors(
+    final FctBnPublicTradeProcessors<RS> pFctBnPublicTradeProcessors) {
+    this.fctBnPublicTradeProcessors = pFctBnPublicTradeProcessors;
   }
 }

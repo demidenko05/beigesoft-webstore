@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns="http://maven.apache.org/XDOC/2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+
+  <properties>
+    <title>Beigesoft ™ WEB Store specification</title>
+   </properties>
+
+  <body>
+
+    <section name="Beigesoft ™ WEB Store specification #1. Catalog of goods/services.">
+      
+      <h4>Catalog of goods/services.</h4>
+      <p>Current implementation requires that goods/services should be in any catalog.
+        Small lists of goods/services should be in only catalog.</p>
+      <p>Catalog can consist of either sub-catalogs or items.</p>
+      <p>Entity CatalogGs:
+        <ul>
+          <li>AHasNameIdLongVersion fields (ID by hand)</li>
+          <li>hasSubcatalogs - Boolean, not null, false default.</li>
+          <li>description - String.</li>
+!!!not null not fixed in old DB          <li>itsIndex - Integer, not null, ordering</li>
+          <li>isInMenu - Boolean, default true, Is it in the menu, default true, to quick switch on/off from menu
+            or for catalog that shows only on start</li>
+          <li>usedSpecifics - List&lt;SpecificsOfItem&gt; automatically maintained, not shown in form.
+            List of filterable/orderable specifics that are used for items in that catalog and its sub-catalogs.
+            It's used to make filter/order for item's list.</li>
+        </ul>
+      </p>
+      <p>Entity GoodsCatalogs:
+        <ul>
+          <li>itsCatalog - CatalogGs, not null, its hasSubcatalogs=false.</li>
+          <li>goods - InvItem, not null.</li>
+        </ul>
+        Pair {"goods", "itsCatalog"} is primary key.<br></br>
+        Bulk operations for filtered GoodsCatalogs:
+        <ul>
+          <li>delete</li>
+          <li>assign another catalog</li>
+        </ul>
+      </p>
+      <p>Entity SubcatalogsCatalogsGs pair of goods catalog - subcatalog, e.g "electronics"-"notebooks":
+        <ul>
+          <li>itsCatalog - CatalogGs, not null, its hasSubcatalogs=true.</li>
+          <li>subcatalog - CatalogGs, not null.</li>
+        </ul>
+        Pair {"itsCatalog", "subcatalog"} is primary key
+      </p>
+      <p>Entity list InvItem has forced filtered for type Merchandise or Product.<br></br>
+        Bulk operations for filtered InvItem:
+        <ul>
+          <li>assign catalog (create GoodsCatalogs for chosen goods and catalog), at start it checks first goods if it already assigned.</li>
+          <li>assign advice category (create AdviseCategoryOfGs ... at start checking if already created.)</li>
+        </ul>
+      </p>
+            
+      <h5>WEB-interface</h5>
+      <p>Catalogs 1-st level appeared on top-stuck menu (maximum TradingSettings.maxQuantityOfTopLevelCatalogs),
+        2-nd on dropdown menu, 3-d and others in hidden modal dialog that appears when user select 2-nd menu element.
+      </p>
+      <p>
+[c]        If 1-st level items exceed TradingSettings.maxQuantityOfTopLevelCatalogs then dropdown menu "others" created for exceeded items
+        and their 2-nd level subitems not shown, so on click on them modal dialog will contains subcatalogs from 2-nd level.
+      </p>
+      <p>
+        Model non-persistable Store Catalogs (goods/services) - List&lt;TradingCatalog&gt;<br></br>
+        Model TradingCatalog:
+        <ul>
+          <li>catalog - CatalogGs</li>
+          <li>subcatalogs - List&lt;TradingCatalog&gt;</li>
+        </ul>
+        Catalog that has subcatalog can't has goods.
+        User can invoke 1-st and 2-nd level catalog's goods in modal dialog, in menu they invoke just menu.
+      </p>
+      
+      <p>Models that passed to JSP for rendering page of goods or services:
+        <ul>
+          <li>catalog - TradingCatalog</li>
+        </ul>
+      </p>
+    </section>
+
+  </body>
+
+</document>

@@ -327,50 +327,6 @@
         - any gateway payment e.g. 2checkout.
         That is means that Beige-Webstore never hold/store customer payments method data like cart number and CVV number(Card Security Code).
       </p>
-      
-      <h4>Goods/services catalog</h4>
-      <p>For small lists of goods catalog may not be used, so only available items will be listed with pagination.</p>
-      <p>A goods may has only catalog.</p>
-      <p>Entity CatalogGs:
-        <ul>
-          <li>AHasNameIdLongVersion fields (ID by hand)</li>
-          <li>hasSubcatalogs - Boolean, not null, false default.</li>
-          <li>description - String.</li>
-!!!not null not fixed in old DB          <li>itsIndex - Integer, not null, ordering</li>
-          <li>isInMenu - Boolean, default true, Is it in the menu, default true, to quick switch on/off from menu
-            or for catalog that shows only on start</li>
-          <li>usedSpecifics - List&lt;SpecificsOfItem&gt; automatically maintained, not shown in form.
-            List of filterable/orderable specifics that are used for items in that catalog and its sub-catalogs.
-            It's used to make filter/order for item's list.</li>
-        </ul>
-      </p>
-      <p>Entity GoodsCatalogs:
-        <ul>
-          <li>itsCatalog - CatalogGs, not null, its hasSubcatalogs=false.</li>
-          <li>goods - InvItem, not null.</li>
-        </ul>
-        Pair {"goods", "itsCatalog"} is primary key.<br></br>
-        Bulk operations for filtered GoodsCatalogs:
-        <ul>
-          <li>delete</li>
-          <li>assign another catalog</li>
-        </ul>
-      </p>
-      <p>Entity SubcatalogsCatalogsGs pair of goods catalog - subcatalog, e.g "electronics"-"notebooks":
-        <ul>
-          <li>itsCatalog - CatalogGs, not null, its hasSubcatalogs=true.</li>
-          <li>subcatalog - CatalogGs, not null.</li>
-        </ul>
-        Pair {"itsCatalog", "subcatalog"} is primary key
-      </p>
-      <p>Entity list InvItem has forced filtered for type Merchandise or Product.<br></br>
-        Bulk operations for filtered InvItem:
-        <ul>
-          <li>assign catalog (create GoodsCatalogs for chosen goods and catalog), at start it checks first goods if it already assigned.</li>
-          <li>assign advice category (create AdviseCategoryOfGs ... at start checking if already created.)</li>
-        </ul>
-      </p>
-      
 
       <h4>Goods/seller rating</h4>
       <p>It's used standard rating from 0 to 10 with 5 stars appearance (include half star),
@@ -841,37 +797,16 @@ where :CATALOGFILTER is ID of selected catalog or "catalog on start" or set of c
       <h4>WEB-interface</h4>
       <p>It based on <a href="http://getbootstrap.com/">bootstrap</a>.
         There is only interface for both desktop and mobile device.
-        Catalog 1-st level appeared on top-stuck menu, 2-nd on dropdown menu, 3-d and others in hidden modal dialog
-        that appeared when user select 2-nd menu element. No Ajax - whole page is refreshed. Filter (search) is modal dialog that hidden created
-        after page filled of goods/services that has filterable specific,
-        and filter button will be appeared on menu. If there is no catalog, then page of available goods/services is appeared.
-        If 1-st level items exceed first row place then dropdown menu "others" created for exceeded items
-        and their 2-nd level subitems not shown, so on click on them modal dialog will contains subcatalogs from 2-nd level.
-        TradingSettings.maxQuantityOfTopLevelCatalogs is settled that issue. When user click on catalog that contains of subcatalogs
-        then list of goods for all subcatalogs will be appeared.
-      </p>
-      <p>
-        Model non-persistable Store Catalogs (goods/services) - List&lt;TradingCatalog&gt;<br></br>
-        Model TradingCatalog:
-        <ul>
-          <li>catalog - CatalogGs</li>
-          <li>subcatalogs - List&lt;TradingCatalog&gt;</li>
-        </ul>
-        Catalog that has subcatalog can't has goods.
-        User can invoke 1-st and 2-nd level catalog's goods in modal dialog, in menu they invoke just menu.
-      </p>
-      <p>Webstore home processor - invoked on URL
-        <b>[http-base-url]beige-accounting-web/service?nmHnd=handlerWebstoreRequest&amp;nmRnd=webstore&amp;nmPrc=PrcWebstoreStart</b>
       </p>
       
       <p>Models that passed to JSP for rendering page of goods or services:
         <ul>
-          <li>listFilter - ListFilter if exist</li>
           <li>itemsList - List&lt;ItemInList&gt;</li>
           <li>totalItems - row count</li>
           <li>pages - List&lt;org.beigesoft.model.Page&gt; if exist</li>
         </ul>
       </p>
+
       <h6>List on start</h6>
       <p>In case of little catalog TradingSettings has catalogOnStart to list all goods on start without clicking on "menu-[catalog]".
       Or it's catalog that offers different goods/services for all on start</p>

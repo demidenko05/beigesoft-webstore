@@ -714,18 +714,18 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
           }
         } else if (sf.getFilter().getClass() == FilterBigDecimal.class) {
           FilterBigDecimal flt = (FilterBigDecimal) sf.getFilter();
-          sb.append("NUMERICVALUE11");
+          sb.append("NUMERICVALUE1");
           if (EFilterOperator.LESS_THAN.equals(flt.getOperator())
             || EFilterOperator.LESS_THAN_EQUAL.equals(flt.getOperator())
               || EFilterOperator.GREATER_THAN.equals(flt.getOperator())
             || EFilterOperator.GREATER_THAN_EQUAL.equals(flt.getOperator())) {
             sb.append(toSqlOperator(flt.getOperator()) + flt.getValue1());
           } else if (EFilterOperator.BETWEEN.equals(flt.getOperator())) {
-            sb.append(">" + flt.getValue1() + " and NUMERICVALUE12<"
+            sb.append(">" + flt.getValue1() + " and NUMERICVALUE2<"
               + flt.getValue2());
           } else if (EFilterOperator.BETWEEN_INCLUDE
             .equals(flt.getOperator())) {
-            sb.append(">=" + flt.getValue1() + " and NUMERICVALUE12<="
+            sb.append(">=" + flt.getValue1() + " and NUMERICVALUE2<="
               + flt.getValue2());
           } else {
             throw new Exception(
@@ -754,7 +754,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
 
   /**
    * <p>Reveal part of where catalog clause e.g. "=12",
-   * " in (12,14)" or empty string.</p>
+   * " in (12,14)".</p>
    * @param pTcat Catalog
    * @param pFilterCatalog Filter Catalog
    * @return part of where clause e.g. "=12", " in (12,14)"
@@ -762,53 +762,35 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
    **/
   public final String revealWhereCatalog(final TradingCatalog pTcat,
     final FilterItems<CatalogGs> pFilterCatalog) throws Exception {
+    List<CatalogGs> subcgsAll = new ArrayList<CatalogGs>();
+    subcgsAll.add(pTcat.getCatalog());
     if (pFilterCatalog != null && pFilterCatalog.getOperator() != null
       && pFilterCatalog.getItems().size() > 0) {
-      if (EFilterOperator.IN.equals(pFilterCatalog.getOperator())
-        && pFilterCatalog.getItems().size() == 1) {
-        return "=" + pFilterCatalog.getItems().get(0).getItsId();
-      } else if (EFilterOperator.NOT_IN.equals(pFilterCatalog.getOperator())
-        && pFilterCatalog.getItems().size() == 1) {
-        return "!=" + pFilterCatalog.getItems().get(0).getItsId();
-      } else {
-        StringBuffer sb = new StringBuffer();
-        if (EFilterOperator.IN.equals(pFilterCatalog.getOperator())) {
-          sb.append(" in (");
-        } else {
-          sb.append(" not in (");
-        }
-        boolean isFirst = true;
-        for (CatalogGs cgs : pFilterCatalog.getItems()) {
-          if (isFirst) {
-            isFirst = false;
-          } else {
-            sb.append(",");
-          }
-          sb.append(cgs.getItsId());
-        }
-        sb.append(")");
-        return sb.toString();
+      for (CatalogGs cgs : pFilterCatalog.getItems()) {
+        TradingCatalog tcat = findTradingCatalogById(this.catalogs,
+          cgs.getItsId());
+        subcgsAll.add(cgs);
+        copySubcatalogsGs(tcat, subcgsAll);
       }
     } else {
-      List<CatalogGs> subcgs;
-      if (pFilterCatalog != null
-        && pFilterCatalog.getItemsAll().size() > 0) {
-        subcgs = pFilterCatalog.getItemsAll();
-      } else {
-        subcgs = new ArrayList<CatalogGs>();
-        copySubcatalogsGs(pTcat, subcgs);
+      copySubcatalogsGs(pTcat, subcgsAll);
+    }
+    Set<CatalogGs> subcgs = new HashSet<CatalogGs>();
+    for (CatalogGs cgs : subcgsAll) {
+      if (!cgs.getHasSubcatalogs()) {
+        subcgs.add(cgs);
       }
-      if (subcgs.size() > 0) {
-        StringBuffer sb = new StringBuffer(" in ("
-          + pTcat.getCatalog().getItsId());
-        for (CatalogGs cgs : subcgs) {
-          sb.append("," + cgs.getItsId());
-        }
-        sb.append(")");
-        return sb.toString();
-      } else {
-        return "=" + pTcat.getCatalog().getItsId();
+    }
+    if (subcgs.size() > 1) {
+      StringBuffer sb = new StringBuffer(" in ("
+        + pTcat.getCatalog().getItsId());
+      for (CatalogGs cgs : subcgs) {
+        sb.append("," + cgs.getItsId());
       }
+      sb.append(")");
+      return sb.toString();
+    } else {
+      return "=" + subcgs.iterator().next().getItsId();
     }
   }
 
