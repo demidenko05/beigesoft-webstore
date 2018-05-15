@@ -73,6 +73,14 @@ public class CatalogGs extends AHasNameIdLongVersion {
    **/
   private List<CatalogSpecifics> usedSpecifics;
 
+  /**
+   * <p>If used, means ID of customized filter, e.g. "231" means
+   * using custom filterPrice231.jsp for used car (set of price ranges)
+   * instead of regular(usual/default) filter
+   * integer (less, greater, from-to value1/2).</p>
+   **/
+  private Integer filterPriceId;
+
   //Simple getters and setters:
   /**
    * <p>Getter for description.</p>
@@ -218,5 +226,21 @@ public class CatalogGs extends AHasNameIdLongVersion {
   public final void setUsedSpecifics(
     final List<CatalogSpecifics> pUsedSpecifics) {
     this.usedSpecifics = pUsedSpecifics;
+  }
+
+  /**
+   * <p>Getter for filterPriceId.</p>
+   * @return Integer
+   **/
+  public final Integer getFilterPriceId() {
+    return this.filterPriceId;
+  }
+
+  /**
+   * <p>Setter for filterPriceId.</p>
+   * @param pFilterPriceId reference
+   **/
+  public final void setFilterPriceId(final Integer pFilterPriceId) {
+    this.filterPriceId = pFilterPriceId;
   }
 }

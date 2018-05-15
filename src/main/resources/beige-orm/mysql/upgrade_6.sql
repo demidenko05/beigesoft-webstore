@@ -22,4 +22,5 @@ alter table CATALOGGS add column USEFILTERSPECIFICS tinyint not null default 0;
 alter table CATALOGGS add column USEFILTERSUBCATALOG tinyint not null default 0;
 alter table CATALOGGS add column USEPICKUPPLACEFILTER tinyint not null default 0;
 alter table CATALOGGS add column USEAVAILABLEFILTER tinyint not null default 0;
+alter table CATALOGGS add column FILTERPRICEID int default null;
 update DATABASEINFO set DATABASEVERSION=6, DESCRIPTION='Beige Accounting OIO DB version 6';

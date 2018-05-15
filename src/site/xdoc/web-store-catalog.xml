@@ -26,6 +26,9 @@
           <li>usedSpecifics - List&lt;SpecificsOfItem&gt; automatically maintained, not shown in form.
             List of filterable/orderable specifics that are used for items in that catalog and its sub-catalogs.
             It's used to make filter/order for item's list.</li>
+          <li>filterId - Integer, null default, means ID of customized filter, e.g. "231" means
+            using custom filterPrice231.jsp for used car (set of price ranges)
+            instead of regular(usual/default) filter integer (less, greater, from-to value1/2)</li>
         </ul>
       </p>
       <p>Entity GoodsCatalogs:

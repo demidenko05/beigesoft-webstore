@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns="http://maven.apache.org/XDOC/2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+
+  <properties>
+    <title>Beigesoft ™ WEB Store specification</title>
+   </properties>
+
+  <body>
+
+    <section name="Beigesoft ™ WEB Store specification #1. Internationalization.">
+      
+      <h4>Internationalization.</h4>
+      <p>The best method to store user I18N preferences is browser's cookie. I18N preferences is usually bundle
+       <ul>
+         <li>language</li>
+         <li>decimal and decimal group separators</li>
+       </ul>
+       But sometimes user want to change only language. User also can prefer other decimal separators (not from bundle).
+       Consequently using three cookies "lang", "dseparator" and "dgseparator" is the best choice.
+      </p>
+      <p>Persistable model org.beigesoft.persistable.Languages contains all possible values:
+        <ul>
+          <li>itsId - String(6), PK, language global code, e.g. "en" or "ru"</li>
+          <li>itsName - String</li>
+        </ul>
+      </p>
+      <p>Persistable model org.beigesoft.persistable.DecimalSeparator contains all possible values:
+        <ul>
+          <li>itsId - String(3), PK, value, e.g. "." or ","</li>
+          <li>itsName - String</li>
+        </ul>
+      </p>
+      <p>Persistable model org.beigesoft.persistable.DecimalGroupSeparator contains all possible values:
+        <ul>
+          <li>itsId - String(3), PK, value, e.g. " " or "'"</li>
+          <li>itsName - String</li>
+        </ul>
+      </p>
+      <p>Model org.beigesoft.model.LangPreferences:
+        <ul>
+          <li>lang - Languages language</li>
+          <li>decimalSeparator - DecimalSeparator</li>
+          <li>DecimalGroupSeparator - DecimalGroupSeparator</li>
+        </ul>
+      </p>
+      <p>
+        In browser decimal separators is handled by JQuery plugin "autoNumeric.js" then form sends exactly formatted value,
+        e.g. "12'123,13", where "'" group separator and "," decimal one.
+        Request handler fills LangPreferences according cookie and passes it to Addition Parameters Map with name "LangPreferences".
+        converter CnvTfsBigDecimal will replace separators then passes standard value ("13123.13" in this case) to the constructor.
+      </p>
+
+    </section>
+
+  </body>
+
+</document>

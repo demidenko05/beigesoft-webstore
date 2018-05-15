@@ -60,6 +60,11 @@
     </p>
     <h5>Filter price</h5>
     <p>If catalog has any filter then filter "price" will be added automatically. No one uses only filter "price".</p>
+    <p>Different catalogs may has items with different price ranges, e.g. catalog "Used cars" and catalog "Burgers", so 
+      using different price filter is reasonable.
+      To implements this CatalogGs has null-able "filterPriceId" field to select desired filter that can be empty (no filter price for this catalog).
+    </p>
+
     <h5>Goods/services/both filter.</h5>
     <p>If it's goods and services store then this filter will be added automatically as price one (above).</p>
 
