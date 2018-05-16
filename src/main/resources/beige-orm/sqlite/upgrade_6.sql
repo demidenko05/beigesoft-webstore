@@ -18,4 +18,8 @@ alter table CATALOGGS add column USEFILTERSUBCATALOG integer not null default 0;
 alter table CATALOGGS add column USEPICKUPPLACEFILTER integer not null default 0;
 alter table CATALOGGS add column USEAVAILABLEFILTER integer not null default 0;
 alter table CATALOGGS add column FILTERPRICEID integer default null;
+alter table CURRENCY add column ITSSIGN text default null;
+update CURRENCY set ITSSIGN='€', ITSVERSION=(ITSVERSION+1) where ITSID=978;
+update CURRENCY set ITSSIGN='$', ITSVERSION=(ITSVERSION+1) where ITSID=840;
+update CURRENCY set ITSSIGN='₽', ITSVERSION=(ITSVERSION+1) where ITSID=643;
 update DATABASEINFO set DATABASEVERSION=6, DESCRIPTION='Beige Accounting OIO DB version 6';

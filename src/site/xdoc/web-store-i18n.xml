@@ -11,6 +11,8 @@
 
     <section name="Beigesoft ™ WEB Store specification #1. Internationalization.">
       
+      <h5>This is internationalization specification for whole project Beigesoft ™ Accounting All In one include subprojects.</h5>
+      
       <h4>Internationalization.</h4>
       <p>The best method to store user I18N preferences is browser's cookie. I18N preferences is usually bundle
        <ul>
@@ -20,37 +22,55 @@
        But sometimes user want to change only language. User also can prefer other decimal separators (not from bundle).
        Consequently using three cookies "lang", "dseparator" and "dgseparator" is the best choice.
       </p>
+      <p>It can be extended with storing preferences in database for registered users.</p>
+      <p>Persistable model org.beigesoft.persistable.AI18nFeature:
+        <ul>
+          <li>AHasIdStringVersion fields, itsId - String(6), itsVersion - changed time algorithm</li>
+          <li>itsName - String</li>
+        </ul>
+      </p>
       <p>Persistable model org.beigesoft.persistable.Languages contains all possible values:
         <ul>
-          <li>itsId - String(6), PK, language global code, e.g. "en" or "ru"</li>
-          <li>itsName - String</li>
+          <li>AI18nFeature fields, PK is code e.g. "en" or "ru"</li>
+        </ul>
+      </p>
+      <p>Persistable model org.beigesoft.persistable.Countries contains all possible values:
+        <ul>
+          <li>AI18nFeature fields, PK is code e.g. "US" or "RU"</li>
         </ul>
       </p>
       <p>Persistable model org.beigesoft.persistable.DecimalSeparator contains all possible values:
         <ul>
-          <li>itsId - String(3), PK, value, e.g. "." or ","</li>
-          <li>itsName - String</li>
+          <li>AI18nFeature fields, PK is code e.g. "." or ","</li>
         </ul>
       </p>
       <p>Persistable model org.beigesoft.persistable.DecimalGroupSeparator contains all possible values:
         <ul>
-          <li>itsId - String(3), PK, value, e.g. " " or "'"</li>
-          <li>itsName - String</li>
+          <li>AI18nFeature fields, PK is code e.g. " " or "'"</li>
         </ul>
       </p>
-      <p>Model org.beigesoft.model.LangPreferences:
+      <p>Persistable model org.beigesoft.persistable.LangPreferences:
         <ul>
-          <li>lang - Languages language</li>
-          <li>decimalSeparator - DecimalSeparator</li>
-          <li>DecimalGroupSeparator - DecimalGroupSeparator</li>
+          <li>lang - Languages</li>
+          <li>country - Countries</li>
+          <li>decimalSep - DecimalSeparator</li>
+          <li>decimalGroupSep - DecimalGroupSeparator</li>
+          <li>isDefault - Boolean, false default</li>
         </ul>
+        Pair[lang, country] is PK. This model holds default preferences for countries in the database and user preferences for its request.
       </p>
       <p>
+        At the first client request javax.servlet.ServletRequest.getLocale() gets preferred client locale (language and country)
+        then program responds with cookies filled from the same LangPreferences or default if there is no such localization (messages for this language).
+        Program also sets request attributes langPreferences, languages, decimalGroupSeparators and decimalSeparators to JSP that will handles language, separator view and form to change user preferences.
+        For further requests langPreferences will be filled with cookies that user can change.
         In browser decimal separators is handled by JQuery plugin "autoNumeric.js" then form sends exactly formatted value,
         e.g. "12'123,13", where "'" group separator and "," decimal one.
         Request handler fills LangPreferences according cookie and passes it to Addition Parameters Map with name "LangPreferences".
         converter CnvTfsBigDecimal will replace separators then passes standard value ("13123.13" in this case) to the constructor.
       </p>
+      <p>Service transactional org.beigesoft.handler.HndlI18nRequest handles server-side logic above. It caches lists of LangPreferences, DecimalGroupSeparator, DecimalSeparator, Languages and implements IHandlerDataChanged,
+        so a service that changes any entity (LangPreferences, Languages...) should invoke listeners to refresh cache.</p>
 
     </section>
 

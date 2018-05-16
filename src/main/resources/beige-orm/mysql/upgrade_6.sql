@@ -23,4 +23,8 @@ alter table CATALOGGS add column USEFILTERSUBCATALOG tinyint not null default 0;
 alter table CATALOGGS add column USEPICKUPPLACEFILTER tinyint not null default 0;
 alter table CATALOGGS add column USEAVAILABLEFILTER tinyint not null default 0;
 alter table CATALOGGS add column FILTERPRICEID int default null;
+alter table CURRENCY add column ITSSIGN varchar(6) default null;
+update CURRENCY set ITSSIGN='€', ITSVERSION=(ITSVERSION+1) where ITSID=978;
+update CURRENCY set ITSSIGN='$', ITSVERSION=(ITSVERSION+1) where ITSID=840;
+update CURRENCY set ITSSIGN='₽', ITSVERSION=(ITSVERSION+1) where ITSID=643;
 update DATABASEINFO set DATABASEVERSION=6, DESCRIPTION='Beige Accounting OIO DB version 6';
