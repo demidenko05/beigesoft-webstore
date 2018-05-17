@@ -12,6 +12,7 @@
     <section name="Beigesoft ™ WEB Store specification #1. Internationalization.">
       
       <h5>This is internationalization specification for whole project Beigesoft ™ Accounting All In one include subprojects.</h5>
+      <h5>Javascript internationalization is implemented by using file <b>beige.i18n.${lang}.js</b> that must be present for the languages!!!</h5>
       
       <h4>Internationalization.</h4>
       <p>The best method to store user I18N preferences is browser's cookie. I18N preferences is usually bundle
@@ -46,11 +47,12 @@
       </p>
       <p>Persistable model org.beigesoft.persistable.DecimalGroupSeparator contains all possible values:
         <ul>
-          <li>AI18nFeature fields, PK is code e.g. " " or "'"</li>
+          <li>AI18nFeature fields, PK is code e.g. "space" or "'". To avoid problems space " " is substituted with its name "space" in English.</li>
         </ul>
       </p>
       <p>Persistable model org.beigesoft.persistable.LangPreferences:
         <ul>
+          <li>itsVersion - Long change time</li>
           <li>lang - Languages</li>
           <li>country - Countries</li>
           <li>decimalSep - DecimalSeparator</li>
@@ -62,7 +64,7 @@
       <p>
         At the first client request javax.servlet.ServletRequest.getLocale() gets preferred client locale (language and country)
         then program responds with cookies filled from the same LangPreferences or default if there is no such localization (messages for this language).
-        Program also sets request attributes langPreferences, languages, decimalGroupSeparators and decimalSeparators to JSP that will handles language, separator view and form to change user preferences.
+        Program also sets request attributes lang, dseparator, dgseparator, languages, decimalGroupSeparators and decimalSeparators to JSP that will handles language, separator view and form to change user preferences.
         For further requests langPreferences will be filled with cookies that user can change.
         In browser decimal separators is handled by JQuery plugin "autoNumeric.js" then form sends exactly formatted value,
         e.g. "12'123,13", where "'" group separator and "," decimal one.
@@ -70,7 +72,9 @@
         converter CnvTfsBigDecimal will replace separators then passes standard value ("13123.13" in this case) to the constructor.
       </p>
       <p>Service transactional org.beigesoft.handler.HndlI18nRequest handles server-side logic above. It caches lists of LangPreferences, DecimalGroupSeparator, DecimalSeparator, Languages and implements IHandlerDataChanged,
-        so a service that changes any entity (LangPreferences, Languages...) should invoke listeners to refresh cache.</p>
+        so a service that changes any entity (LangPreferences, Languages...) should invoke listeners to refresh cache.
+        Servlet get this handler from factory by name "hndlI18nRequest" and invokes it first thing.
+      </p>
 
     </section>
 
