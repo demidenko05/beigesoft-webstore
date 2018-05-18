@@ -17,8 +17,6 @@ import java.util.Map;
 import java.util.List;
 import java.math.BigDecimal;
 
-import org.beigesoft.model.ICookie;
-import org.beigesoft.model.CookieTmp;
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
@@ -57,16 +55,10 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
   public final ShoppingCart getShoppingCart(final Map<String, Object> pAddParam,
     final IRequestData pRequestData,
       final boolean pIsNeedToCreate) throws Exception {
-    ICookie[] cookies = pRequestData.getCookies();
     Long buyerId = null;
-    ICookie cookieWas = null;
-    if (cookies != null) {
-      for (ICookie cookie : cookies) {
-        if (cookie.getName().equals("cBuyerId")) {
-          buyerId = Long.valueOf(cookie.getValue());
-          cookieWas = cookie;
-        }
-      }
+    String buyerIdStr = pRequestData.getCookieValue("cBuyerId");
+    if (buyerIdStr != null && buyerIdStr.length() > 0) {
+       buyerId = Long.valueOf(buyerIdStr);
     }
     OnlineBuyer onlineBuyer;
     if (buyerId == null) {
@@ -75,10 +67,8 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       if (pIsNeedToCreate
         || tradingSettings.getIsCreateOnlineUserOnFirstVisit()) {
         onlineBuyer = createOnlineBuyer(pAddParam, pRequestData);
-        CookieTmp cookie = new CookieTmp();
-        cookie.setName("cBuyerId");
-        cookie.setValue(onlineBuyer.getItsId().toString());
-        pRequestData.addCookie(cookie);
+        pRequestData.setCookieValue("cBuyerId", onlineBuyer.getItsId()
+          .toString());
       } else {
         return null;
       }
@@ -87,7 +77,8 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         .retrieveEntityById(pAddParam, OnlineBuyer.class, buyerId);
       if (onlineBuyer == null) { // deleted for any reason, so create new:
         onlineBuyer = createOnlineBuyer(pAddParam, pRequestData);
-        cookieWas.setValue(onlineBuyer.getItsId().toString());
+        pRequestData.setCookieValue("cBuyerId", onlineBuyer.getItsId()
+          .toString());
       }
     }
     ShoppingCart shoppingCart = getSrvOrm()
