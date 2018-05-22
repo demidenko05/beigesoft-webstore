@@ -28,7 +28,7 @@ import org.beigesoft.webstore.service.ILstnCatalogChanged;
 public class PrcRefreshCatalog implements IProcessor {
 
   /**
-   * <p>Database service.</p>
+   * <p>Listeners of catalog changed.</p>
    **/
   private List<ILstnCatalogChanged> listeners =
     new ArrayList<ILstnCatalogChanged>();

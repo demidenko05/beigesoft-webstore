@@ -155,6 +155,11 @@
   org.beigesoft.webstore.persistable.CustomerOrderTaxLine,
   org.beigesoft.webstore.persistable.TradingSettings,
   org.beigesoft.webstore.persistable.CatalogSpecifics,
+  org.beigesoft.webstore.persistable.I18nSpecificInList,
+  org.beigesoft.webstore.persistable.I18nServiceToSale,
+  org.beigesoft.webstore.persistable.I18nInvItem,
+  org.beigesoft.webstore.persistable.I18nCatalogGs,
+  org.beigesoft.webstore.persistable.I18nSpecificsOfItem,
   org.beigesoft.webstore.persistable.CustomerGoodsSeen</entry>
 <entry key="settingsKeysForClasses">idColumnsNames, idFieldName, ownerFieldName, constraintAdd, excludeFields, versionAlgorithm</entry>
 <entry key="settingsKeysForFields">definition, isNullable</entry>

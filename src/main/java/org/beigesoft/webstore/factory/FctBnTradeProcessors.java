@@ -21,6 +21,8 @@ import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.service.ISrvEntitiesPage;
+import org.beigesoft.service.PrcRefreshHndlI18n;
+import org.beigesoft.handler.IHandlerDataChanged;
 import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.webstore.service.ISrvSettingsAdd;
 import org.beigesoft.webstore.processor.PrcAssignGoodsToCatalog;
@@ -79,6 +81,11 @@ public class FctBnTradeProcessors<RS>
   private FctBnPublicTradeProcessors<RS> fctBnPublicTradeProcessors;
 
   /**
+   * <p>I18N request handler.</p>
+   **/
+  private IHandlerDataChanged i18nRequestHandler;
+
+  /**
    * <p>Converters map "converter name"-"object' s converter".</p>
    **/
   private final Map<String, IProcessor>
@@ -107,6 +114,9 @@ public class FctBnTradeProcessors<RS>
           if (pBeanName.equals(PrcRefreshGoodsInList
             .class.getSimpleName())) {
             proc = lazyGetPrcRefreshGoodsInList(pAddParam);
+          } else if (pBeanName.equals(PrcRefreshHndlI18n
+            .class.getSimpleName())) {
+            proc = lazyGetPrcRefreshHndlI18n(pAddParam);
           } else if (pBeanName.equals(PrcRefreshCatalog
             .class.getSimpleName())) {
             proc = lazyGetPrcRefreshCatalog(pAddParam);
@@ -130,6 +140,27 @@ public class FctBnTradeProcessors<RS>
   public final synchronized void set(final String pBeanName,
     final IProcessor pBean) throws Exception {
     this.processorsMap.put(pBeanName, pBean);
+  }
+
+  /**
+   * <p>Lazy get PrcRefreshHndlI18n.</p>
+   * @param pAddParam additional param
+   * @return requested PrcRefreshHndlI18n
+   * @throws Exception - an exception
+   */
+  protected final PrcRefreshHndlI18n
+    lazyGetPrcRefreshHndlI18n(
+      final Map<String, Object> pAddParam) throws Exception {
+    PrcRefreshHndlI18n proc = (PrcRefreshHndlI18n) this.processorsMap
+      .get(PrcRefreshHndlI18n.class.getSimpleName());
+    if (proc == null) {
+      proc = new PrcRefreshHndlI18n();
+      proc.setI18nRequestHandler(this.i18nRequestHandler);
+      //assigning fully initialized object:
+      this.processorsMap
+        .put(PrcRefreshHndlI18n.class.getSimpleName(), proc);
+    }
+    return proc;
   }
 
   /**
@@ -337,5 +368,22 @@ public class FctBnTradeProcessors<RS>
   public final void setFctBnPublicTradeProcessors(
     final FctBnPublicTradeProcessors<RS> pFctBnPublicTradeProcessors) {
     this.fctBnPublicTradeProcessors = pFctBnPublicTradeProcessors;
+  }
+
+  /**
+   * <p>Getter for i18nRequestHandler.</p>
+   * @return IHandlerDataChanged
+   **/
+  public final IHandlerDataChanged getI18nRequestHandler() {
+    return this.i18nRequestHandler;
+  }
+
+  /**
+   * <p>Setter for i18nRequestHandler.</p>
+   * @param pI18nRequestHandler reference
+   **/
+  public final void setI18nRequestHandler(
+    final IHandlerDataChanged pI18nRequestHandler) {
+    this.i18nRequestHandler = pI18nRequestHandler;
   }
 }

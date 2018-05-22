@@ -150,6 +150,11 @@ public class TradingSettings extends AHasIdLongVersion {
   private Boolean isUsedSeveralPaymentMethods = Boolean.FALSE;
 
   /**
+   * <p>Not null, false default, Use advanced internalization.</p>
+   **/
+  private Boolean useAdvancedI18n;
+
+  /**
    * <p>Default payment method, not null, ONLINE default.</p>
    **/
   private EPaymentMethod defaultPaymentMethod = EPaymentMethod.ONLINE;
@@ -498,5 +503,22 @@ public class TradingSettings extends AHasIdLongVersion {
   public final void setDefaultPaymentMethod(
     final EPaymentMethod pDefaultPaymentMethod) {
     this.defaultPaymentMethod = pDefaultPaymentMethod;
+  }
+
+
+  /**
+   * <p>Getter for useAdvancedI18n.</p>
+   * @return Boolean
+   **/
+  public final Boolean getUseAdvancedI18n() {
+    return this.useAdvancedI18n;
+  }
+
+  /**
+   * <p>Setter for useAdvancedI18n.</p>
+   * @param pUseAdvancedI18n reference
+   **/
+  public final void setUseAdvancedI18n(final Boolean pUseAdvancedI18n) {
+    this.useAdvancedI18n = pUseAdvancedI18n;
   }
 }

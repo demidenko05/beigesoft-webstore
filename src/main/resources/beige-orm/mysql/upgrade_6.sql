@@ -1,5 +1,6 @@
 alter table DEBTORCREDITOR add column ISFOREIGNER tinyint not null default 0;
 alter table TRADINGSETTINGS add column DEFAULTPAYMENTMETHOD tinyint not null default 0;
+alter table TRADINGSETTINGS add column USEADVANCEDI18N tinyint not null default 0;
 alter table SPECIFICSOFITEM add column CHOOSEABLESPECIFICSTYPE bigint unsigned default null;
 alter table SPECIFICSOFITEM add FOREIGN KEY (CHOOSEABLESPECIFICSTYPE) REFERENCES CHOOSEABLESPECIFICSTYPE(ITSID);
 alter table CHOOSEABLESPECIFICSTYPE add column HTMLTEMPLATE bigint unsigned default null;

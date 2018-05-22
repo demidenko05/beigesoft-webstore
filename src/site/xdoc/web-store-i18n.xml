@@ -76,6 +76,90 @@
         Servlet get this handler from factory by name "hndlI18nRequest" and invokes it first thing.
       </p>
 
+      <h4>Advanced internationalization</h4>
+      <p>International trading requires advanced internationalization - names of goods, services, catalogs, etc.
+        And so does selling to foreign tourists.
+      </p>
+      <p>TraidingSettings.useAdvancedI18n - switches using this.</p>
+      <p>Persistable model org.beigesoft.persistable.AI18nName:
+        <ul>
+          <li>itsVersion - Long change time</li>
+          <li>itsName - String, name in the language</li>
+        </ul>
+      </p>
+      <p>Persistable model org.beigesoft.webstore.persistable.I18nInvItem:
+        <ul>
+          <li>AI18nName columns</li>
+          <li>lang - Languages, the language</li>
+          <li>hasName - InvItem - internationalized thing</li>
+        </ul>
+        Pair[lang, hasName] is PK.
+      </p>
+      <p>Persistable model org.beigesoft.webstore.persistable.I18nServiceToSale:
+        <ul>
+          <li>AI18nName columns</li>
+          <li>lang - Languages, the language</li>
+          <li>hasName - ServiceToSale - internationalized thing</li>
+        </ul>
+        Pair[lang, hasName] is PK.
+      </p>
+      <p>Persistable model org.beigesoft.webstore.persistable.I18nCatalogGs:
+        <ul>
+          <li>AI18nName columns</li>
+          <li>lang - Languages, the language</li>
+          <li>hasName - CatalogGs - internationalized thing</li>
+        </ul>
+        Pair[lang, hasName] is PK.
+      </p>
+      <p>Persistable model org.beigesoft.webstore.persistable.I18nSpecificsOfItem:
+        <ul>
+          <li>AI18nName columns</li>
+          <li>lang - Languages, the language</li>
+          <li>hasName - SpecificsOfItem - internationalized thing</li>
+        </ul>
+        Pair[lang, hasName] is PK.
+      </p>
+      <p>ItemInList.specificInList contains of "cached" item's specifics for default language.
+        Persistable model org.beigesoft.webstore.persistable.I18nSpecificInList holds i18n values:
+        <ul>
+          <li>itsVersion - Long change time</li>
+          <li>itemId - Long, Goods/Service/SEGoods/SEService ID, not null</li>
+          <li>itsType - EShopItemType, Goods/Service/SEGoods/SEService, not null.</li>
+          <li>lang - Languages, the language</li>
+          <li>specificInList - String, not null, specifics in the language</li>
+        </ul>
+        Triple [itemId, itsType, lang] is PK.
+      </p>
+      <p>If TraidingSettings.useAdvancedI18n==true and client prefers non-default language, then catalog's service creates clone from cached catalog and substitute names with cached I18nCatalogGs ones.</p>
+      <p>In that case item list is made with extended query, e.g. for goods list:
+<pre style="white-space: pre-wrap;">
+select ALLGOODS.ITSTYPE, ALLGOODS.ITEMID, IMAGEURL, ITSPRICE, PREVIOUSPRICE, AVAILABLEQUANTITY, ITSRATING, DETAILSMETHOD,
+case when I18NINVITEM.ITSNAME is null then ALLGOODS.ITSNAME else I18NINVITEM.ITSNAME end as ITSNAME,
+case when I18NSPECIFICINLIST.SPECIFICINLIST is null then ALLGOODS.SPECIFICINLIST else I18NSPECIFICINLIST.SPECIFICINLIST end as SPECIFICINLIST
+from (
+  select ITSTYPE, ITEMID, ITSNAME, IMAGEURL, SPECIFICINLIST, ITSPRICE, PREVIOUSPRICE, AVAILABLEQUANTITY, ITSRATING, DETAILSMETHOD
+  from ITEMINLIST
+  where AVAILABLEQUANTITY>0 and ITSTYPE=0
+ ) as ALLGOODS
+join (
+  select distinct GOODS as GOODSINCATALOG from GOODSCATALOGS where ITSCATALOG in (1,2,3,4,5)
+ ) as GOODSINCATALOGALL on GOODSINCATALOGALL.GOODSINCATALOG=ALLGOODS.ITEMID
+left join (
+  select * from I18NINVITEM
+  where LANG='ru' 
+) as I18NINVITEM on I18NINVITEM.HASNAME=ALLGOODS.ITEMID
+left join (
+  select * from I18NSPECIFICINLIST
+  where LANG='ru' and ITSTYPE=0
+) as I18NSPECIFICINLIST on I18NSPECIFICINLIST.ITEMID=ALLGOODS.ITEMID
+</pre>
+      </p>
+      <p>Chooseable specifics of item that has non-null StringValue1, e.g. unit of measure may has prefix "i18n_", e.g. "i18n_Inch", that will be replaced by regular SrvI18n.</p>
+      <p>Specifics of type "FILE_EMBEDDED" e.g. "Embedded HTML" StringValue4 holds comma-separated languages codes (without default) for existing files, e.g. "ru,fr,it",
+        StringValue1 contains of URL for default language, other files should has language suffix,
+        e.g. StringValue1="static/uploads/1524298538401googs126e1.html", StringValue4="ru,fr",
+        so files must exist: "static/uploads/1524298538401googs126e1_ru.html" and "static/uploads/1524298538401googs126e1_fr.html".</p>
+
     </section>
 
   </body>
