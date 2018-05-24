@@ -23,6 +23,7 @@
 <entry key="org.beigesoft.webstore.persistable.GoodsPrice">itsId</entry>
 <entry key="org.beigesoft.webstore.persistable.GoodsSpecific">itsId</entry>
 <entry key="org.beigesoft.webstore.persistable.GoodsAvailable">itsId</entry>
+<entry key="org.beigesoft.webstore.persistable.SubcatalogsCatalogsGs">itsId</entry>
 <entry key="org.beigesoft.webstore.persistable.I18nSpecificInList">itsId</entry>
 <entry key="org.beigesoft.persistable.AI18nName">itsId</entry>
 </properties>

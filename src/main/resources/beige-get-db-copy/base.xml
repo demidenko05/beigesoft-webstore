@@ -153,6 +153,8 @@
   org.beigesoft.webstore.persistable.I18nInvItem,
   org.beigesoft.webstore.persistable.I18nCatalogGs,
   org.beigesoft.webstore.persistable.I18nSpecificsOfItem,
+  org.beigesoft.webstore.persistable.I18nWebStore,
+  org.beigesoft.webstore.persistable.I18nChooseableSpecifics,
   org.beigesoft.webstore.persistable.TradingSettings</entry>
 <entry key="settingsKeysForClasses">excludeFields</entry>
 <entry key="settingsKeysForFields">isEnabled, ISrvFieldWriter, ISrvEntityFieldFiller</entry>

@@ -17,4 +17,5 @@
 <entry key="org.beigesoft.webstore.persistable.GoodsRating">goods</entry>
 <entry key="org.beigesoft.webstore.persistable.SeSeller">seller</entry>
 <entry key="org.beigesoft.webstore.persistable.ShoppingCart">buyer</entry>
+<entry key="org.beigesoft.webstore.persistable.I18nWebStore">lang</entry>
 </properties>

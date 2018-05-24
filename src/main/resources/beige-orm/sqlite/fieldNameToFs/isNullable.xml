@@ -11,6 +11,8 @@
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
 <comment>Correspondence of field name to is null-able.</comment>
+<entry key="organizationName">false</entry>
+<entry key="webStoreName">false</entry>
 <entry key="recordsPerTransaction">false</entry>
 <entry key="columnsCount">false</entry>
 <entry key="rememberUnauthorizedUserFor">false</entry>

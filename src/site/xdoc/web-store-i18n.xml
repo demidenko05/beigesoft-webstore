@@ -65,6 +65,7 @@
         At the first client request javax.servlet.ServletRequest.getLocale() gets preferred client locale (language and country)
         then program responds with cookies filled from the same LangPreferences or default if there is no such localization (messages for this language).
         Program also sets request attributes lang, dseparator, dgseparator, languages, decimalGroupSeparators and decimalSeparators to JSP that will handles language, separator view and form to change user preferences.
+        Program also sets request attributes dseparatorv, dgseparatorv where "space" is substituted with " ".
         For further requests langPreferences will be filled with cookies that user can change.
         In browser decimal separators is handled by JQuery plugin "autoNumeric.js" then form sends exactly formatted value,
         e.g. "12'123,13", where "'" group separator and "," decimal one.
@@ -119,6 +120,14 @@
         </ul>
         Pair[lang, hasName] is PK.
       </p>
+      <p>Persistable model org.beigesoft.webstore.persistable.I18nChooseableSpecifics:
+        <ul>
+          <li>AI18nName columns</li>
+          <li>lang - Languages, the language</li>
+          <li>hasName - ChooseableSpecifics - internationalized thing</li>
+        </ul>
+        Pair[lang, hasName] is PK.
+      </p>
       <p>ItemInList.specificInList contains of "cached" item's specifics for default language.
         Persistable model org.beigesoft.webstore.persistable.I18nSpecificInList holds i18n values:
         <ul>
@@ -159,7 +168,15 @@ left join (
         StringValue1 contains of URL for default language, other files should has language suffix,
         e.g. StringValue1="static/uploads/1524298538401googs126e1.html", StringValue4="ru,fr",
         so files must exist: "static/uploads/1524298538401googs126e1_ru.html" and "static/uploads/1524298538401googs126e1_fr.html".</p>
-
+      <p>Internationalization of Web-Store name:
+        Persistable model org.beigesoft.webstore.persistable.I18nWebStore:
+        <ul>
+          <li>itsVersion - Long change time</li>
+          <li>lang - Languages, the language, PK</li>
+          <li>webStoreName - String, not null, WS name in the language</li>
+          <li>organizationName - String, not null, organization name in the language. It's to report financial statements in foreign language, e.g. balance sheet for foreign investors.</li>
+        </ul>
+      </p>
     </section>
 
   </body>
