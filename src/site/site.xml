@@ -13,6 +13,12 @@
     <menu name="Articles">
       <item name="Specification Beigesoft Web Store" href="web-store.html" />
       <item name="Bob's Pizza Web Store example" href="bobs-webstore.html" />
+      <item name="Web Store general specification" href="web-store.html" />
+      <item name="Web Store cataloging specification" href="web-store-catalog.html" />
+      <item name="Web Store list filtering specification" href="web-store-filtering.html" />
+      <item name="Web Store I18N specification" href="web-store-i18n.html" />
+      <item name="Web Store goods/service specifics specification" href="web-store-gs-specifics.html" />
+      <item name="Web Store goods/service detail page specification" href="web-store-gs-detail.html" />
     </menu>
   </body>
 </project>

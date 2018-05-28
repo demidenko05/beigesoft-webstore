@@ -81,14 +81,29 @@
       <p>International trading requires advanced internationalization - names of goods, services, catalogs, etc.
         And so does selling to foreign tourists.
       </p>
-      <p>TraidingSettings.useAdvancedI18n - switches using this.</p>
       <p>Persistable model org.beigesoft.persistable.AI18nName:
         <ul>
           <li>itsVersion - Long change time</li>
           <li>itsName - String, name in the language</li>
         </ul>
       </p>
-      <p>Persistable model org.beigesoft.webstore.persistable.I18nInvItem:
+      <h4>Advanced accounting internationalization:</h4>
+      <p>
+        Advanced I18N fields in accounting persistable models:
+        <ul>
+          <li>AccSettings.useCurrencySign - Boolean, default false, if uses currency sign in reports (e.g. $), otherwise itsName (e.g. USD).</li>
+          <li>DebtorCreditor.nativeName - String, nullabe, name of buyer in native language for I18N of overseas sales invoice.</li>
+        </ul>
+      </p>
+      <p>
+        Persistable model org.beigesoft.accounting.persistable.I18nAccounting:
+        <ul>
+          <li>itsVersion - Long change time</li>
+          <li>lang - Languages, the language, PK</li>
+          <li>organizationName - String, not null, organization name in the language. It's to report financial statements in foreign language, e.g. balance sheet for foreign investors, translated invoices for overseas buyers, etc...</li>
+        </ul>
+      </p>
+      <p>Persistable model org.beigesoft.accounting.persistable.I18nInvItem:
         <ul>
           <li>AI18nName columns</li>
           <li>lang - Languages, the language</li>
@@ -96,13 +111,36 @@
         </ul>
         Pair[lang, hasName] is PK.
       </p>
-      <p>Persistable model org.beigesoft.webstore.persistable.I18nServiceToSale:
+      <p>Persistable model org.beigesoft.accounting.persistable.I18nCurrency:
+        <ul>
+          <li>AI18nName columns</li>
+          <li>lang - Languages, the language</li>
+          <li>hasName - Currency - internationalized thing</li>
+        </ul>
+        Pair[lang, hasName] is PK.
+      </p>
+      <p>Persistable model org.beigesoft.accounting.persistable.I18nServiceToSale:
         <ul>
           <li>AI18nName columns</li>
           <li>lang - Languages, the language</li>
           <li>hasName - ServiceToSale - internationalized thing</li>
         </ul>
         Pair[lang, hasName] is PK.
+      </p>
+      <h4>Advanced Web-Store Internationalization:</h4>
+      <p>
+        Advanced I18N fields in trading persistable models:
+        <ul>
+          <li>TraidingSettings.useAdvancedI18n - switches using advanced internationalization for performance purposes.</li>
+        </ul>
+      </p>
+      <p>
+        Persistable model org.beigesoft.webstore.persistable.I18nWebStore:
+        <ul>
+          <li>itsVersion - Long change time</li>
+          <li>lang - Languages, the language, PK</li>
+          <li>webStoreName - String, not null, WS name in the language</li>
+        </ul>
       </p>
       <p>Persistable model org.beigesoft.webstore.persistable.I18nCatalogGs:
         <ul>
@@ -168,13 +206,39 @@ left join (
         StringValue1 contains of URL for default language, other files should has language suffix,
         e.g. StringValue1="static/uploads/1524298538401googs126e1.html", StringValue4="ru,fr",
         so files must exist: "static/uploads/1524298538401googs126e1_ru.html" and "static/uploads/1524298538401googs126e1_fr.html".</p>
-      <p>Internationalization of Web-Store name:
-        Persistable model org.beigesoft.webstore.persistable.I18nWebStore:
+      <p>
+        <h4>All request scoped I18N and other variables (include Accounting and Web-Store) that passed to JSP:</h4>
         <ul>
-          <li>itsVersion - Long change time</li>
-          <li>lang - Languages, the language, PK</li>
-          <li>webStoreName - String, not null, WS name in the language</li>
-          <li>organizationName - String, not null, organization name in the language. It's to report financial statements in foreign language, e.g. balance sheet for foreign investors.</li>
+          <li>dseparator - String, decimal separator e.g. "."</li>
+          <li>dseparatorv - String, decimal separator reformed e.g. "."</li>
+          <li>dgseparator - String, decimal group separator e.g. "space"</li>
+          <li>dgseparatorv - String, decimal group separator reformed e.g. " "</li>
+          <li>lang - String, language code e.g. "en"</li>
+          <li>langDef - String, default language code e.g. "en"</li>
+          <li>languages - List&lt;Languages&gt; languages list</li>
+          <li>decimalSeparators - List&lt;DecimalSeparator&gt; decimal separators list</li>
+          <li>decimalGroupSeparators - List&lt;DecimalGroupSeparator&gt; decimal separators list</li>
+          <li>countryFlag - String, country flag code, may be omitted, e.g. "us" for language "en"</li>
+          <li><b>Real values is implemented by accounting (if where is no farther sub-handler then they will be set to default):</b></li>
+          <li>quantityPrecision - Integer, quantity precision (decimal places after dot) default "2" for "1 243.34"</li>
+          <li>pricePrecision - Integer, price precision (decimal places after dot) default "2" for "1 243.34"</li>
+          <li>costPrecision - Integer, cost precision (decimal places after dot) default "4" for "1 243.3491"</li>
+          <li><i>to set precision and rounding mode by JavaScript for elements with class - ".autoNum[precision]":</i></li>
+          <li>RSisUsePrecision0/1/2/3/4 - Boolean, if uses precision (decimal places after dot), true by default.</li>
+          <li>RSmRound - String, rounding mode in autonumeric standard, "S" - Half-Up (default), "s" - Half-Down, "B" - Half-EVEN, "U" - Up, "D" - Down, "C" - celling, "F" - floor.</li>
+          <li><i>may be null (empty/omitted):</i></li>
+          <li>isIncludedSalesTaxForSales - Boolean if included sales taxes in price for sales, for implementing/highlighting total without/with taxes logic</li>
+          <li>isIncludedSalesTaxPurchases - Boolean if included sales taxes in price for purchases, for implementing/highlighting total without/with taxes logic</li>
+          <li>curSign - default currency sign, e.g. "USD" or "$"</li>
+          <li><b>Accounting additions (made by accounting sub-handler):</b></li>
+          <li>balancePrecision - Integer, balance precision (decimal places after dot) e.g. "2" for "1 243.34"</li>
+          <li><i>made by printing sales invoice processor:</i></li>
+          <li>i18nAccounting - I18nAccounting in current lang if lang != langDef</li>
+          <li>buyerNativeName - String, name in current lang in printed sales invoice if lang != langDef</li>
+          <li>i18nInvItemList - List&lt;I18nInvItem&gt; list of I18nInvItem in printed sales invoice if lang != langDef.</li>
+          <li>i18nCurrency - I18nCurrency in current lang in printed sales invoice if lang != langDef</li>
+          <li><b>Web-Store addittions (made by web-store sub-handler):</b></li>
+          <li>i18nWebStore - I18nWebStore in current lang if lang != langDef</li>
         </ul>
       </p>
     </section>

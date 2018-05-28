@@ -39,13 +39,6 @@ public class I18nWebStore extends AEditable
   private String webStoreName;
 
   /**
-   * <p>String, not null, organization name in the language.
-   * It's to report financial statements in foreign language,
-   * e.g. balance sheet for foreign investors.</p>
-   **/
-  private String organizationName;
-
-  /**
    * <p>Version to check dirty or replication.</p>
    **/
   private Long itsVersion;
@@ -117,21 +110,5 @@ public class I18nWebStore extends AEditable
    **/
   public final void setWebStoreName(final String pWebStoreName) {
     this.webStoreName = pWebStoreName;
-  }
-
-  /**
-   * <p>Getter for organizationName.</p>
-   * @return String
-   **/
-  public final String getOrganizationName() {
-    return this.organizationName;
-  }
-
-  /**
-   * <p>Setter for organizationName.</p>
-   * @param pOrganizationName reference
-   **/
-  public final void setOrganizationName(final String pOrganizationName) {
-    this.organizationName = pOrganizationName;
   }
 }
