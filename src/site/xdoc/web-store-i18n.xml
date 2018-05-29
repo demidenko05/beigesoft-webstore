@@ -57,6 +57,7 @@
           <li>country - Countries</li>
           <li>decimalSep - DecimalSeparator</li>
           <li>decimalGroupSep - DecimalGroupSeparator</li>
+          <li>digitsInGroup - Integer, digits in group e.g. 2 for "1 21 23,90", default 3</li>
           <li>isDefault - Boolean, false default</li>
         </ul>
         Pair[lang, country] is PK. This model holds default preferences for countries in the database and user preferences for its request.
@@ -213,6 +214,7 @@ left join (
           <li>dseparatorv - String, decimal separator reformed e.g. "."</li>
           <li>dgseparator - String, decimal group separator e.g. "space"</li>
           <li>dgseparatorv - String, decimal group separator reformed e.g. " "</li>
+          <li>digitsInGroup - Integer, digits in group e.g. 2 for "1 21 23,90"</li>
           <li>lang - String, language code e.g. "en"</li>
           <li>langDef - String, default language code e.g. "en"</li>
           <li>languages - List&lt;Languages&gt; languages list</li>
@@ -234,7 +236,6 @@ left join (
           <li>balancePrecision - Integer, balance precision (decimal places after dot) e.g. "2" for "1 243.34"</li>
           <li><i>made by printing sales invoice processor:</i></li>
           <li>i18nAccounting - I18nAccounting in current lang if lang != langDef</li>
-          <li>buyerNativeName - String, name in current lang in printed sales invoice if lang != langDef</li>
           <li>i18nInvItemList - List&lt;I18nInvItem&gt; list of I18nInvItem in printed sales invoice if lang != langDef.</li>
           <li>i18nCurrency - I18nCurrency in current lang in printed sales invoice if lang != langDef</li>
           <li><b>Web-Store addittions (made by web-store sub-handler):</b></li>
