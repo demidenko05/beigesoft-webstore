@@ -62,16 +62,17 @@
         </ul>
         Pair[lang, country] is PK. This model holds default preferences for countries in the database and user preferences for its request.
       </p>
+      <p>Parameters Map&lt;String, Object&gt; is used to pass request scoped variables through chain of services (SrvOrm, Processor, etc.).
+        This map is passed as request attribute "reqVars". All I18N variables are put into that map to use in services and views like PDF.</p>
       <p>
         At the first client request javax.servlet.ServletRequest.getLocale() gets preferred client locale (language and country)
         then program responds with cookies filled from the same LangPreferences or default if there is no such localization (messages for this language).
-        Program also sets request attributes lang, dseparator, dgseparator, languages, decimalGroupSeparators and decimalSeparators to JSP that will handles language, separator view and form to change user preferences.
-        Program also sets request attributes dseparatorv, dgseparatorv where "space" is substituted with " ".
+        Program also sets request variables lang, dseparator, dgseparator, languages, decimalGroupSeparators and decimalSeparators to JSP that will handles language, separator view and form to change user preferences.
+        Program also sets request variables dseparatorv, dgseparatorv where "space" is substituted with " ".
         For further requests langPreferences will be filled with cookies that user can change.
         In browser decimal separators is handled by JQuery plugin "autoNumeric.js" then form sends exactly formatted value,
         e.g. "12'123,13", where "'" group separator and "," decimal one.
-        Request handler fills LangPreferences according cookie and passes it to Addition Parameters Map with name "LangPreferences".
-        converter CnvTfsBigDecimal will replace separators then passes standard value ("13123.13" in this case) to the constructor.
+        Converter CnvTfsBigDecimal will replace separators (according reqVars["dseparatorv"], etc.) then passes standard value ("13123.13" in this case) to the constructor.
       </p>
       <p>Service transactional org.beigesoft.handler.HndlI18nRequest handles server-side logic above. It caches lists of LangPreferences, DecimalGroupSeparator, DecimalSeparator, Languages and implements IHandlerDataChanged,
         so a service that changes any entity (LangPreferences, Languages...) should invoke listeners to refresh cache.
@@ -208,7 +209,7 @@ left join (
         e.g. StringValue1="static/uploads/1524298538401googs126e1.html", StringValue4="ru,fr",
         so files must exist: "static/uploads/1524298538401googs126e1_ru.html" and "static/uploads/1524298538401googs126e1_fr.html".</p>
       <p>
-        <h4>All request scoped I18N and other variables (include Accounting and Web-Store) that passed to JSP:</h4>
+        <h4>All request scoped I18N and other variables (include Accounting and Web-Store) that passed to JSP in reqVars:</h4>
         <ul>
           <li>dseparator - String, decimal separator e.g. "."</li>
           <li>dseparatorv - String, decimal separator reformed e.g. "."</li>
@@ -234,10 +235,10 @@ left join (
           <li>curSign - default currency sign, e.g. "USD" or "$"</li>
           <li><b>Accounting additions (made by accounting sub-handler):</b></li>
           <li>balancePrecision - Integer, balance precision (decimal places after dot) e.g. "2" for "1 243.34"</li>
-          <li><i>made by printing sales invoice processor:</i></li>
           <li>i18nAccounting - I18nAccounting in current lang if lang != langDef</li>
+          <li>i18nCurrency - I18nCurrency in current lang if lang != langDef</li>
+          <li><i>made by printing sales invoice processor:</i></li>
           <li>i18nInvItemList - List&lt;I18nInvItem&gt; list of I18nInvItem in printed sales invoice if lang != langDef.</li>
-          <li>i18nCurrency - I18nCurrency in current lang in printed sales invoice if lang != langDef</li>
           <li><b>Web-Store addittions (made by web-store sub-handler):</b></li>
           <li>i18nWebStore - I18nWebStore in current lang if lang != langDef</li>
         </ul>
