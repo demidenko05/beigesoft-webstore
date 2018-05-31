@@ -109,6 +109,7 @@
   org.beigesoft.accounting.persistable.I18nCurrency,
   org.beigesoft.accounting.persistable.I18nInvItem,
   org.beigesoft.accounting.persistable.I18nAccounting,
+  org.beigesoft.accounting.persistable.I18nBuyer,
   org.beigesoft.persistable.EmailConnect,
   org.beigesoft.persistable.EmailStringProperty,
   org.beigesoft.persistable.EmailIntegerProperty,

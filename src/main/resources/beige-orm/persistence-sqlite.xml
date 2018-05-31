@@ -94,6 +94,7 @@
   org.beigesoft.accounting.persistable.AccountingEntry,
   org.beigesoft.accounting.persistable.I18nServiceToSale,
   org.beigesoft.accounting.persistable.I18nInvItem,
+  org.beigesoft.accounting.persistable.I18nBuyer,
   org.beigesoft.replicator.persistable.ReplicationAccMethod,
   org.beigesoft.replicator.persistable.ReplExcludeAccountsDebit,
   org.beigesoft.replicator.persistable.ReplExcludeAccountsCredit,

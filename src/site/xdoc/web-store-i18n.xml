@@ -94,7 +94,8 @@
         Advanced I18N fields in accounting persistable models:
         <ul>
           <li>AccSettings.useCurrencySign - Boolean, default false, if uses currency sign in reports (e.g. $), otherwise itsName (e.g. USD).</li>
-          <li>DebtorCreditor.nativeName - String, nullabe, name of buyer in native language for I18N of overseas sales invoice.</li>
+          <li>AccSettings.printCurrencyLeft - Boolean, default false, if print currency on left of amount e.g. "1,356.12$" or "$1,356.12".</li>
+          <li>DebtorCreditor.nativeName - String, nullabe,  .</li>
         </ul>
       </p>
       <p>
@@ -103,7 +104,33 @@
           <li>itsVersion - Long change time</li>
           <li>lang - Languages, the language, PK</li>
           <li>organizationName - String, not null, organization name in the language. It's to report financial statements in foreign language, e.g. balance sheet for foreign investors, translated invoices for overseas buyers, etc...</li>
+          <li>regAddress1 - String, if exist</li>
+          <li>regAddress2 - String, if exist</li>
+          <li>regCountry - String, if exist</li>
+          <li>regState - String, if exist</li>
+          <li>regCity - String, if exist</li>
         </ul>
+      </p>
+      <p>
+        Persistable model org.beigesoft.accounting.persistable.I18nBuyer (for I18N of overseas sales invoice):
+        <ul>
+          <li>buyer - DebtorCreditor, PK</li>
+          <li>itsVersion - Long change time</li>
+          <li>itsName - String, not null, name of buyer in native language</li>
+          <li>regAddress1 - String, if exist</li>
+          <li>regAddress2 - String, if exist</li>
+          <li>regCountry - String, if exist</li>
+          <li>regState - String, if exist</li>
+          <li>regCity - String, if exist</li>
+        </ul>
+      </p>
+      <p>Persistable model org.beigesoft.accounting.persistable.I18nUnitOfMeasure (for I18N of overseas sales invoice):
+        <ul>
+          <li>AI18nName columns</li>
+          <li>lang - Languages, the language</li>
+          <li>hasName - UnitOfMeasure - internationalized thing</li>
+        </ul>
+        Pair[lang, hasName] is PK.
       </p>
       <p>Persistable model org.beigesoft.accounting.persistable.I18nInvItem:
         <ul>
@@ -118,6 +145,8 @@
           <li>AI18nName columns</li>
           <li>lang - Languages, the language</li>
           <li>hasName - Currency - internationalized thing</li>
+          <li>useCurrencySign - Boolean, default false, if uses currency sign in reports (e.g. $), otherwise itsName (e.g. USD).</li>
+          <li>printCurrencyLeft - Boolean, default false, if print currency on left of amount e.g. "1,356.12$" or "$1,356.12".</li>
         </ul>
         Pair[lang, hasName] is PK.
       </p>
