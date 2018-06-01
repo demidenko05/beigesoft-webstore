@@ -266,9 +266,7 @@ left join (
           <li>balancePrecision - Integer, balance precision (decimal places after dot) e.g. "2" for "1 243.34"</li>
           <li>i18nAccounting - I18nAccounting in current lang if lang != langDef</li>
           <li>i18nCurrency - I18nCurrency in current lang if lang != langDef</li>
-          <li><i>made by printing sales invoice processor:</i></li>
-          <li>i18nInvItemList - List&lt;I18nInvItem&gt; list of I18nInvItem in printed sales invoice if lang != langDef.</li>
-          <li><b>Web-Store addittions (made by web-store sub-handler):</b></li>
+          <li><b>Web-Store additions (made by web-store sub-handler):</b></li>
           <li>i18nWebStore - I18nWebStore in current lang if lang != langDef</li>
         </ul>
       </p>
