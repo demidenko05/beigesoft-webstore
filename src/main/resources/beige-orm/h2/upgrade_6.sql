@@ -1,3 +1,11 @@
+alter table SALESINVOICESERVICELINE add column UNITOFMEASURE bigint not null default 1;
+alter table SALESINVOICESERVICELINE add constraint fksiluom FOREIGN KEY (UNITOFMEASURE) REFERENCES UNITOFMEASURE(ITSID);
+alter table SALESINVOICESERVICELINE add column ITSQUANTITY decimal(19,4) not null default 1;
+alter table SALESINVOICESERVICELINE add column SUBTOTAL decimal(19,4) not null default 0;
+alter table PURCHASEINVOICESERVICELINE add column UNITOFMEASURE bigint not null default 1;
+alter table PURCHASEINVOICESERVICELINE add constraint fksisluom FOREIGN KEY (UNITOFMEASURE) REFERENCES UNITOFMEASURE(ITSID);
+alter table PURCHASEINVOICESERVICELINE add column ITSQUANTITY decimal(19,4) not null default 1;
+alter table PURCHASEINVOICESERVICELINE add column SUBTOTAL decimal(19,4) not null default 0;
 alter table DEBTORCREDITOR add column ISFOREIGNER integer not null default 0;
 alter table TRADINGSETTINGS add column DEFAULTPAYMENTMETHOD integer not null default 0;
 alter table TRADINGSETTINGS add column USEADVANCEDI18N integer not null default 0;
@@ -40,4 +48,5 @@ insert into DECIMALGROUPSEPARATOR (ITSID, ITSNAME, ITSVERSION) values (',', 'com
 insert into DECIMALGROUPSEPARATOR (ITSID, ITSNAME, ITSVERSION) values ('space', 'space', 1462867931627);
 insert into LANGPREFERENCES (DECIMALGROUPSEP, LANG, COUNTRY, DECIMALSEP, ISDEFAULT, ITSVERSION, DIGITSINGROUP) values (',', 'en', 'US', '.', 1, 1462867931627, 3);
 insert into LANGPREFERENCES (DECIMALGROUPSEP, LANG, COUNTRY, DECIMALSEP, ISDEFAULT, ITSVERSION, DIGITSINGROUP) values ('space', 'ru', 'RU', ',', 0, 1462867931627, 3);
+update SALESINVOICESERVICELINE set SUBTOTAL=ITSPRICE, ITSVERSION=(ITSVERSION+1) where SUBTOTAL=0;
 update DATABASEINFO set DATABASEVERSION=6, DESCRIPTION='Beige Accounting OIO DB version 6';
