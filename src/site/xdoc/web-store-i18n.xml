@@ -240,6 +240,7 @@ left join (
       <p>
         <h4>All request scoped I18N and other variables (include Accounting and Web-Store) that passed to JSP in reqVars:</h4>
         <ul>
+          <li>localeCurrent - current request scoped locale to I18N of JSTL e.g. "fmt:formatDate" and standard Java services.</li>
           <li>dseparator - String, decimal separator e.g. "."</li>
           <li>dseparatorv - String, decimal separator reformed e.g. "."</li>
           <li>dgseparator - String, decimal group separator e.g. "space"</li>
