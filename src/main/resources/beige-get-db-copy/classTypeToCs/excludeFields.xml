@@ -13,6 +13,8 @@
 <comment>Correspondence of Java types to services that explain about property. ORDER is essential, the LAST value will be used.</comment>
 <entry key="org.beigesoft.persistable.UserRoleTomcat">itsId</entry>
 <entry key="org.beigesoft.persistable.UserRoleJetty">itsId</entry>
+<entry key="org.beigesoft.persistable.LangPreferences">itsId</entry>
+<entry key="org.beigesoft.persistable.AI18nName">itsId</entry>
 <entry key="org.beigesoft.accounting.persistable.WarehouseRest">itsId</entry>
 <entry key="org.beigesoft.webstore.persistable.AdvisedGoodsForGoods">itsId</entry>
 <entry key="org.beigesoft.webstore.persistable.CustomerGoodsSeen">itsId</entry>
@@ -23,4 +25,5 @@
 <entry key="org.beigesoft.webstore.persistable.GoodsSpecific">itsId</entry>
 <entry key="org.beigesoft.webstore.persistable.GoodsAvailable">itsId</entry>
 <entry key="org.beigesoft.webstore.persistable.SubcatalogsCatalogsGs">itsId</entry>
+<entry key="org.beigesoft.webstore.persistable.I18nSpecificInList">itsId</entry>
 </properties>
