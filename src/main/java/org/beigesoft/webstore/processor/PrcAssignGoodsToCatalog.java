@@ -23,7 +23,6 @@ import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvEntitiesPage;
 import org.beigesoft.accounting.persistable.InvItem;
-import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.webstore.service.ISrvTradingSettings;
 import org.beigesoft.webstore.persistable.GoodsCatalogs;
 import org.beigesoft.webstore.persistable.CatalogGs;
@@ -45,11 +44,6 @@ public class PrcAssignGoodsToCatalog<RS> implements IProcessor {
    * <p>Page service.</p>
    **/
   private ISrvEntitiesPage srvEntitiesPage;
-
-  /**
-   * <p>Business service for accounting settings.</p>
-   **/
-  private ISrvAccSettings srvAccSettings;
 
   /**
    * <p>Business service for trading settings.</p>
@@ -130,10 +124,6 @@ public class PrcAssignGoodsToCatalog<RS> implements IProcessor {
     pRequestData.setAttribute("totalItems", totalItems);
     pRequestData.setAttribute("goodsList", goodsList);
     pRequestData.setAttribute("catalogOfGoods", catalogOfGoods);
-    pRequestData.setAttribute("accSettings",
-      this.srvAccSettings.lazyGetAccSettings(pAddParam));
-    pRequestData.setAttribute("tradingSettings", srvTradingSettings
-      .lazyGetTradingSettings(pAddParam));
   }
 
   //Simple getters and setters:
@@ -168,22 +158,6 @@ public class PrcAssignGoodsToCatalog<RS> implements IProcessor {
   public final void setSrvEntitiesPage(
     final ISrvEntitiesPage pSrvEntitiesPage) {
     this.srvEntitiesPage = pSrvEntitiesPage;
-  }
-
-  /**
-   * <p>Getter for srvAccSettings.</p>
-   * @return ISrvAccSettings
-   **/
-  public final ISrvAccSettings getSrvAccSettings() {
-    return this.srvAccSettings;
-  }
-
-  /**
-   * <p>Setter for srvAccSettings.</p>
-   * @param pSrvAccSettings reference
-   **/
-  public final void setSrvAccSettings(final ISrvAccSettings pSrvAccSettings) {
-    this.srvAccSettings = pSrvAccSettings;
   }
 
   /**

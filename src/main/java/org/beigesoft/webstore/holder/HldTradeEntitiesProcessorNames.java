@@ -20,16 +20,13 @@ import org.beigesoft.webstore.persistable.AdvisedGoodsForGoods;
 import org.beigesoft.webstore.persistable.GoodsAdviseCategories;
 import org.beigesoft.webstore.persistable.GoodsSpecific;
 import org.beigesoft.webstore.persistable.GoodsCatalogs;
-import org.beigesoft.webstore.processor.PrcTradeEntityCopy;
 import org.beigesoft.webstore.processor.PrcAdvisedGoodsForGoodsSave;
 import org.beigesoft.webstore.processor.PrcGoodsCatalogsSave;
 import org.beigesoft.webstore.processor.PrcSubcatalogsCatalogsGsSave;
 import org.beigesoft.webstore.processor.PrcGoodsAdviseCategoriesSave;
 import org.beigesoft.webstore.processor.PrcGoodsSpecificSave;
 import org.beigesoft.webstore.processor.PrcGoodsSpecificDelete;
-import org.beigesoft.webstore.processor.PrcSettingsAddRetrieve;
 import org.beigesoft.webstore.processor.PrcSettingsAddSave;
-import org.beigesoft.webstore.processor.PrcTradingSettingsRetrieve;
 import org.beigesoft.webstore.processor.PrcTradingSettingsSave;
 
 /**
@@ -49,10 +46,7 @@ public class HldTradeEntitiesProcessorNames
    **/
   @Override
   public final String getForCopy(final Class<?> pClass) {
-    // for performance reason (do not check class type - accounting or trade)
-    // it return trade copy processor that is same as accounting one but added
-    // trading settings
-    return PrcTradeEntityCopy.class.getSimpleName();
+    return null;
   }
 
   /**
@@ -62,11 +56,6 @@ public class HldTradeEntitiesProcessorNames
    **/
   @Override
   public final String getForPrint(final Class<?> pClass) {
-    if (pClass == TradingSettings.class) {
-      return PrcTradingSettingsRetrieve.class.getSimpleName();
-    } else if (pClass == SettingsAdd.class) {
-      return PrcSettingsAddRetrieve.class.getSimpleName();
-    }
     return null;
   }
 
@@ -165,11 +154,6 @@ public class HldTradeEntitiesProcessorNames
    **/
   @Override
   public final String getForRetrieveForEditDelete(final Class<?> pClass) {
-    if (pClass == TradingSettings.class) {
-      return PrcTradingSettingsRetrieve.class.getSimpleName();
-    } else if (pClass == SettingsAdd.class) {
-      return PrcSettingsAddRetrieve.class.getSimpleName();
-    }
     return null;
   }
 }

@@ -20,13 +20,11 @@ import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvPage;
 import org.beigesoft.settings.IMngSettings;
-import org.beigesoft.orm.processor.PrcEntitiesPage;
 import org.beigesoft.orm.factory.FctBnProcessors;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.webstore.service.ISrvSettingsAdd;
-import org.beigesoft.webstore.processor.PrcTradeEntitiesPage;
 import org.beigesoft.webstore.processor.PrcWebstorePage;
 import org.beigesoft.webstore.processor.PrcDetailPage;
 import org.beigesoft.webstore.processor.PrcDelItemFromCart;
@@ -123,9 +121,7 @@ public class FctBnPublicTradeProcessors<RS>
         // make sure again whether it's null after locking:
         proc = this.processorsMap.get(pBeanName);
         if (proc == null) {
-          if (pBeanName.equals(PrcTradeEntitiesPage.class.getSimpleName())) {
-            proc = lazyGetPrcTradeEntitiesPage(pAddParam);
-          } else if (pBeanName.equals(PrcDelItemFromCart
+          if (pBeanName.equals(PrcDelItemFromCart
             .class.getSimpleName())) {
             proc = lazyGetPrcDelItemFromCart(pAddParam);
           } else if (pBeanName.equals(PrcItemInCart
@@ -226,7 +222,6 @@ public class FctBnPublicTradeProcessors<RS>
       proc = new PrcDetailPage<RS>();
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvTradingSettings(getSrvTradingSettings());
-      proc.setSrvAccSettings(getSrvAccSettings());
       proc.setSrvShoppingCart(getSrvShoppingCart());
       proc.setLogger(getLogger());
       //assigning fully initialized object:
@@ -254,40 +249,12 @@ public class FctBnPublicTradeProcessors<RS>
       proc.setLogger(getLogger());
       proc.setSrvDatabase(getSrvDatabase());
       proc.setSrvTradingSettings(getSrvTradingSettings());
-      proc.setSrvAccSettings(getSrvAccSettings());
       proc.setSrvShoppingCart(getSrvShoppingCart());
       proc.setSrvPage(getSrvPage());
       proc.setMngUvdSettings(getMngUvdSettings());
       //assigning fully initialized object:
       this.processorsMap
         .put(PrcWebstorePage.class.getSimpleName(), proc);
-    }
-    return proc;
-  }
-
-  /**
-   * <p>Lazy get PrcTradeEntitiesPage.</p>
-   * @param pAddParam additional param
-   * @return requested PrcTradeEntitiesPage
-   * @throws Exception - an exception
-   */
-  protected final PrcTradeEntitiesPage<RS>
-    lazyGetPrcTradeEntitiesPage(
-      final Map<String, Object> pAddParam) throws Exception {
-    @SuppressWarnings("unchecked")
-    PrcTradeEntitiesPage<RS> proc = (PrcTradeEntitiesPage<RS>)
-      this.processorsMap
-        .get(PrcTradeEntitiesPage.class.getSimpleName());
-    if (proc == null) {
-      proc = new PrcTradeEntitiesPage<RS>();
-      proc.setSrvTradingSettings(getSrvTradingSettings());
-      proc.setSrvAccSettings(getSrvAccSettings());
-      PrcEntitiesPage procDlg = (PrcEntitiesPage) this.fctBnProcessors
-        .lazyGet(pAddParam, PrcEntitiesPage.class.getSimpleName());
-      proc.setPrcEntitiesPage(procDlg);
-      //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcTradeEntitiesPage.class.getSimpleName(), proc);
     }
     return proc;
   }

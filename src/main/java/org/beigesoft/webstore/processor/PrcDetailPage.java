@@ -20,15 +20,14 @@ import org.beigesoft.model.IRequestData;
 import org.beigesoft.log.ILogger;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
-import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.webstore.model.EShopItemType;
 import org.beigesoft.webstore.model.ESpecificsItemType;
 import org.beigesoft.webstore.persistable.GoodsSpecific;
 import org.beigesoft.webstore.persistable.GoodsPrice;
 import org.beigesoft.webstore.persistable.GoodsAvailable;
 import org.beigesoft.webstore.persistable.CartItem;
-import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.persistable.ShoppingCart;
+import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.service.ISrvTradingSettings;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
@@ -51,11 +50,6 @@ public class PrcDetailPage<RS> implements IProcessor {
    * <p>ORM service.</p>
    **/
   private ISrvOrm<RS> srvOrm;
-
-  /**
-   * <p>Business service for accounting settings.</p>
-   **/
-  private ISrvAccSettings srvAccSettings;
 
   /**
    * <p>Business service for trading settings.</p>
@@ -83,10 +77,6 @@ public class PrcDetailPage<RS> implements IProcessor {
       throw new Exception(
         "Detail page not yet implemented for item type: " + itemTypeStr);
     }
-    pRequestData.setAttribute("accSettings",
-      this.srvAccSettings.lazyGetAccSettings(pAddParam));
-    pRequestData.setAttribute("tradingSettings", this.srvTradingSettings
-      .lazyGetTradingSettings(pAddParam));
   }
 
   /**
@@ -254,22 +244,6 @@ public class PrcDetailPage<RS> implements IProcessor {
    **/
   public final void setSrvOrm(final ISrvOrm<RS> pSrvOrm) {
     this.srvOrm = pSrvOrm;
-  }
-
-  /**
-   * <p>Getter for srvAccSettings.</p>
-   * @return ISrvAccSettings
-   **/
-  public final ISrvAccSettings getSrvAccSettings() {
-    return this.srvAccSettings;
-  }
-
-  /**
-   * <p>Setter for srvAccSettings.</p>
-   * @param pSrvAccSettings reference
-   **/
-  public final void setSrvAccSettings(final ISrvAccSettings pSrvAccSettings) {
-    this.srvAccSettings = pSrvAccSettings;
   }
 
   /**

@@ -36,7 +36,6 @@ import org.beigesoft.filter.EFilterOperator;
 import org.beigesoft.filter.FilterInteger;
 import org.beigesoft.filter.FilterBigDecimal;
 import org.beigesoft.filter.FilterItems;
-import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.webstore.model.TradingCatalog;
 import org.beigesoft.webstore.model.CmprTradingCatalog;
 import org.beigesoft.webstore.model.EShopItemType;
@@ -79,11 +78,6 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
    * same price for all customers.</p>
    **/
   private String queryGilForCatNoAucSmPr;
-
-  /**
-   * <p>Business service for accounting settings.</p>
-   **/
-  private ISrvAccSettings srvAccSettings;
 
   /**
    * <p>Business service for trading settings.</p>
@@ -260,8 +254,6 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
         pRequestData.setAttribute("itemsList", itemsList);
       }
     }
-    pRequestData.setAttribute("accSettings",
-      this.srvAccSettings.lazyGetAccSettings(pAddParam));
     if (pRequestData.getAttribute("shoppingCart") == null) {
       ShoppingCart shoppingCart = this.srvShoppingCart
         .getShoppingCart(pAddParam, pRequestData, false);
@@ -993,12 +985,12 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
    **/
   public final String loadString(final String pFileName)
         throws IOException {
-    URL urlFile = PrcTradeEntitiesPage.class
+    URL urlFile = PrcWebstorePage.class
       .getResource(pFileName);
     if (urlFile != null) {
       InputStream inputStream = null;
       try {
-        inputStream = PrcTradeEntitiesPage.class
+        inputStream = PrcWebstorePage.class
           .getResourceAsStream(pFileName);
         byte[] bArray = new byte[inputStream.available()];
         inputStream.read(bArray, 0, inputStream.available());
@@ -1052,22 +1044,6 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   public final void setQueryGilForCatNoAucSmPr(
     final String pQueryGilForCatNoAucSmPr) {
     this.queryGilForCatNoAucSmPr = pQueryGilForCatNoAucSmPr;
-  }
-
-  /**
-   * <p>Getter for srvAccSettings.</p>
-   * @return ISrvAccSettings
-   **/
-  public final ISrvAccSettings getSrvAccSettings() {
-    return this.srvAccSettings;
-  }
-
-  /**
-   * <p>Setter for srvAccSettings.</p>
-   * @param pSrvAccSettings reference
-   **/
-  public final void setSrvAccSettings(final ISrvAccSettings pSrvAccSettings) {
-    this.srvAccSettings = pSrvAccSettings;
   }
 
   /**

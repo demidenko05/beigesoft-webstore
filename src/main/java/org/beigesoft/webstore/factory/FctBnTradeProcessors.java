@@ -202,8 +202,6 @@ public class FctBnTradeProcessors<RS>
       proc = new PrcRefreshGoodsInList<RS>();
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvDatabase(getSrvDatabase());
-      proc.setSrvTradingSettings(getSrvTradingSettings());
-      proc.setSrvAccSettings(getSrvAccSettings());
       proc.setSrvSettingsAdd(getSrvSettingsAdd());
       //assigning fully initialized object:
       this.processorsMap
@@ -230,7 +228,6 @@ public class FctBnTradeProcessors<RS>
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvEntitiesPage(getSrvEntitiesPage());
       proc.setSrvTradingSettings(getSrvTradingSettings());
-      proc.setSrvAccSettings(getSrvAccSettings());
       //assigning fully initialized object:
       this.processorsMap
         .put(PrcAssignGoodsToCatalog.class.getSimpleName(), proc);

@@ -16,7 +16,6 @@ import java.util.Map;
 
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.service.IEntityProcessor;
-import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.webstore.persistable.SettingsAdd;
 import org.beigesoft.webstore.service.ISrvSettingsAdd;
 
@@ -28,12 +27,6 @@ import org.beigesoft.webstore.service.ISrvSettingsAdd;
  */
 public class PrcSettingsAddSave<RS>
   implements IEntityProcessor<SettingsAdd, Long> {
-
-  /**
-   * <p>Business service for accounting settings.</p>
-   **/
-  private ISrvAccSettings srvAccSettings;
-
   /**
    * <p>Business service for trading settings.</p>
    **/
@@ -54,31 +47,11 @@ public class PrcSettingsAddSave<RS>
       final SettingsAdd pEntity,
         final IRequestData pRequestData) throws Exception {
     srvSettingsAdd.saveSettingsAdd(pAddParam, pEntity);
-    pRequestData.setAttribute("tradingSettings", srvSettingsAdd
-      .lazyGetSettingsAdd(pAddParam));
-    pRequestData.setAttribute("accSettings",
-      this.srvAccSettings.lazyGetAccSettings(pAddParam));
     return pEntity;
   }
 
 
   //Simple getters and setters:
-  /**
-   * <p>Getter for srvAccSettings.</p>
-   * @return ISrvAccSettings
-   **/
-  public final ISrvAccSettings getSrvAccSettings() {
-    return this.srvAccSettings;
-  }
-
-  /**
-   * <p>Setter for srvAccSettings.</p>
-   * @param pSrvAccSettings reference
-   **/
-  public final void setSrvAccSettings(final ISrvAccSettings pSrvAccSettings) {
-    this.srvAccSettings = pSrvAccSettings;
-  }
-
   /**
    * <p>Getter for srvSettingsAdd.</p>
    * @return ISrvSettingsAdd

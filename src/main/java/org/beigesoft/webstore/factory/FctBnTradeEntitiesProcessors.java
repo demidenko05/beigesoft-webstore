@@ -15,22 +15,17 @@ package org.beigesoft.webstore.factory;
 import java.util.Map;
 import java.util.HashMap;
 
-import org.beigesoft.model.IHasId;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IEntityProcessor;
 import org.beigesoft.settings.IMngSettings;
 import org.beigesoft.service.ISrvOrm;
-import org.beigesoft.orm.processor.PrcEntityCopy;
 import org.beigesoft.orm.factory.FctBnEntitiesProcessors;
 import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.webstore.service.ISrvSettingsAdd;
 import org.beigesoft.webstore.service.ISrvTradingSettings;
-import org.beigesoft.webstore.processor.PrcTradeEntityCopy;
 import org.beigesoft.webstore.processor.PrcAdvisedGoodsForGoodsSave;
 import org.beigesoft.webstore.processor.PrcGoodsCatalogsSave;
-import org.beigesoft.webstore.processor.PrcSettingsAddRetrieve;
 import org.beigesoft.webstore.processor.PrcSettingsAddSave;
-import org.beigesoft.webstore.processor.PrcTradingSettingsRetrieve;
 import org.beigesoft.webstore.processor.PrcTradingSettingsSave;
 import org.beigesoft.webstore.processor.PrcSubcatalogsCatalogsGsSave;
 import org.beigesoft.webstore.processor.PrcGoodsAdviseCategoriesSave;
@@ -119,23 +114,14 @@ public class FctBnTradeEntitiesProcessors<RS>
         proc = this.processorsMap.get(pBeanName);
         if (proc == null) {
           if (pBeanName
-            .equals(PrcTradeEntityCopy.class.getSimpleName())) {
-            proc = lazyGetPrcTradeEntityCopy(pAddParam);
-          } else if (pBeanName
             .equals(PrcAdvisedGoodsForGoodsSave.class.getSimpleName())) {
             proc = lazyGetPrcAdvisedGoodsForGoodsSave(pAddParam);
           } else if (pBeanName
             .equals(PrcSettingsAddSave.class.getSimpleName())) {
             proc = lazyGetPrcSettingsAddSave(pAddParam);
           } else if (pBeanName
-            .equals(PrcSettingsAddRetrieve.class.getSimpleName())) {
-            proc = lazyGetPrcSettingsAddRetrieve(pAddParam);
-          } else if (pBeanName
             .equals(PrcTradingSettingsSave.class.getSimpleName())) {
             proc = lazyGetPrcTradingSettingsSave(pAddParam);
-          } else if (pBeanName
-            .equals(PrcTradingSettingsRetrieve.class.getSimpleName())) {
-            proc = lazyGetPrcTradingSettingsRetrieve(pAddParam);
           } else if (pBeanName
             .equals(PrcGoodsCatalogsSave.class.getSimpleName())) {
             proc = lazyGetPrcGoodsCatalogsSave(pAddParam);
@@ -171,38 +157,6 @@ public class FctBnTradeEntitiesProcessors<RS>
   }
 
   /**
-   * <p>Lazy get PrcTradeEntityCopy.</p>
-   * @param pAddParam additional param
-   * @return requested PrcTradeEntityCopy
-   * @throws Exception - an exception
-   */
-  protected final PrcTradeEntityCopy<RS, IHasId<Object>, Object>
-    lazyGetPrcTradeEntityCopy(
-      final Map<String, Object> pAddParam) throws Exception {
-    @SuppressWarnings("unchecked")
-    PrcTradeEntityCopy<RS, IHasId<Object>, Object> proc =
-      (PrcTradeEntityCopy<RS, IHasId<Object>, Object>)
-        this.processorsMap
-          .get(PrcTradeEntityCopy.class.getSimpleName());
-    if (proc == null) {
-      proc =
-        new PrcTradeEntityCopy<RS, IHasId<Object>, Object>();
-      proc.setSrvAccSettings(getSrvAccSettings());
-      proc.setSrvTradingSettings(getSrvTradingSettings());
-      @SuppressWarnings("unchecked")
-      PrcEntityCopy<RS, IHasId<Object>, Object> procDlg =
-        (PrcEntityCopy<RS, IHasId<Object>, Object>)
-          this.fctBnEntitiesProcessors
-            .lazyGet(pAddParam, PrcEntityCopy.class.getSimpleName());
-      proc.setPrcEntityCopy(procDlg);
-      //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcTradeEntityCopy.class.getSimpleName(), proc);
-    }
-    return proc;
-  }
-
-  /**
    * <p>Get PrcAdvisedGoodsForGoodsSave (create and put into map).</p>
    * @param pAddParam additional param
    * @return requested PrcAdvisedGoodsForGoodsSave
@@ -219,40 +173,11 @@ public class FctBnTradeEntitiesProcessors<RS>
     if (proc == null) {
       proc =
         new PrcAdvisedGoodsForGoodsSave<RS>();
-      proc.setSrvAccSettings(getSrvAccSettings());
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvTradingSettings(getSrvTradingSettings());
       //assigning fully initialized object:
       this.processorsMap
         .put(PrcAdvisedGoodsForGoodsSave.class.getSimpleName(), proc);
-    }
-    return proc;
-  }
-
-  /**
-   * <p>Get PrcSettingsAddRetrieve (create and put into map).</p>
-   * @param pAddParam additional param
-   * @return requested PrcSettingsAddRetrieve
-   * @throws Exception - an exception
-   */
-  protected final PrcSettingsAddRetrieve<RS>
-    lazyGetPrcSettingsAddRetrieve(
-      final Map<String, Object> pAddParam) throws Exception {
-    @SuppressWarnings("unchecked")
-    PrcSettingsAddRetrieve<RS> proc =
-      (PrcSettingsAddRetrieve<RS>)
-      this.processorsMap
-        .get(PrcSettingsAddRetrieve.class.getSimpleName());
-    if (proc == null) {
-      proc =
-        new PrcSettingsAddRetrieve<RS>();
-      proc.setSrvOrm(getSrvOrm());
-      proc.setMngUvdSettings(getMngUvdSettings());
-      proc.setSrvAccSettings(getSrvAccSettings());
-      proc.setSrvSettingsAdd(getSrvSettingsAdd());
-      //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcSettingsAddRetrieve.class.getSimpleName(), proc);
     }
     return proc;
   }
@@ -274,39 +199,10 @@ public class FctBnTradeEntitiesProcessors<RS>
     if (proc == null) {
       proc =
         new PrcSettingsAddSave<RS>();
-      proc.setSrvAccSettings(getSrvAccSettings());
       proc.setSrvSettingsAdd(getSrvSettingsAdd());
       //assigning fully initialized object:
       this.processorsMap
         .put(PrcSettingsAddSave.class.getSimpleName(), proc);
-    }
-    return proc;
-  }
-
-  /**
-   * <p>Get PrcTradingSettingsRetrieve (create and put into map).</p>
-   * @param pAddParam additional param
-   * @return requested PrcTradingSettingsRetrieve
-   * @throws Exception - an exception
-   */
-  protected final PrcTradingSettingsRetrieve<RS>
-    lazyGetPrcTradingSettingsRetrieve(
-      final Map<String, Object> pAddParam) throws Exception {
-    @SuppressWarnings("unchecked")
-    PrcTradingSettingsRetrieve<RS> proc =
-      (PrcTradingSettingsRetrieve<RS>)
-      this.processorsMap
-        .get(PrcTradingSettingsRetrieve.class.getSimpleName());
-    if (proc == null) {
-      proc =
-        new PrcTradingSettingsRetrieve<RS>();
-      proc.setSrvOrm(getSrvOrm());
-      proc.setMngUvdSettings(getMngUvdSettings());
-      proc.setSrvAccSettings(getSrvAccSettings());
-      proc.setSrvTradingSettings(getSrvTradingSettings());
-      //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcTradingSettingsRetrieve.class.getSimpleName(), proc);
     }
     return proc;
   }
@@ -328,7 +224,6 @@ public class FctBnTradeEntitiesProcessors<RS>
     if (proc == null) {
       proc =
         new PrcTradingSettingsSave<RS>();
-      proc.setSrvAccSettings(getSrvAccSettings());
       proc.setSrvTradingSettings(getSrvTradingSettings());
       //assigning fully initialized object:
       this.processorsMap
@@ -354,9 +249,7 @@ public class FctBnTradeEntitiesProcessors<RS>
     if (proc == null) {
       proc =
         new PrcGoodsCatalogsSave<RS>();
-      proc.setSrvAccSettings(getSrvAccSettings());
       proc.setSrvOrm(getSrvOrm());
-      proc.setSrvTradingSettings(getSrvTradingSettings());
       //assigning fully initialized object:
       this.processorsMap
         .put(PrcGoodsCatalogsSave.class.getSimpleName(), proc);
@@ -381,9 +274,7 @@ public class FctBnTradeEntitiesProcessors<RS>
     if (proc == null) {
       proc =
         new PrcSubcatalogsCatalogsGsSave<RS>();
-      proc.setSrvAccSettings(getSrvAccSettings());
       proc.setSrvOrm(getSrvOrm());
-      proc.setSrvTradingSettings(getSrvTradingSettings());
       //assigning fully initialized object:
       this.processorsMap
         .put(PrcSubcatalogsCatalogsGsSave.class.getSimpleName(), proc);
@@ -408,9 +299,7 @@ public class FctBnTradeEntitiesProcessors<RS>
     if (proc == null) {
       proc =
         new PrcGoodsAdviseCategoriesSave<RS>();
-      proc.setSrvAccSettings(getSrvAccSettings());
       proc.setSrvOrm(getSrvOrm());
-      proc.setSrvTradingSettings(getSrvTradingSettings());
       //assigning fully initialized object:
       this.processorsMap
         .put(PrcGoodsAdviseCategoriesSave.class.getSimpleName(), proc);
@@ -435,10 +324,8 @@ public class FctBnTradeEntitiesProcessors<RS>
     if (proc == null) {
       proc =
         new PrcGoodsSpecificDelete<RS>();
-      proc.setSrvAccSettings(getSrvAccSettings());
       proc.setSrvOrm(getSrvOrm());
-      proc.setSrvTradingSettings(getSrvTradingSettings());
-      //assigning fully initialized object:
+       //assigning fully initialized object:
       this.processorsMap
         .put(PrcGoodsSpecificDelete.class.getSimpleName(), proc);
     }
@@ -462,9 +349,7 @@ public class FctBnTradeEntitiesProcessors<RS>
     if (proc == null) {
       proc =
         new PrcGoodsSpecificSave<RS>();
-      proc.setSrvAccSettings(getSrvAccSettings());
       proc.setSrvOrm(getSrvOrm());
-      proc.setSrvTradingSettings(getSrvTradingSettings());
       proc.setUploadDirectory(getUploadDirectory());
       proc.setWebAppPath(getWebAppPath());
       //assigning fully initialized object:

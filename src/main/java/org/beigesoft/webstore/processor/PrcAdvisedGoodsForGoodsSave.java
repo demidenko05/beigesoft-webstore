@@ -18,7 +18,6 @@ import org.beigesoft.model.IRequestData;
 import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.service.IEntityProcessor;
 import org.beigesoft.service.ISrvOrm;
-import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.webstore.persistable.AdvisedGoodsForGoods;
 import org.beigesoft.webstore.persistable.AdvisedGoodsForGoodsId;
 import org.beigesoft.webstore.service.ISrvTradingSettings;
@@ -36,11 +35,6 @@ public class PrcAdvisedGoodsForGoodsSave<RS>
    * <p>ORM service.</p>
    **/
   private ISrvOrm<RS> srvOrm;
-
-  /**
-   * <p>Business service for accounting settings.</p>
-   **/
-  private ISrvAccSettings srvAccSettings;
 
   /**
    * <p>Business service for trading settings.</p>
@@ -77,10 +71,6 @@ public class PrcAdvisedGoodsForGoodsSave<RS>
     } else {
       getSrvOrm().updateEntity(pAddParam, pEntity);
     }
-    pRequestData.setAttribute("tradingSettings", srvTradingSettings
-      .lazyGetTradingSettings(pAddParam));
-    pRequestData.setAttribute("accSettings",
-      this.srvAccSettings.lazyGetAccSettings(pAddParam));
     return pEntity;
   }
 
@@ -99,22 +89,6 @@ public class PrcAdvisedGoodsForGoodsSave<RS>
    **/
   public final void setSrvOrm(final ISrvOrm<RS> pSrvOrm) {
     this.srvOrm = pSrvOrm;
-  }
-
-  /**
-   * <p>Getter for srvAccSettings.</p>
-   * @return ISrvAccSettings
-   **/
-  public final ISrvAccSettings getSrvAccSettings() {
-    return this.srvAccSettings;
-  }
-
-  /**
-   * <p>Setter for srvAccSettings.</p>
-   * @param pSrvAccSettings reference
-   **/
-  public final void setSrvAccSettings(final ISrvAccSettings pSrvAccSettings) {
-    this.srvAccSettings = pSrvAccSettings;
   }
 
   /**

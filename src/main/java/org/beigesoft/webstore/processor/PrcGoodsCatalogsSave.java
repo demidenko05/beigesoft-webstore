@@ -19,10 +19,8 @@ import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.service.IEntityProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.accounting.persistable.InvItem;
-import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.webstore.persistable.GoodsCatalogs;
 import org.beigesoft.webstore.persistable.GoodsCatalogsId;
-import org.beigesoft.webstore.service.ISrvTradingSettings;
 
 /**
  * <p>Service that save GoodsCatalogs into DB.</p>
@@ -37,16 +35,6 @@ public class PrcGoodsCatalogsSave<RS>
    * <p>ORM service.</p>
    **/
   private ISrvOrm<RS> srvOrm;
-
-  /**
-   * <p>Business service for accounting settings.</p>
-   **/
-  private ISrvAccSettings srvAccSettings;
-
-  /**
-   * <p>Business service for trading settings.</p>
-   **/
-  private ISrvTradingSettings srvTradingSettings;
 
   /**
    * <p>Process entity request.</p>
@@ -104,10 +92,6 @@ public class PrcGoodsCatalogsSave<RS>
     } else {
       getSrvOrm().updateEntity(pAddParam, pEntity);
     }
-    pRequestData.setAttribute("tradingSettings", srvTradingSettings
-      .lazyGetTradingSettings(pAddParam));
-    pRequestData.setAttribute("accSettings",
-      this.srvAccSettings.lazyGetAccSettings(pAddParam));
     return pEntity;
   }
 
@@ -127,38 +111,5 @@ public class PrcGoodsCatalogsSave<RS>
    **/
   public final void setSrvOrm(final ISrvOrm<RS> pSrvOrm) {
     this.srvOrm = pSrvOrm;
-  }
-
-  /**
-   * <p>Getter for srvAccSettings.</p>
-   * @return ISrvAccSettings
-   **/
-  public final ISrvAccSettings getSrvAccSettings() {
-    return this.srvAccSettings;
-  }
-
-  /**
-   * <p>Setter for srvAccSettings.</p>
-   * @param pSrvAccSettings reference
-   **/
-  public final void setSrvAccSettings(final ISrvAccSettings pSrvAccSettings) {
-    this.srvAccSettings = pSrvAccSettings;
-  }
-
-  /**
-   * <p>Getter for srvTradingSettings.</p>
-   * @return ISrvTradingSettings
-   **/
-  public final ISrvTradingSettings getSrvTradingSettings() {
-    return this.srvTradingSettings;
-  }
-
-  /**
-   * <p>Setter for srvTradingSettings.</p>
-   * @param pSrvTradingSettings reference
-   **/
-  public final void setSrvTradingSettings(
-    final ISrvTradingSettings pSrvTradingSettings) {
-    this.srvTradingSettings = pSrvTradingSettings;
   }
 }
