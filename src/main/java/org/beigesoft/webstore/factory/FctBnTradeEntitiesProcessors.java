@@ -171,8 +171,7 @@ public class FctBnTradeEntitiesProcessors<RS>
       this.processorsMap
         .get(PrcAdvisedGoodsForGoodsSave.class.getSimpleName());
     if (proc == null) {
-      proc =
-        new PrcAdvisedGoodsForGoodsSave<RS>();
+      proc = new PrcAdvisedGoodsForGoodsSave<RS>();
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvTradingSettings(getSrvTradingSettings());
       //assigning fully initialized object:
@@ -197,8 +196,7 @@ public class FctBnTradeEntitiesProcessors<RS>
       this.processorsMap
         .get(PrcSettingsAddSave.class.getSimpleName());
     if (proc == null) {
-      proc =
-        new PrcSettingsAddSave<RS>();
+      proc = new PrcSettingsAddSave<RS>();
       proc.setSrvSettingsAdd(getSrvSettingsAdd());
       //assigning fully initialized object:
       this.processorsMap
@@ -222,8 +220,7 @@ public class FctBnTradeEntitiesProcessors<RS>
       this.processorsMap
         .get(PrcTradingSettingsSave.class.getSimpleName());
     if (proc == null) {
-      proc =
-        new PrcTradingSettingsSave<RS>();
+      proc = new PrcTradingSettingsSave<RS>();
       proc.setSrvTradingSettings(getSrvTradingSettings());
       //assigning fully initialized object:
       this.processorsMap
@@ -247,8 +244,7 @@ public class FctBnTradeEntitiesProcessors<RS>
       this.processorsMap
         .get(PrcGoodsCatalogsSave.class.getSimpleName());
     if (proc == null) {
-      proc =
-        new PrcGoodsCatalogsSave<RS>();
+      proc = new PrcGoodsCatalogsSave<RS>();
       proc.setSrvOrm(getSrvOrm());
       //assigning fully initialized object:
       this.processorsMap
@@ -272,8 +268,7 @@ public class FctBnTradeEntitiesProcessors<RS>
       this.processorsMap
         .get(PrcSubcatalogsCatalogsGsSave.class.getSimpleName());
     if (proc == null) {
-      proc =
-        new PrcSubcatalogsCatalogsGsSave<RS>();
+      proc = new PrcSubcatalogsCatalogsGsSave<RS>();
       proc.setSrvOrm(getSrvOrm());
       //assigning fully initialized object:
       this.processorsMap
@@ -297,8 +292,7 @@ public class FctBnTradeEntitiesProcessors<RS>
       this.processorsMap
         .get(PrcGoodsAdviseCategoriesSave.class.getSimpleName());
     if (proc == null) {
-      proc =
-        new PrcGoodsAdviseCategoriesSave<RS>();
+      proc = new PrcGoodsAdviseCategoriesSave<RS>();
       proc.setSrvOrm(getSrvOrm());
       //assigning fully initialized object:
       this.processorsMap
@@ -322,8 +316,7 @@ public class FctBnTradeEntitiesProcessors<RS>
       this.processorsMap
         .get(PrcGoodsSpecificDelete.class.getSimpleName());
     if (proc == null) {
-      proc =
-        new PrcGoodsSpecificDelete<RS>();
+      proc = new PrcGoodsSpecificDelete<RS>();
       proc.setSrvOrm(getSrvOrm());
        //assigning fully initialized object:
       this.processorsMap
@@ -347,8 +340,7 @@ public class FctBnTradeEntitiesProcessors<RS>
       this.processorsMap
         .get(PrcGoodsSpecificSave.class.getSimpleName());
     if (proc == null) {
-      proc =
-        new PrcGoodsSpecificSave<RS>();
+      proc = new PrcGoodsSpecificSave<RS>();
       proc.setSrvOrm(getSrvOrm());
       proc.setUploadDirectory(getUploadDirectory());
       proc.setWebAppPath(getWebAppPath());
