@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.beigesoft</groupId>
-  <version>1.1.6-SNAPSHOT</version>
+  <version>1.1.6</version>
   <artifactId>beigesoft-webstore</artifactId>
   <name>Beigesoft ™ Web Store library</name>
 
@@ -261,7 +261,7 @@
     <url>https://github.com/demidenko05/beigesoft-webstore.git</url>
     <connection>scm:git:git@github.com:demidenko05/beigesoft-webstore.git</connection>
     <developerConnection>scm:git:git@github.com:demidenko05/beigesoft-webstore.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>beigesoft-webstore-1.1.6</tag>
   </scm>
 
 </project>
