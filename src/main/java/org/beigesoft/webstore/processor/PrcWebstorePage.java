@@ -140,7 +140,6 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
     pRequestData.setAttribute("catalogs", lazyRetrieveCatalogs(pAddParam));
     TradingSettings tradingSettings = srvTradingSettings
       .lazyGetTradingSettings(pAddParam);
-    pRequestData.setAttribute("tradingSettings", tradingSettings);
     String catalogIdStr = pRequestData.getParameter("catalogId");
     Long catId = null;
     if (catalogIdStr != null) {
