@@ -37,7 +37,6 @@ import org.beigesoft.webstore.persistable.GoodsAvailable;
 import org.beigesoft.webstore.persistable.GoodsInListLuv;
 import org.beigesoft.webstore.persistable.SettingsAdd;
 import org.beigesoft.webstore.persistable.ItemInList;
-import org.beigesoft.webstore.service.ISrvSettingsAdd;
 
 /**
  * <p>Service that refresh webstore goods in ItemInList according current
@@ -60,11 +59,6 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
   private ISrvOrm<RS> srvOrm;
 
   /**
-   * <p>Business service for additional settings.</p>
-   **/
-  private ISrvSettingsAdd srvSettingsAdd;
-
-  /**
    * <p>Process entity request.</p>
    * @param pAddParam additional param
    * @param pRequestData Request Data
@@ -75,7 +69,6 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
     final IRequestData pRequestData) throws Exception {
     retrieveStartData(pAddParam);
     SettingsAdd settingsAdd = (SettingsAdd) pAddParam.get("settingsAdd");
-    pAddParam.remove("settingsAdd");
     GoodsInListLuv goodsInListLuv =
       (GoodsInListLuv) pAddParam.get("goodsInListLuv");
     pAddParam.remove("goodsInListLuv");
@@ -109,8 +102,6 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
       this.srvDatabase.
         setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
       this.srvDatabase.beginTransaction();
-      SettingsAdd settingsAdd = getSrvSettingsAdd()
-        .lazyGetSettingsAdd(pAddParam);
       GoodsInListLuv goodsInListLuv = getSrvOrm()
         .retrieveEntityById(pAddParam, GoodsInListLuv.class, 1L);
       if (goodsInListLuv == null) {
@@ -118,7 +109,6 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
         goodsInListLuv.setItsId(1L);
         getSrvOrm().insertEntity(pAddParam, goodsInListLuv);
       }
-      pAddParam.put("settingsAdd", settingsAdd);
       pAddParam.put("goodsInListLuv", goodsInListLuv);
       this.srvDatabase.commitTransaction();
     } catch (Exception ex) {
@@ -379,6 +369,7 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
   + pGoodsInListLuv.getGoodsSpecificLuv().toString() + ")";
       }
       pAddParam.put("GoodsSpecificspecificsdeepLevel", 3); //HTML templates only ID
+      pAddParam.put("SpecificsOfItemtempHtmldeepLevel", 1); //HTML templates only ID
       HashSet<String> goodsFldNms = new HashSet<String>();
       goodsFldNms.add("itsId");
       goodsFldNms.add("itsName");
@@ -389,6 +380,7 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
       soiFldNms.add("isShowInList");
       soiFldNms.add("itsType");
       soiFldNms.add("itsGroop");
+      soiFldNms.add("tempHtml");
       soiFldNms.add("chooseableSpecificsType");
       pAddParam.put("SpecificsOfItemneededFields", soiFldNms);
       HashSet<String> soigFldNms = new HashSet<String>();
@@ -406,6 +398,7 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
         GoodsSpecific.class, verCondGs
           + " order by GOODS.ITSID, SPECIFICS.ITSINDEX");
       pAddParam.remove("GoodsSpecificspecificsdeepLevel");
+      pAddParam.remove("SpecificsOfItemtempHtmldeepLevel");
       pAddParam.remove("InvItemneededFields");
       pAddParam.remove("SpecificsOfItemneededFields");
       pAddParam.remove("SpecificsOfItemGroupneededFields");
@@ -461,13 +454,15 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
   /**
    * <p>Update ItemInList with outdated GoodsSpecific.</p>
    * @param pAddParam additional param
+   * @param pSettingsAdd SettingsAdd
    * @param pOutdGdSp outdated GoodsSpecific
    * @param pItemInList ItemInList
    * @param pSpecificsOfItemGroupWas SpecificsOfItemGroup previous
    * @throws Exception - an exception
    **/
   public final void updateForGoodsSpecific(
-    final Map<String, Object> pAddParam, final GoodsSpecific pOutdGdSp,
+    final Map<String, Object> pAddParam,
+      final SettingsAdd pSettingsAdd, final GoodsSpecific pOutdGdSp,
       final ItemInList pItemInList,
         final SpecificsOfItemGroup pSpecificsOfItemGroupWas) throws Exception {
     if ((pSpecificsOfItemGroupWas != null && pOutdGdSp.getSpecifics().getItsGroop() == null
@@ -607,6 +602,10 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
     }
     if (htmlTemplates != null && htmlTemplates.size() > 0) {
       for (GoodsSpecific gs : pOutdGdSpList) {
+        if (gs.getSpecifics().getTempHtml() != null) {
+          gs.getSpecifics().setTempHtml(
+            findTemplate(htmlTemplates, gs.getSpecifics().getTempHtml().getItsId()));
+        }
         if (gs.getSpecifics().getChooseableSpecificsType() != null
           && gs.getSpecifics().getChooseableSpecificsType().getHtmlTemplate() != null) {
           gs.getSpecifics().getChooseableSpecificsType().setHtmlTemplate(
@@ -652,7 +651,7 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
           itemInList.setDetailsMethod(null); //reset any way
           do {
             if (pOutdGdSpList.get(j).getSpecifics().getIsShowInList()) {
-              updateForGoodsSpecific(pAddParam, pOutdGdSpList.get(j), itemInList, specificsOfItemGroupWas);
+              updateForGoodsSpecific(pAddParam, pSettingsAdd, pOutdGdSpList.get(j), itemInList, specificsOfItemGroupWas);
               specificsOfItemGroupWas = pOutdGdSpList.get(j).getSpecifics().getItsGroop();
             } else {
               itemInList.setDetailsMethod(1);
@@ -779,21 +778,5 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
    **/
   public final void setSrvOrm(final ISrvOrm<RS> pSrvOrm) {
     this.srvOrm = pSrvOrm;
-  }
-
-  /**
-   * <p>Getter for srvSettingsAdd.</p>
-   * @return ISrvSettingsAdd
-   **/
-  public final ISrvSettingsAdd getSrvSettingsAdd() {
-    return this.srvSettingsAdd;
-  }
-
-  /**
-   * <p>Setter for srvSettingsAdd.</p>
-   * @param pSrvSettingsAdd reference
-   **/
-  public final void setSrvSettingsAdd(final ISrvSettingsAdd pSrvSettingsAdd) {
-    this.srvSettingsAdd = pSrvSettingsAdd;
   }
 }

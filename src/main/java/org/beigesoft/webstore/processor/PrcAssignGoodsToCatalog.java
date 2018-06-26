@@ -23,9 +23,9 @@ import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvEntitiesPage;
 import org.beigesoft.accounting.persistable.InvItem;
-import org.beigesoft.webstore.service.ISrvTradingSettings;
 import org.beigesoft.webstore.persistable.GoodsCatalogs;
 import org.beigesoft.webstore.persistable.CatalogGs;
+import org.beigesoft.webstore.persistable.TradingSettings;
 
 /**
  * <p>Service that add/remove filtered goods to/from chosen catalog.</p>
@@ -44,11 +44,6 @@ public class PrcAssignGoodsToCatalog<RS> implements IProcessor {
    * <p>Page service.</p>
    **/
   private ISrvEntitiesPage srvEntitiesPage;
-
-  /**
-   * <p>Business service for trading settings.</p>
-   **/
-  private ISrvTradingSettings srvTradingSettings;
 
   /**
    * <p>Process entity request.</p>
@@ -94,8 +89,8 @@ public class PrcAssignGoodsToCatalog<RS> implements IProcessor {
     String whereStr = sbWhere.toString();
     Integer rowCount = this.srvOrm.evalRowCountWhere(pAddParam, InvItem.class,
         whereStr);
-    if (rowCount > this.srvTradingSettings.lazyGetTradingSettings(pAddParam)
-      .getMaxQuantityOfBulkItems()) {
+    TradingSettings ts = (TradingSettings) pAddParam.get("tradingSettings");
+    if (rowCount > ts.getMaxQuantityOfBulkItems()) {
       throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
         "filtered_list_size_exceed_max_bulk");
     }
@@ -158,22 +153,5 @@ public class PrcAssignGoodsToCatalog<RS> implements IProcessor {
   public final void setSrvEntitiesPage(
     final ISrvEntitiesPage pSrvEntitiesPage) {
     this.srvEntitiesPage = pSrvEntitiesPage;
-  }
-
-  /**
-   * <p>Getter for srvTradingSettings.</p>
-   * @return ISrvTradingSettings
-   **/
-  public final ISrvTradingSettings getSrvTradingSettings() {
-    return this.srvTradingSettings;
-  }
-
-  /**
-   * <p>Setter for srvTradingSettings.</p>
-   * @param pSrvTradingSettings reference
-   **/
-  public final void setSrvTradingSettings(
-    final ISrvTradingSettings pSrvTradingSettings) {
-    this.srvTradingSettings = pSrvTradingSettings;
   }
 }

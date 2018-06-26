@@ -26,7 +26,6 @@ import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.factory.IFactoryAppBeansByName;
-import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.accounting.persistable.AccSettings;
 import org.beigesoft.webstore.model.EShopItemType;
@@ -36,7 +35,6 @@ import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.persistable.BuyerPriceCategory;
 import org.beigesoft.webstore.persistable.GoodsPriceId;
 import org.beigesoft.webstore.persistable.GoodsPrice;
-import org.beigesoft.webstore.service.ISrvTradingSettings;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
@@ -64,16 +62,6 @@ public class PrcItemInCart<RS> implements IProcessor {
   private ISrvOrm<RS> srvOrm;
 
   /**
-   * <p>Business service for accounting settings.</p>
-   **/
-  private ISrvAccSettings srvAccSettings;
-
-  /**
-   * <p>Business service for trading settings.</p>
-   **/
-  private ISrvTradingSettings srvTradingSettings;
-
-  /**
    * <p>Shopping Cart service.</p>
    **/
   private ISrvShoppingCart srvShoppingCart;
@@ -92,8 +80,8 @@ public class PrcItemInCart<RS> implements IProcessor {
   @Override
   public final void process(final Map<String, Object> pAddParam,
     final IRequestData pRequestData) throws Exception {
-    TradingSettings tradingSettings = getSrvTradingSettings()
-      .lazyGetTradingSettings(pAddParam);
+    TradingSettings tradingSettings = (TradingSettings)
+      pAddParam.get("tradingSettings");
     ShoppingCart shoppingCart = this.srvShoppingCart
       .getShoppingCart(pAddParam, pRequestData, true);
     CartItem cartItem = null;
@@ -215,8 +203,7 @@ public class PrcItemInCart<RS> implements IProcessor {
     if (totals[1] == null) {
       totals[1] = 0d;
     }
-    AccSettings accSettings = this.getSrvAccSettings()
-      .lazyGetAccSettings(pAddParam);
+    AccSettings accSettings = (AccSettings) pAddParam.get("accSettings");
     shoppingCart.setItsTotal(BigDecimal.valueOf(totals[0]).
       setScale(accSettings.getPricePrecision(), accSettings.getRoundingMode()));
     shoppingCart.setTotalItems(totals[1].intValue());
@@ -349,39 +336,6 @@ public class PrcItemInCart<RS> implements IProcessor {
    **/
   public final void setSrvOrm(final ISrvOrm<RS> pSrvOrm) {
     this.srvOrm = pSrvOrm;
-  }
-
-  /**
-   * <p>Getter for srvAccSettings.</p>
-   * @return ISrvAccSettings
-   **/
-  public final ISrvAccSettings getSrvAccSettings() {
-    return this.srvAccSettings;
-  }
-
-  /**
-   * <p>Setter for srvAccSettings.</p>
-   * @param pSrvAccSettings reference
-   **/
-  public final void setSrvAccSettings(final ISrvAccSettings pSrvAccSettings) {
-    this.srvAccSettings = pSrvAccSettings;
-  }
-
-  /**
-   * <p>Getter for srvTradingSettings.</p>
-   * @return ISrvTradingSettings
-   **/
-  public final ISrvTradingSettings getSrvTradingSettings() {
-    return this.srvTradingSettings;
-  }
-
-  /**
-   * <p>Setter for srvTradingSettings.</p>
-   * @param pSrvTradingSettings reference
-   **/
-  public final void setSrvTradingSettings(
-    final ISrvTradingSettings pSrvTradingSettings) {
-    this.srvTradingSettings = pSrvTradingSettings;
   }
 
   /**

@@ -172,6 +172,7 @@
   org.beigesoft.webstore.persistable.I18nSpecificInList,
   org.beigesoft.webstore.persistable.I18nCatalogGs,
   org.beigesoft.webstore.persistable.I18nSpecificsOfItem,
+  org.beigesoft.webstore.persistable.I18nSpecificsOfItemGroup,
   org.beigesoft.webstore.persistable.I18nWebStore,
   org.beigesoft.webstore.persistable.I18nChooseableSpecifics,
   org.beigesoft.webstore.persistable.CustomerGoodsSeen</entry>

@@ -55,6 +55,11 @@ public class HndlTradeVarsRequest<RS> implements IHandlerRequestDch {
   private ISrvTradingSettings srvTradingSettings;
 
   /**
+   * <p>Business service for additional settings.</p>
+   **/
+  private ISrvSettingsAdd srvSettingsAdd;
+
+  /**
    * <p>Helper that is used in JSP.</p>
    **/
   private UtlTradeJsp utlTradeJsp;
@@ -81,6 +86,7 @@ public class HndlTradeVarsRequest<RS> implements IHandlerRequestDch {
     TradingSettings ts = srvTradingSettings
       .lazyGetTradingSettings(pReqVars);
     pReqVars.put("tradingSettings", ts);
+    pReqVars.put("settingsAdd", srvSettingsAdd.lazyGetSettingsAdd(pReqVars));
     pRequestData.setAttribute("utlTradeJsp", this.utlTradeJsp);
     if (ts.getUseAdvancedI18n()) {
       String lang = (String) pReqVars.get("lang");
@@ -216,5 +222,21 @@ public class HndlTradeVarsRequest<RS> implements IHandlerRequestDch {
    **/
   public final void setUtlTradeJsp(final UtlTradeJsp pUtlTradeJsp) {
     this.utlTradeJsp = pUtlTradeJsp;
+  }
+
+  /**
+   * <p>Getter for srvSettingsAdd.</p>
+   * @return ISrvSettingsAdd
+   **/
+  public final ISrvSettingsAdd getSrvSettingsAdd() {
+    return this.srvSettingsAdd;
+  }
+
+  /**
+   * <p>Setter for srvSettingsAdd.</p>
+   * @param pSrvSettingsAdd reference
+   **/
+  public final void setSrvSettingsAdd(final ISrvSettingsAdd pSrvSettingsAdd) {
+    this.srvSettingsAdd = pSrvSettingsAdd;
   }
 }

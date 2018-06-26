@@ -66,6 +66,12 @@ public class SpecificsOfItem extends AHasNameIdLongVersion {
    **/
   private Boolean useForOrdering;
 
+  /**
+   * <p>If assigned, e.g. ":SPECNM :SPECVAL",
+   * this overrides SpecificsOfItemGroup.templateDetail.</p>
+   **/
+  private HtmlTemplate tempHtml;
+
   //Simple getters and setters:
   /**
    * <p>Getter for description.</p>
@@ -195,5 +201,21 @@ public class SpecificsOfItem extends AHasNameIdLongVersion {
    **/
   public final void setUseForOrdering(final Boolean pUseForOrdering) {
     this.useForOrdering = pUseForOrdering;
+  }
+
+  /**
+   * <p>Getter for tempHtml.</p>
+   * @return HtmlTemplate
+   **/
+  public final HtmlTemplate getTempHtml() {
+    return this.tempHtml;
+  }
+
+  /**
+   * <p>Setter for tempHtml.</p>
+   * @param pTempHtml reference
+   **/
+  public final void setTempHtml(final HtmlTemplate pTempHtml) {
+    this.tempHtml = pTempHtml;
   }
 }

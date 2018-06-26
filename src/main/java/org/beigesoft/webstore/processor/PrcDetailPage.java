@@ -28,7 +28,6 @@ import org.beigesoft.webstore.persistable.GoodsAvailable;
 import org.beigesoft.webstore.persistable.CartItem;
 import org.beigesoft.webstore.persistable.ShoppingCart;
 import org.beigesoft.webstore.persistable.TradingSettings;
-import org.beigesoft.webstore.service.ISrvTradingSettings;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
@@ -50,11 +49,6 @@ public class PrcDetailPage<RS> implements IProcessor {
    * <p>ORM service.</p>
    **/
   private ISrvOrm<RS> srvOrm;
-
-  /**
-   * <p>Business service for trading settings.</p>
-   **/
-  private ISrvTradingSettings srvTradingSettings;
 
   /**
    * <p>Shopping Cart service.</p>
@@ -143,8 +137,7 @@ public class PrcDetailPage<RS> implements IProcessor {
    **/
   public final GoodsPrice retrieveGoodsPrice(
     final Map<String, Object> pAddParam, final Long pItemId) throws Exception {
-    TradingSettings ts = this.srvTradingSettings
-      .lazyGetTradingSettings(pAddParam);
+    TradingSettings ts = (TradingSettings) pAddParam.get("tradingSettings");
     if (ts.getIsUsePriceForCustomer()) {
       throw new Exception(
         "Method price depends of customer's category not yet implemented!");
@@ -244,23 +237,6 @@ public class PrcDetailPage<RS> implements IProcessor {
    **/
   public final void setSrvOrm(final ISrvOrm<RS> pSrvOrm) {
     this.srvOrm = pSrvOrm;
-  }
-
-  /**
-   * <p>Getter for srvTradingSettings.</p>
-   * @return ISrvTradingSettings
-   **/
-  public final ISrvTradingSettings getSrvTradingSettings() {
-    return this.srvTradingSettings;
-  }
-
-  /**
-   * <p>Setter for srvTradingSettings.</p>
-   * @param pSrvTradingSettings reference
-   **/
-  public final void setSrvTradingSettings(
-    final ISrvTradingSettings pSrvTradingSettings) {
-    this.srvTradingSettings = pSrvTradingSettings;
   }
 
   /**

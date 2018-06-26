@@ -23,12 +23,9 @@ import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.service.ISrvEntitiesPage;
 import org.beigesoft.service.PrcRefreshHndlI18n;
-import org.beigesoft.accounting.service.ISrvAccSettings;
-import org.beigesoft.webstore.service.ISrvSettingsAdd;
 import org.beigesoft.webstore.processor.PrcAssignGoodsToCatalog;
 import org.beigesoft.webstore.processor.PrcRefreshGoodsInList;
 import org.beigesoft.webstore.processor.PrcRefreshCatalog;
-import org.beigesoft.webstore.service.ISrvTradingSettings;
 
 /**
  * <p>Non-public trade processors factory.
@@ -54,21 +51,6 @@ public class FctBnTradeProcessors<RS>
    * <p>Page service.</p>
    **/
   private ISrvEntitiesPage srvEntitiesPage;
-
-  /**
-   * <p>Business service for additional settings.</p>
-   **/
-  private ISrvSettingsAdd srvSettingsAdd;
-
-  /**
-   * <p>Business service for accounting settings.</p>
-   **/
-  private ISrvAccSettings srvAccSettings;
-
-  /**
-   * <p>Business service for trading settings.</p>
-   **/
-  private ISrvTradingSettings srvTradingSettings;
 
   /**
    * <p>Logger.</p>
@@ -202,7 +184,6 @@ public class FctBnTradeProcessors<RS>
       proc = new PrcRefreshGoodsInList<RS>();
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvDatabase(getSrvDatabase());
-      proc.setSrvSettingsAdd(getSrvSettingsAdd());
       //assigning fully initialized object:
       this.processorsMap
         .put(PrcRefreshGoodsInList.class.getSimpleName(), proc);
@@ -227,7 +208,6 @@ public class FctBnTradeProcessors<RS>
       proc = new PrcAssignGoodsToCatalog<RS>();
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvEntitiesPage(getSrvEntitiesPage());
-      proc.setSrvTradingSettings(getSrvTradingSettings());
       //assigning fully initialized object:
       this.processorsMap
         .put(PrcAssignGoodsToCatalog.class.getSimpleName(), proc);
@@ -283,55 +263,6 @@ public class FctBnTradeProcessors<RS>
   public final void setSrvEntitiesPage(
     final ISrvEntitiesPage pSrvEntitiesPage) {
     this.srvEntitiesPage = pSrvEntitiesPage;
-  }
-
-  /**
-   * <p>Getter for srvSettingsAdd.</p>
-   * @return ISrvSettingsAdd
-   **/
-  public final ISrvSettingsAdd getSrvSettingsAdd() {
-    return this.srvSettingsAdd;
-  }
-
-  /**
-   * <p>Setter for srvSettingsAdd.</p>
-   * @param pSrvSettingsAdd reference
-   **/
-  public final void setSrvSettingsAdd(final ISrvSettingsAdd pSrvSettingsAdd) {
-    this.srvSettingsAdd = pSrvSettingsAdd;
-  }
-
-  /**
-   * <p>Getter for srvAccSettings.</p>
-   * @return ISrvAccSettings
-   **/
-  public final ISrvAccSettings getSrvAccSettings() {
-    return this.srvAccSettings;
-  }
-
-  /**
-   * <p>Setter for srvAccSettings.</p>
-   * @param pSrvAccSettings reference
-   **/
-  public final void setSrvAccSettings(final ISrvAccSettings pSrvAccSettings) {
-    this.srvAccSettings = pSrvAccSettings;
-  }
-
-  /**
-   * <p>Getter for srvTradingSettings.</p>
-   * @return ISrvTradingSettings
-   **/
-  public final ISrvTradingSettings getSrvTradingSettings() {
-    return this.srvTradingSettings;
-  }
-
-  /**
-   * <p>Setter for srvTradingSettings.</p>
-   * @param pSrvTradingSettings reference
-   **/
-  public final void setSrvTradingSettings(
-    final ISrvTradingSettings pSrvTradingSettings) {
-    this.srvTradingSettings = pSrvTradingSettings;
   }
 
   /**

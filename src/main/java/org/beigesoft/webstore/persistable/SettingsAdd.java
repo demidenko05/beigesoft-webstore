@@ -33,6 +33,40 @@ public class SettingsAdd extends AHasIdLongVersion {
    **/
   private Integer minimumListSizeForOrdering;
 
+  /**
+   * <p>null default, HTML template for whole specifics start,
+   * e.g. "&lt;ul&gt;".</p>
+   **/
+  private String specHtmlStart;
+
+  /**
+   * <p>null default, HTML template for whole specifics start,
+   * e.g. "&lt;/ul&gt;".</p>
+   **/
+  private String specHtmlEnd;
+
+  /**
+   * <p>null default, HTML template for group specifics start,
+   * e.g. "&lt;li&gt;".</p>
+   **/
+  private String specGrHtmlStart;
+
+  /**
+   * <p>null default, HTML template for group specifics start,
+   * e.g. "&lt;/li&gt;".</p>
+   **/
+  private String specGrHtmlEnd;
+
+  /**
+   * <p>not null, specifics separator, default ",".</p>
+   **/
+  private String specSeparator;
+
+  /**
+   * <p>null default, specifics groups separator, e.g ";".</p>
+   **/
+  private String specGrSeparator;
+
   //Simple getters and setters:
   /**
    * <p>Getter for recordsPerTransaction.</p>
@@ -66,5 +100,101 @@ public class SettingsAdd extends AHasIdLongVersion {
   public final void setMinimumListSizeForOrdering(
     final Integer pMinimumListSizeForOrdering) {
     this.minimumListSizeForOrdering = pMinimumListSizeForOrdering;
+  }
+
+  /**
+   * <p>Getter for specHtmlStart.</p>
+   * @return String
+   **/
+  public final String getSpecHtmlStart() {
+    return this.specHtmlStart;
+  }
+
+  /**
+   * <p>Setter for specHtmlStart.</p>
+   * @param pSpecHtmlStart reference
+   **/
+  public final void setSpecHtmlStart(final String pSpecHtmlStart) {
+    this.specHtmlStart = pSpecHtmlStart;
+  }
+
+  /**
+   * <p>Getter for specHtmlEnd.</p>
+   * @return String
+   **/
+  public final String getSpecHtmlEnd() {
+    return this.specHtmlEnd;
+  }
+
+  /**
+   * <p>Setter for specHtmlEnd.</p>
+   * @param pSpecHtmlEnd reference
+   **/
+  public final void setSpecHtmlEnd(final String pSpecHtmlEnd) {
+    this.specHtmlEnd = pSpecHtmlEnd;
+  }
+
+  /**
+   * <p>Getter for specGrHtmlStart.</p>
+   * @return String
+   **/
+  public final String getSpecGrHtmlStart() {
+    return this.specGrHtmlStart;
+  }
+
+  /**
+   * <p>Setter for specGrHtmlStart.</p>
+   * @param pSpecGrHtmlStart reference
+   **/
+  public final void setSpecGrHtmlStart(final String pSpecGrHtmlStart) {
+    this.specGrHtmlStart = pSpecGrHtmlStart;
+  }
+
+  /**
+   * <p>Getter for specGrHtmlEnd.</p>
+   * @return String
+   **/
+  public final String getSpecGrHtmlEnd() {
+    return this.specGrHtmlEnd;
+  }
+
+  /**
+   * <p>Setter for specGrHtmlEnd.</p>
+   * @param pSpecGrHtmlEnd reference
+   **/
+  public final void setSpecGrHtmlEnd(final String pSpecGrHtmlEnd) {
+    this.specGrHtmlEnd = pSpecGrHtmlEnd;
+  }
+
+  /**
+   * <p>Getter for specSeparator.</p>
+   * @return String
+   **/
+  public final String getSpecSeparator() {
+    return this.specSeparator;
+  }
+
+  /**
+   * <p>Setter for specSeparator.</p>
+   * @param pSpecSeparator reference
+   **/
+  public final void setSpecSeparator(final String pSpecSeparator) {
+    this.specSeparator = pSpecSeparator;
+  }
+
+  /**
+   * <p>Getter for specGrSeparator.</p>
+   * @return String
+   **/
+  public final String getSpecGrSeparator() {
+    return this.specGrSeparator;
+  }
+
+  /**
+   * <p>Setter for specGrSeparator.</p>
+   * @param pSpecGrSeparator reference
+   **/
+  public final void setSpecGrSeparator(final String pSpecGrSeparator) {
+    this.specGrSeparator = pSpecGrSeparator;
   }
 }

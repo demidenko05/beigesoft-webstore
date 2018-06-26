@@ -51,7 +51,6 @@ import org.beigesoft.webstore.persistable.ShoppingCart;
 import org.beigesoft.webstore.persistable.CartItem;
 import org.beigesoft.webstore.persistable.ItemInList;
 import org.beigesoft.webstore.persistable.TradingSettings;
-import org.beigesoft.webstore.service.ISrvTradingSettings;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 import org.beigesoft.webstore.service.ILstnCatalogChanged;
 
@@ -78,11 +77,6 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
    * same price for all customers.</p>
    **/
   private String queryGilForCatNoAucSmPr;
-
-  /**
-   * <p>Business service for trading settings.</p>
-   **/
-  private ISrvTradingSettings srvTradingSettings;
 
   /**
    * <p>Page service.</p>
@@ -138,8 +132,8 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   public final void process(final Map<String, Object> pAddParam,
     final IRequestData pRequestData) throws Exception {
     pRequestData.setAttribute("catalogs", lazyRetrieveCatalogs(pAddParam));
-    TradingSettings tradingSettings = srvTradingSettings
-      .lazyGetTradingSettings(pAddParam);
+    TradingSettings tradingSettings = (TradingSettings)
+      pAddParam.get("tradingSettings");
     String catalogIdStr = pRequestData.getParameter("catalogId");
     Long catId = null;
     if (catalogIdStr != null) {
@@ -1043,23 +1037,6 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   public final void setQueryGilForCatNoAucSmPr(
     final String pQueryGilForCatNoAucSmPr) {
     this.queryGilForCatNoAucSmPr = pQueryGilForCatNoAucSmPr;
-  }
-
-  /**
-   * <p>Getter for srvTradingSettings.</p>
-   * @return ISrvTradingSettings
-   **/
-  public final ISrvTradingSettings getSrvTradingSettings() {
-    return this.srvTradingSettings;
-  }
-
-  /**
-   * <p>Setter for srvTradingSettings.</p>
-   * @param pSrvTradingSettings reference
-   **/
-  public final void setSrvTradingSettings(
-    final ISrvTradingSettings pSrvTradingSettings) {
-    this.srvTradingSettings = pSrvTradingSettings;
   }
 
   /**

@@ -20,7 +20,6 @@ import org.beigesoft.service.IEntityProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.webstore.persistable.AdvisedGoodsForGoods;
 import org.beigesoft.webstore.persistable.AdvisedGoodsForGoodsId;
-import org.beigesoft.webstore.service.ISrvTradingSettings;
 
 /**
  * <p>Service that save AdvisedGoodsForGoods into DB.</p>
@@ -35,11 +34,6 @@ public class PrcAdvisedGoodsForGoodsSave<RS>
    * <p>ORM service.</p>
    **/
   private ISrvOrm<RS> srvOrm;
-
-  /**
-   * <p>Business service for trading settings.</p>
-   **/
-  private ISrvTradingSettings srvTradingSettings;
 
   /**
    * <p>Process entity request.</p>
@@ -89,22 +83,5 @@ public class PrcAdvisedGoodsForGoodsSave<RS>
    **/
   public final void setSrvOrm(final ISrvOrm<RS> pSrvOrm) {
     this.srvOrm = pSrvOrm;
-  }
-
-  /**
-   * <p>Getter for srvTradingSettings.</p>
-   * @return ISrvTradingSettings
-   **/
-  public final ISrvTradingSettings getSrvTradingSettings() {
-    return this.srvTradingSettings;
-  }
-
-  /**
-   * <p>Setter for srvTradingSettings.</p>
-   * @param pSrvTradingSettings reference
-   **/
-  public final void setSrvTradingSettings(
-    final ISrvTradingSettings pSrvTradingSettings) {
-    this.srvTradingSettings = pSrvTradingSettings;
   }
 }

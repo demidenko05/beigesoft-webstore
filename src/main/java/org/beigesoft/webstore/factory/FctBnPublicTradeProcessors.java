@@ -23,13 +23,10 @@ import org.beigesoft.settings.IMngSettings;
 import org.beigesoft.orm.factory.FctBnProcessors;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
-import org.beigesoft.accounting.service.ISrvAccSettings;
-import org.beigesoft.webstore.service.ISrvSettingsAdd;
 import org.beigesoft.webstore.processor.PrcWebstorePage;
 import org.beigesoft.webstore.processor.PrcDetailPage;
 import org.beigesoft.webstore.processor.PrcDelItemFromCart;
 import org.beigesoft.webstore.processor.PrcItemInCart;
-import org.beigesoft.webstore.service.ISrvTradingSettings;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
@@ -59,21 +56,6 @@ public class FctBnPublicTradeProcessors<RS>
    * <p>ORM service.</p>
    **/
   private ISrvOrm<RS> srvOrm;
-
-  /**
-   * <p>Business service for additional settings.</p>
-   **/
-  private ISrvSettingsAdd srvSettingsAdd;
-
-  /**
-   * <p>Business service for accounting settings.</p>
-   **/
-  private ISrvAccSettings srvAccSettings;
-
-  /**
-   * <p>Business service for trading settings.</p>
-   **/
-  private ISrvTradingSettings srvTradingSettings;
 
   /**
    * <p>Page service.</p>
@@ -168,8 +150,6 @@ public class FctBnPublicTradeProcessors<RS>
       proc = new PrcDelItemFromCart<RS>();
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvDatabase(getSrvDatabase());
-      proc.setSrvTradingSettings(getSrvTradingSettings());
-      proc.setSrvAccSettings(getSrvAccSettings());
       proc.setSrvShoppingCart(getSrvShoppingCart());
       proc.setProcessorsFactory(this);
       //assigning fully initialized object:
@@ -195,9 +175,7 @@ public class FctBnPublicTradeProcessors<RS>
       proc = new PrcItemInCart<RS>();
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvDatabase(getSrvDatabase());
-      proc.setSrvTradingSettings(getSrvTradingSettings());
       proc.setSrvShoppingCart(getSrvShoppingCart());
-      proc.setSrvAccSettings(getSrvAccSettings());
       proc.setProcessorsFactory(this);
       //assigning fully initialized object:
       this.processorsMap
@@ -221,7 +199,6 @@ public class FctBnPublicTradeProcessors<RS>
     if (proc == null) {
       proc = new PrcDetailPage<RS>();
       proc.setSrvOrm(getSrvOrm());
-      proc.setSrvTradingSettings(getSrvTradingSettings());
       proc.setSrvShoppingCart(getSrvShoppingCart());
       proc.setLogger(getLogger());
       //assigning fully initialized object:
@@ -248,7 +225,6 @@ public class FctBnPublicTradeProcessors<RS>
       proc.setSrvOrm(getSrvOrm());
       proc.setLogger(getLogger());
       proc.setSrvDatabase(getSrvDatabase());
-      proc.setSrvTradingSettings(getSrvTradingSettings());
       proc.setSrvShoppingCart(getSrvShoppingCart());
       proc.setSrvPage(getSrvPage());
       proc.setMngUvdSettings(getMngUvdSettings());
@@ -307,55 +283,6 @@ public class FctBnPublicTradeProcessors<RS>
   public final void setFctBnProcessors(
     final FctBnProcessors<RS> pFctBnProcessors) {
     this.fctBnProcessors = pFctBnProcessors;
-  }
-
-  /**
-   * <p>Getter for srvSettingsAdd.</p>
-   * @return ISrvSettingsAdd
-   **/
-  public final ISrvSettingsAdd getSrvSettingsAdd() {
-    return this.srvSettingsAdd;
-  }
-
-  /**
-   * <p>Setter for srvSettingsAdd.</p>
-   * @param pSrvSettingsAdd reference
-   **/
-  public final void setSrvSettingsAdd(final ISrvSettingsAdd pSrvSettingsAdd) {
-    this.srvSettingsAdd = pSrvSettingsAdd;
-  }
-
-  /**
-   * <p>Getter for srvAccSettings.</p>
-   * @return ISrvAccSettings
-   **/
-  public final ISrvAccSettings getSrvAccSettings() {
-    return this.srvAccSettings;
-  }
-
-  /**
-   * <p>Setter for srvAccSettings.</p>
-   * @param pSrvAccSettings reference
-   **/
-  public final void setSrvAccSettings(final ISrvAccSettings pSrvAccSettings) {
-    this.srvAccSettings = pSrvAccSettings;
-  }
-
-  /**
-   * <p>Getter for srvTradingSettings.</p>
-   * @return ISrvTradingSettings
-   **/
-  public final ISrvTradingSettings getSrvTradingSettings() {
-    return this.srvTradingSettings;
-  }
-
-  /**
-   * <p>Setter for srvTradingSettings.</p>
-   * @param pSrvTradingSettings reference
-   **/
-  public final void setSrvTradingSettings(
-    final ISrvTradingSettings pSrvTradingSettings) {
-    this.srvTradingSettings = pSrvTradingSettings;
   }
 
   /**

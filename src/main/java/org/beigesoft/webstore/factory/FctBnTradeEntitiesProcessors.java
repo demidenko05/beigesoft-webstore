@@ -20,7 +20,6 @@ import org.beigesoft.service.IEntityProcessor;
 import org.beigesoft.settings.IMngSettings;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.orm.factory.FctBnEntitiesProcessors;
-import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.webstore.service.ISrvSettingsAdd;
 import org.beigesoft.webstore.service.ISrvTradingSettings;
 import org.beigesoft.webstore.processor.PrcAdvisedGoodsForGoodsSave;
@@ -69,11 +68,6 @@ public class FctBnTradeEntitiesProcessors<RS>
    * <p>Business service for trading settings.</p>
    **/
   private ISrvTradingSettings srvTradingSettings;
-
-  /**
-   * <p>Business service for accounting settings.</p>
-   **/
-  private ISrvAccSettings srvAccSettings;
 
   /**
    * <p>Upload directory relative to WEB-APP path
@@ -173,7 +167,6 @@ public class FctBnTradeEntitiesProcessors<RS>
     if (proc == null) {
       proc = new PrcAdvisedGoodsForGoodsSave<RS>();
       proc.setSrvOrm(getSrvOrm());
-      proc.setSrvTradingSettings(getSrvTradingSettings());
       //assigning fully initialized object:
       this.processorsMap
         .put(PrcAdvisedGoodsForGoodsSave.class.getSimpleName(), proc);
@@ -417,21 +410,6 @@ public class FctBnTradeEntitiesProcessors<RS>
   public final void setSrvTradingSettings(
     final ISrvTradingSettings pSrvTradingSettings) {
     this.srvTradingSettings = pSrvTradingSettings;
-  }
-  /**
-   * <p>Getter for srvAccSettings.</p>
-   * @return ISrvAccSettings
-   **/
-  public final ISrvAccSettings getSrvAccSettings() {
-    return this.srvAccSettings;
-  }
-
-  /**
-   * <p>Setter for srvAccSettings.</p>
-   * @param pSrvAccSettings reference
-   **/
-  public final void setSrvAccSettings(final ISrvAccSettings pSrvAccSettings) {
-    this.srvAccSettings = pSrvAccSettings;
   }
 
   /**

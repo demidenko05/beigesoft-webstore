@@ -189,6 +189,14 @@
         </ul>
         Pair[lang, hasName] is PK.
       </p>
+      <p>Persistable model org.beigesoft.webstore.persistable.I18nSpecificsOfItemGroup:
+        <ul>
+          <li>AI18nName columns</li>
+          <li>lang - Languages, the language</li>
+          <li>hasName - SpecificsOfItemGroup - internationalized thing</li>
+        </ul>
+        Pair[lang, hasName] is PK.
+      </p>
       <p>Persistable model org.beigesoft.webstore.persistable.I18nChooseableSpecifics:
         <ul>
           <li>AI18nName columns</li>
@@ -264,11 +272,13 @@ left join (
           <li>isIncludedSalesTaxPurchases - Boolean if included sales taxes in price for purchases, for implementing/highlighting total without/with taxes logic</li>
           <li>curSign - default currency sign, e.g. "USD" or "$"</li>
           <li><b>Accounting additions (made by accounting sub-handler org.beigesoft.accounting.service.HndlAccVarsRequest):</b></li>
+          <li>accSettings - AccSettings</li>
           <li>balancePrecision - Integer, balance precision (decimal places after dot) e.g. "2" for "1 243.34"</li>
           <li>i18nAccounting - I18nAccounting in current lang if lang != langDef</li>
           <li>i18nCurrency - I18nCurrency in current lang if lang != langDef</li>
           <li><b>Web-Store additions (made by web-store sub-handler org.beigesoft.webstore.service.HndlTradeVarsRequest):</b></li>
           <li>tradingSettings - TradingSettings</li>
+          <li>settingsAdd - SettingsAdd</li>
           <li>utlTradeJsp - Helper that is used in JSP. E.g. it makes catalog by given CatalogGs, List&lt;I18nCatalogGs&gt; and language.</li>
           <li><b>If TradingSettings.useAdvancedI18n:</b></li>
           <li>i18nWebStoreList - List&lt;I18nWebStore&gt; in all languages if lang != langDef</li>
