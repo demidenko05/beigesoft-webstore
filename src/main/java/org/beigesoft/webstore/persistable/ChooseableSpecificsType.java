@@ -28,11 +28,6 @@ public class ChooseableSpecificsType extends AHasNameIdLongVersion {
    **/
   private String description;
 
-  /**
-   * <p>HTML template to render it, if assigned.</p>
-   **/
-  private HtmlTemplate htmlTemplate;
-
   //Simple getters and setters:
   /**
    * <p>Getter for description.</p>
@@ -48,21 +43,5 @@ public class ChooseableSpecificsType extends AHasNameIdLongVersion {
    **/
   public final void setDescription(final String pDescription) {
     this.description = pDescription;
-  }
-
-  /**
-   * <p>Getter for htmlTemplate.</p>
-   * @return HtmlTemplate
-   **/
-  public final HtmlTemplate getHtmlTemplate() {
-    return this.htmlTemplate;
-  }
-
-  /**
-   * <p>Setter for htmlTemplate.</p>
-   * @param pHtmlTemplate reference
-   **/
-  public final void setHtmlTemplate(final HtmlTemplate pHtmlTemplate) {
-    this.htmlTemplate = pHtmlTemplate;
   }
 }

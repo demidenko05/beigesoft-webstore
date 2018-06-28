@@ -72,8 +72,14 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
     GoodsInListLuv goodsInListLuv =
       (GoodsInListLuv) pAddParam.get("goodsInListLuv");
     pAddParam.remove("goodsInListLuv");
-    List<GoodsSpecific> outdatedGoodsSpecific =
-      retrieveOutdatedGoodsSpecific(pAddParam, goodsInListLuv);
+    String refreshAllGs = pRequestData.getParameter("refreshAllGs");
+    List<GoodsSpecific> outdatedGoodsSpecific;
+    if (refreshAllGs != null) {
+      outdatedGoodsSpecific = retrieveGoodsSpecific(pAddParam, "");
+    } else {
+      outdatedGoodsSpecific =
+        retrieveOutdatedGoodsSpecific(pAddParam, goodsInListLuv);
+    }
     updateForGoodsSpecificList(pAddParam, outdatedGoodsSpecific,
       settingsAdd, goodsInListLuv);
     pRequestData.setAttribute("totalUpdatedGdSp", outdatedGoodsSpecific.size());
@@ -356,18 +362,28 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
   public final List<GoodsSpecific> retrieveOutdatedGoodsSpecific(
     final Map<String, Object> pAddParam,
       final GoodsInListLuv pGoodsInListLuv) throws Exception {
+    String verCondGs = " where GOODSSPECIFIC.GOODS in "
+    + " (select distinct  GOODS from GOODSSPECIFIC join SPECIFICSOFITEM on GOODSSPECIFIC.SPECIFICS=SPECIFICSOFITEM.ITSID where GOODSSPECIFIC.ITSVERSION>"
+    + pGoodsInListLuv.getGoodsSpecificLuv().toString() + ")";
+    return retrieveGoodsSpecific(pAddParam, verCondGs);
+  }
+
+  /**
+   * <p>Retrieve GoodsSpecific.</p>
+   * @param pAddParam additional param
+   * @param pWhere empty string "" or WHERE clause, e.g. " where ..."
+   * @return GoodsSpecific list
+   * @throws Exception - an exception
+   **/
+  public final List<GoodsSpecific> retrieveGoodsSpecific(
+    final Map<String, Object> pAddParam,
+      final String pWhere) throws Exception {
     List<GoodsSpecific> result = null;
     try {
       this.srvDatabase.setIsAutocommit(false);
       this.srvDatabase.
         setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
       this.srvDatabase.beginTransaction();
-      String verCondGs = "";
-      if (pGoodsInListLuv.getGoodsSpecificLuv() != null) {
-        verCondGs = " where GOODSSPECIFIC.GOODS in "
-  + " (select distinct  GOODS from GOODSSPECIFIC join SPECIFICSOFITEM on GOODSSPECIFIC.SPECIFICS=SPECIFICSOFITEM.ITSID where GOODSSPECIFIC.ITSVERSION>"
-  + pGoodsInListLuv.getGoodsSpecificLuv().toString() + ")";
-      }
       pAddParam.put("GoodsSpecificspecificsdeepLevel", 3); //HTML templates only ID
       pAddParam.put("SpecificsOfItemtempHtmldeepLevel", 1); //HTML templates only ID
       HashSet<String> goodsFldNms = new HashSet<String>();
@@ -381,7 +397,6 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
       soiFldNms.add("itsType");
       soiFldNms.add("itsGroop");
       soiFldNms.add("tempHtml");
-      soiFldNms.add("chooseableSpecificsType");
       pAddParam.put("SpecificsOfItemneededFields", soiFldNms);
       HashSet<String> soigFldNms = new HashSet<String>();
       soigFldNms.add("itsId");
@@ -390,19 +405,14 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
       soigFldNms.add("templateEnd");
       soigFldNms.add("templateDetail");
       pAddParam.put("SpecificsOfItemGroupneededFields", soigFldNms);
-      HashSet<String> chsptpFldNms = new HashSet<String>();
-      chsptpFldNms.add("itsId");
-      chsptpFldNms.add("htmlTemplate");
-      pAddParam.put("ChooseableSpecificsTypeneededFields", chsptpFldNms);
       result = getSrvOrm().retrieveListWithConditions(pAddParam,
-        GoodsSpecific.class, verCondGs
+        GoodsSpecific.class, pWhere
           + " order by GOODS.ITSID, SPECIFICS.ITSINDEX");
       pAddParam.remove("GoodsSpecificspecificsdeepLevel");
       pAddParam.remove("SpecificsOfItemtempHtmldeepLevel");
       pAddParam.remove("InvItemneededFields");
       pAddParam.remove("SpecificsOfItemneededFields");
       pAddParam.remove("SpecificsOfItemGroupneededFields");
-      pAddParam.remove("ChooseableSpecificsTypeneededFields");
       this.srvDatabase.commitTransaction();
     } catch (Exception ex) {
       if (!this.srvDatabase.getIsAutocommit()) {
@@ -419,9 +429,8 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
     Set<Long> htmlTemplatesIds = new HashSet<Long>();
     InvItem currItem = null;
     for (GoodsSpecific gs : result) {
-      if (gs.getSpecifics().getChooseableSpecificsType() != null
-        && gs.getSpecifics().getChooseableSpecificsType().getHtmlTemplate() != null) {
-        htmlTemplatesIds.add(gs.getSpecifics().getChooseableSpecificsType().getHtmlTemplate().getItsId());
+      if (gs.getSpecifics().getTempHtml() != null) {
+        htmlTemplatesIds.add(gs.getSpecifics().getTempHtml().getItsId());
       }
       if (gs.getSpecifics().getItsGroop() != null) {
         if (gs.getSpecifics().getItsGroop().getTemplateStart() != null) {
@@ -452,7 +461,7 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
   }
 
   /**
-   * <p>Update ItemInList with outdated GoodsSpecific.</p>
+   * <p>Update ItemInList.SpecificInList with outdated GoodsSpecific.</p>
    * @param pAddParam additional param
    * @param pSettingsAdd SettingsAdd
    * @param pOutdGdSp outdated GoodsSpecific
@@ -460,78 +469,49 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
    * @param pSpecificsOfItemGroupWas SpecificsOfItemGroup previous
    * @throws Exception - an exception
    **/
-  public final void updateForGoodsSpecific(
+  public final void updateGoodsSpecificInList(
     final Map<String, Object> pAddParam,
       final SettingsAdd pSettingsAdd, final GoodsSpecific pOutdGdSp,
       final ItemInList pItemInList,
         final SpecificsOfItemGroup pSpecificsOfItemGroupWas) throws Exception {
-    if ((pSpecificsOfItemGroupWas != null && pOutdGdSp.getSpecifics().getItsGroop() == null
-      || pSpecificsOfItemGroupWas != null && pOutdGdSp.getSpecifics().getItsGroop() != null
-        && !pOutdGdSp.getSpecifics().getItsGroop().getItsId().equals(pSpecificsOfItemGroupWas.getItsId()))
-          && pSpecificsOfItemGroupWas.getTemplateStart() != null) {
-      pItemInList.setSpecificInList(pItemInList.getSpecificInList() + pSpecificsOfItemGroupWas.getTemplateEnd().getHtmlTemplate());
-    }
-    if ((pSpecificsOfItemGroupWas == null && pOutdGdSp.getSpecifics().getItsGroop() != null
-      || pSpecificsOfItemGroupWas != null && pOutdGdSp.getSpecifics().getItsGroop() != null
-        && !pOutdGdSp.getSpecifics().getItsGroop().getItsId().equals(pSpecificsOfItemGroupWas.getItsId()))
-          && pOutdGdSp.getSpecifics().getItsGroop().getTemplateStart() != null) {
-      if (pItemInList.getSpecificInList() == null) {
-        pItemInList.setSpecificInList(pOutdGdSp.getSpecifics().getItsGroop().getTemplateStart().getHtmlTemplate());
-      } else {
-        pItemInList.setSpecificInList(pItemInList.getSpecificInList() + pOutdGdSp.getSpecifics().getItsGroop().getTemplateStart().getHtmlTemplate());
-      }
-    }
-    String spNm = null;
-    String spVal = null;
-    String spFull = null;
+    String val1 = "";
+    String val2 = "";
     if (pOutdGdSp.getSpecifics().getItsType()
-      .equals(ESpecificsItemType.IMAGE)) {
-      pItemInList.setImageUrl(pOutdGdSp.getStringValue1());
-    } else if (pOutdGdSp.getSpecifics().getItsType()
       .equals(ESpecificsItemType.TEXT)) {
-      spNm = pOutdGdSp.getSpecifics().getItsName();
-      spVal = pOutdGdSp.getStringValue1();
+      val1 = pOutdGdSp.getStringValue1();
     } else if (pOutdGdSp.getSpecifics().getItsType()
       .equals(ESpecificsItemType.BIGDECIMAL)) {
-      spNm = pOutdGdSp.getSpecifics().getItsName();
-      spVal = pOutdGdSp.getNumericValue1().toString();
+      val1 = pOutdGdSp.getNumericValue1().toString();
       if (pOutdGdSp.getStringValue1() != null) {
-        spVal += " " + pOutdGdSp.getStringValue1();
+        val2 = pOutdGdSp.getStringValue1();
       }
     } else if (pOutdGdSp.getSpecifics().getItsType()
       .equals(ESpecificsItemType.INTEGER)) {
-      spNm = pOutdGdSp.getSpecifics().getItsName();
-      spVal = pOutdGdSp.getLongValue1().toString();
+      val1 = pOutdGdSp.getLongValue1().toString();
       if (pOutdGdSp.getStringValue1() != null) {
-        spVal += " " + pOutdGdSp.getStringValue1();
+        val2 = pOutdGdSp.getStringValue1();
       }
     } else if (pOutdGdSp.getSpecifics().getChooseableSpecificsType() != null) {
-      if (pOutdGdSp.getSpecifics().getChooseableSpecificsType()
-        .getHtmlTemplate() != null) {
-        spFull = pOutdGdSp.getSpecifics().getChooseableSpecificsType()
-          .getHtmlTemplate().getHtmlTemplate()
-            .replace(":VALUE1", pOutdGdSp.getStringValue2())
-              .replace(":VALUE2", pOutdGdSp.getStringValue1());
-      } else {
-        spNm =  pOutdGdSp.getStringValue2();
-        spVal =  pOutdGdSp.getStringValue1();
-      }
+      val1 =  pOutdGdSp.getStringValue1();
+    } else {
+      return;
     }
-    if (spVal != null) {
-      if (pOutdGdSp.getSpecifics().getItsGroop() != null
-        && pOutdGdSp.getSpecifics().getItsGroop().getTemplateDetail() != null) {
-        spFull = pOutdGdSp.getSpecifics().getItsGroop().getTemplateDetail()
-          .getHtmlTemplate().replace(":VALUE1", spNm).replace(":VALUE2", spVal);
-      } else {
-        spFull = "<b> " + spNm + ": </b>" + spVal + ".";
-      }
+    String templateDetail;
+    if (pOutdGdSp.getSpecifics().getTempHtml() != null) {
+      templateDetail = pOutdGdSp.getSpecifics().getTempHtml().getHtmlTemplate();
+    } else if (pOutdGdSp.getSpecifics().getItsGroop() != null && pOutdGdSp.getSpecifics().getItsGroop().getTemplateDetail() != null) {
+      templateDetail = pOutdGdSp.getSpecifics().getItsGroop().getTemplateDetail().getHtmlTemplate();
+    } else {
+      templateDetail = "<b>:SPECNM:</b> :VAL1 :VAL2";
     }
-    if (spFull != null) {
-      if (pItemInList.getSpecificInList() == null) {
-        pItemInList.setSpecificInList(spFull);
-      } else {
-        pItemInList.setSpecificInList(pItemInList.getSpecificInList() + spFull);
-      }
+    String spdet = templateDetail.replace(":SPECNM", pOutdGdSp.getSpecifics().getItsName());
+    spdet = spdet.replace(":VAL1", val1);
+    spdet = spdet.replace(":VAL2", val2);
+    if (pOutdGdSp.getSpecifics().getItsGroop() != null && pSpecificsOfItemGroupWas != null
+      && pOutdGdSp.getSpecifics().getItsGroop().getItsId().equals(pSpecificsOfItemGroupWas.getItsId())) {
+      pItemInList.setSpecificInList(pItemInList.getSpecificInList() + pSettingsAdd.getSpecSeparator() + spdet);
+    } else {
+      pItemInList.setSpecificInList(pItemInList.getSpecificInList() + spdet);
     }
   }
 
@@ -604,12 +584,7 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
       for (GoodsSpecific gs : pOutdGdSpList) {
         if (gs.getSpecifics().getTempHtml() != null) {
           gs.getSpecifics().setTempHtml(
-            findTemplate(htmlTemplates, gs.getSpecifics().getTempHtml().getItsId()));
-        }
-        if (gs.getSpecifics().getChooseableSpecificsType() != null
-          && gs.getSpecifics().getChooseableSpecificsType().getHtmlTemplate() != null) {
-          gs.getSpecifics().getChooseableSpecificsType().setHtmlTemplate(
-            findTemplate(htmlTemplates, gs.getSpecifics().getChooseableSpecificsType().getHtmlTemplate().getItsId()));
+          findTemplate(htmlTemplates, gs.getSpecifics().getTempHtml().getItsId()));
         }
         if (gs.getSpecifics().getItsGroop() != null) {
           if (gs.getSpecifics().getItsGroop().getTemplateStart() != null) {
@@ -648,16 +623,56 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
           }
           int j = findFirstIdxFor(pOutdGdSpList, goods);
           SpecificsOfItemGroup specificsOfItemGroupWas = null;
-          itemInList.setDetailsMethod(null); //reset any way
+          //reset any way:
+          itemInList.setDetailsMethod(null);
+          itemInList.setImageUrl(null);
+          if (pSettingsAdd.getSpecHtmlStart() !=  null) {
+            itemInList.setSpecificInList(pSettingsAdd.getSpecHtmlStart());
+          }
+          boolean wasGrStart = false;
           do {
             if (pOutdGdSpList.get(j).getSpecifics().getIsShowInList()) {
-              updateForGoodsSpecific(pAddParam, pSettingsAdd, pOutdGdSpList.get(j), itemInList, specificsOfItemGroupWas);
-              specificsOfItemGroupWas = pOutdGdSpList.get(j).getSpecifics().getItsGroop();
+              if (pOutdGdSpList.get(j).getSpecifics().getItsType()
+                .equals(ESpecificsItemType.IMAGE)) {
+                itemInList.setImageUrl(pOutdGdSpList.get(j).getStringValue1());
+              } else { // build ItemInList.specificInList:
+                if (wasGrStart && (pOutdGdSpList.get(j).getSpecifics().getItsGroop() == null
+                    || specificsOfItemGroupWas != null
+                      && !pOutdGdSpList.get(j).getSpecifics().getItsGroop().getItsId().equals(specificsOfItemGroupWas.getItsId()))) {
+                  if (pSettingsAdd.getSpecGrSeparator() != null && pSettingsAdd.getSpecGrHtmlEnd() != null) {
+                    itemInList.setSpecificInList(itemInList.getSpecificInList() + pSettingsAdd.getSpecGrHtmlEnd() + pSettingsAdd.getSpecGrSeparator());
+                  } else if (pSettingsAdd.getSpecGrHtmlEnd() != null) {
+                    itemInList.setSpecificInList(itemInList.getSpecificInList() + pSettingsAdd.getSpecGrHtmlEnd());
+                  } else if (pSettingsAdd.getSpecGrSeparator() != null) {
+                    itemInList.setSpecificInList(itemInList.getSpecificInList() + pSettingsAdd.getSpecGrSeparator());
+                  }
+                }
+                if (pOutdGdSpList.get(j).getSpecifics().getItsGroop() == null || specificsOfItemGroupWas != null
+                      && !pOutdGdSpList.get(j).getSpecifics().getItsGroop().getItsId().equals(specificsOfItemGroupWas.getItsId())) {
+                  wasGrStart = true;
+                  if (pSettingsAdd.getSpecGrHtmlStart() != null) {
+                    itemInList.setSpecificInList(itemInList.getSpecificInList() + pSettingsAdd.getSpecGrHtmlStart());
+                  }
+                  if (pOutdGdSpList.get(j).getSpecifics().getItsGroop() != null && pOutdGdSpList.get(j).getSpecifics().getItsGroop().getTemplateStart() != null) {
+                    String grst = pOutdGdSpList.get(j).getSpecifics().getItsGroop().getTemplateStart()
+                      .getHtmlTemplate().replace(":SPECGRNM", pOutdGdSpList.get(j).getSpecifics().getItsGroop().getItsName());
+                    itemInList.setSpecificInList(itemInList.getSpecificInList() + grst);
+                  }
+                }
+                updateGoodsSpecificInList(pAddParam, pSettingsAdd, pOutdGdSpList.get(j), itemInList, specificsOfItemGroupWas);
+                specificsOfItemGroupWas = pOutdGdSpList.get(j).getSpecifics().getItsGroop();
+              }
             } else {
               itemInList.setDetailsMethod(1);
             }
             j++;
           } while (j < pOutdGdSpList.size() && pOutdGdSpList.get(j).getGoods().getItsId().equals(goods.getItsId()));
+          if (pSettingsAdd.getSpecGrHtmlEnd() != null) {
+            itemInList.setSpecificInList(itemInList.getSpecificInList() + pSettingsAdd.getSpecGrHtmlEnd());
+          }
+          if (pSettingsAdd.getSpecHtmlEnd() != null) {
+            itemInList.setSpecificInList(itemInList.getSpecificInList() + pSettingsAdd.getSpecHtmlEnd());
+          }
           if (itemInList.getIsNew()) {
             getSrvOrm().insertEntity(pAddParam, itemInList);
           } else {

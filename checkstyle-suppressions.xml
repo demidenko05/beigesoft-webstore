@@ -9,4 +9,6 @@
     files="PrcGoodsSpecificSave|PrcRefreshGoodsInList|PrcDetailPage|PrcWebstorePage"/>
   <suppress checks="LineLength"
     files="PrcRefreshGoodsInList"/>
+  <suppress checks="MethodLength"
+    files="PrcRefreshGoodsInList"/>
 </suppressions>
