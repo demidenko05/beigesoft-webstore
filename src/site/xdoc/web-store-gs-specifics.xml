@@ -73,7 +73,7 @@
       </p>
       <p>Model Enum ESpecificsItemType described how to treat (edit/print/filter) assigned specifics:
         <ul>
-          <li>TEXT - 0, default, printed as text.</li>
+          <li>TEXT - 0, default, printed as text, i18n not implemented, use chooseable specifics instead.</li>
           <li>BIGDECIMAL - 1, for specifics like "Weight", longValue1 may hold unit of measure ID and stringValue1 UOM name (def lang) to improve performance, longValue2 holds decimal places - 2 default.</li>
           <li>INTEGER - 2, for specifics like "MemorySize", longValue1 may hold unit of measure ID and stringValue1 UOM name (def lang) to improve performance.</li>
           <li>IMAGE - 3, stringValue1 hold URL to image, stringValue2 - uploaded file path if it was uploaded.</li>

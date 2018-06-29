@@ -6,4 +6,5 @@ alter table SETTINGSADD add column SPECGRHTMLSTART varchar(255) default null;
 alter table SETTINGSADD add column SPECGRHTMLEND varchar(255) default null;
 alter table SPECIFICSOFITEM add column TEMPHTML bigint unsigned default null;
 alter table SPECIFICSOFITEM add FOREIGN KEY (TEMPHTML) REFERENCES HTMLTEMPLATE(ITSID);
+alter table I18NSPECIFICINLIST add column ITSNAME varchar(255);
 update DATABASEINFO set DATABASEVERSION=7, DESCRIPTION='Beige Accounting OIO DB version 7';

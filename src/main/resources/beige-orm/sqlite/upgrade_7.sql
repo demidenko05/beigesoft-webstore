@@ -5,4 +5,5 @@ alter table SETTINGSADD add column SPECHTMLEND text default null;
 alter table SETTINGSADD add column SPECGRHTMLSTART text default null;
 alter table SETTINGSADD add column SPECGRHTMLEND text default null;
 alter table SPECIFICSOFITEM add column TEMPHTML integer default null references HTMLTEMPLATE(ITSID);
+alter table I18NSPECIFICINLIST add column ITSNAME text;
 update DATABASEINFO set DATABASEVERSION=7, DESCRIPTION='Beige Accounting OIO DB version 7';

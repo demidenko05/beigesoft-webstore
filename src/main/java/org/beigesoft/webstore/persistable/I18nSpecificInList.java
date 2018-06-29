@@ -14,6 +14,7 @@ package org.beigesoft.webstore.persistable;
 
 
 import org.beigesoft.model.IHasId;
+import org.beigesoft.model.IHasName;
 import org.beigesoft.model.IHasVersion;
 import org.beigesoft.model.AEditable;
 import org.beigesoft.webstore.model.EShopItemType;
@@ -27,7 +28,7 @@ import org.beigesoft.persistable.Languages;
  * @author Yury Demidenko
  */
 public class I18nSpecificInList extends AEditable
-  implements IHasId<IdI18nSpecificInList>, IHasVersion {
+  implements IHasId<IdI18nSpecificInList>, IHasVersion, IHasName {
 
   /**
    * <p>ID.</p>
@@ -58,6 +59,29 @@ public class I18nSpecificInList extends AEditable
    * <p>Version to check dirty or replication.</p>
    **/
   private Long itsVersion;
+
+  /**
+   * <p>Name.</p>
+   **/
+  private String itsName;
+
+  /**
+   * <p>Geter for itsName.</p>
+   * @return String
+   **/
+  @Override
+  public final String getItsName() {
+    return this.itsName;
+  }
+
+  /**
+   * <p>Setter for itsName.</p>
+   * @param pItsName reference
+   **/
+  @Override
+  public final void setItsName(final String pItsName) {
+    this.itsName = pItsName;
+  }
 
   /**
    * <p>Geter for itsVersion.</p>

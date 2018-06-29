@@ -22,6 +22,7 @@ import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.service.ISrvEntitiesPage;
+import org.beigesoft.service.ISrvNumberToString;
 import org.beigesoft.service.PrcRefreshHndlI18n;
 import org.beigesoft.webstore.processor.PrcAssignGoodsToCatalog;
 import org.beigesoft.webstore.processor.PrcRefreshGoodsInList;
@@ -66,6 +67,11 @@ public class FctBnTradeProcessors<RS>
    * <p>I18N request handler.</p>
    **/
   private IHandlerRequestDch i18nRequestHandler;
+
+  /**
+   * <p>Service print number.</p>
+   **/
+  private ISrvNumberToString srvNumberToString;
 
   /**
    * <p>Converters map "converter name"-"object' s converter".</p>
@@ -184,6 +190,7 @@ public class FctBnTradeProcessors<RS>
       proc = new PrcRefreshGoodsInList<RS>();
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvDatabase(getSrvDatabase());
+      proc.setSrvNumberToString(getSrvNumberToString());
       //assigning fully initialized object:
       this.processorsMap
         .put(PrcRefreshGoodsInList.class.getSimpleName(), proc);
@@ -313,5 +320,22 @@ public class FctBnTradeProcessors<RS>
   public final void setI18nRequestHandler(
     final IHandlerRequestDch pI18nRequestHandler) {
     this.i18nRequestHandler = pI18nRequestHandler;
+  }
+
+  /**
+   * <p>Getter for srvNumberToString.</p>
+   * @return ISrvNumberToString
+   **/
+  public final ISrvNumberToString getSrvNumberToString() {
+    return this.srvNumberToString;
+  }
+
+  /**
+   * <p>Setter for srvNumberToString.</p>
+   * @param pSrvNumberToString reference
+   **/
+  public final void setSrvNumberToString(
+    final ISrvNumberToString pSrvNumberToString) {
+    this.srvNumberToString = pSrvNumberToString;
   }
 }

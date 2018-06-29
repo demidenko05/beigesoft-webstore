@@ -25,6 +25,7 @@ import org.beigesoft.webstore.processor.PrcGoodsCatalogsSave;
 import org.beigesoft.webstore.processor.PrcSubcatalogsCatalogsGsSave;
 import org.beigesoft.webstore.processor.PrcGoodsAdviseCategoriesSave;
 import org.beigesoft.webstore.processor.PrcGoodsSpecificSave;
+import org.beigesoft.webstore.processor.PrcGoodsSpecificRetrieve;
 import org.beigesoft.webstore.processor.PrcGoodsSpecificDelete;
 import org.beigesoft.webstore.processor.PrcSettingsAddSave;
 import org.beigesoft.webstore.processor.PrcTradingSettingsSave;
@@ -46,6 +47,9 @@ public class HldTradeEntitiesProcessorNames
    **/
   @Override
   public final String getForCopy(final Class<?> pClass) {
+    if (pClass == GoodsSpecific.class) {
+      return PrcGoodsSpecificRetrieve.class.getSimpleName();
+    }
     return null;
   }
 
@@ -56,6 +60,9 @@ public class HldTradeEntitiesProcessorNames
    **/
   @Override
   public final String getForPrint(final Class<?> pClass) {
+    if (pClass == GoodsSpecific.class) {
+      return PrcGoodsSpecificRetrieve.class.getSimpleName();
+    }
     return null;
   }
 
@@ -154,6 +161,9 @@ public class HldTradeEntitiesProcessorNames
    **/
   @Override
   public final String getForRetrieveForEditDelete(final Class<?> pClass) {
+    if (pClass == GoodsSpecific.class) {
+      return PrcGoodsSpecificRetrieve.class.getSimpleName();
+    }
     return null;
   }
 }

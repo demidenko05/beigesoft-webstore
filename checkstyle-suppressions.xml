@@ -11,4 +11,6 @@
     files="PrcRefreshGoodsInList"/>
   <suppress checks="MethodLength"
     files="PrcRefreshGoodsInList"/>
+  <suppress checks="ParameterNumber"
+    files="PrcRefreshGoodsInList"/>
 </suppressions>

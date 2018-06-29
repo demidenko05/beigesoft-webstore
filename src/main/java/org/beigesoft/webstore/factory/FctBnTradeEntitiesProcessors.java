@@ -20,8 +20,11 @@ import org.beigesoft.service.IEntityProcessor;
 import org.beigesoft.settings.IMngSettings;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.orm.factory.FctBnEntitiesProcessors;
+import org.beigesoft.orm.processor.PrcEntityRetrieve;
 import org.beigesoft.webstore.service.ISrvSettingsAdd;
 import org.beigesoft.webstore.service.ISrvTradingSettings;
+import org.beigesoft.webstore.persistable.GoodsSpecific;
+import org.beigesoft.webstore.persistable.GoodsSpecificId;
 import org.beigesoft.webstore.processor.PrcAdvisedGoodsForGoodsSave;
 import org.beigesoft.webstore.processor.PrcGoodsCatalogsSave;
 import org.beigesoft.webstore.processor.PrcSettingsAddSave;
@@ -29,6 +32,7 @@ import org.beigesoft.webstore.processor.PrcTradingSettingsSave;
 import org.beigesoft.webstore.processor.PrcSubcatalogsCatalogsGsSave;
 import org.beigesoft.webstore.processor.PrcGoodsAdviseCategoriesSave;
 import org.beigesoft.webstore.processor.PrcGoodsSpecificSave;
+import org.beigesoft.webstore.processor.PrcGoodsSpecificRetrieve;
 import org.beigesoft.webstore.processor.PrcGoodsSpecificDelete;
 
 /**
@@ -128,6 +132,9 @@ public class FctBnTradeEntitiesProcessors<RS>
           } else if (pBeanName
             .equals(PrcGoodsSpecificDelete.class.getSimpleName())) {
             proc = lazyGetPrcGoodsSpecificDelete(pAddParam);
+          } else if (pBeanName
+            .equals(PrcGoodsSpecificRetrieve.class.getSimpleName())) {
+            proc = lazyGetPrcGoodsSpecificRetrieve(pAddParam);
           } else if (pBeanName
             .equals(PrcGoodsSpecificSave.class.getSimpleName())) {
             proc = lazyGetPrcGoodsSpecificSave(pAddParam);
@@ -314,6 +321,35 @@ public class FctBnTradeEntitiesProcessors<RS>
        //assigning fully initialized object:
       this.processorsMap
         .put(PrcGoodsSpecificDelete.class.getSimpleName(), proc);
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Get PrcGoodsSpecificRetrieve (create and put into map).</p>
+   * @param pAddParam additional param
+   * @return requested PrcGoodsSpecificRetrieve
+   * @throws Exception - an exception
+   */
+  protected final PrcGoodsSpecificRetrieve<RS>
+    lazyGetPrcGoodsSpecificRetrieve(
+      final Map<String, Object> pAddParam) throws Exception {
+    @SuppressWarnings("unchecked")
+    PrcGoodsSpecificRetrieve<RS> proc =
+      (PrcGoodsSpecificRetrieve<RS>)
+      this.processorsMap
+        .get(PrcGoodsSpecificRetrieve.class.getSimpleName());
+    if (proc == null) {
+      proc = new PrcGoodsSpecificRetrieve<RS>();
+      @SuppressWarnings("unchecked")
+      PrcEntityRetrieve<RS, GoodsSpecific, GoodsSpecificId> procDlg =
+        (PrcEntityRetrieve<RS, GoodsSpecific, GoodsSpecificId>)
+          this.fctBnEntitiesProcessors
+            .lazyGet(pAddParam, PrcEntityRetrieve.class.getSimpleName());
+      proc.setPrcEntityRetrieve(procDlg);
+      //assigning fully initialized object:
+      this.processorsMap
+        .put(PrcGoodsSpecificRetrieve.class.getSimpleName(), proc);
     }
     return proc;
   }
