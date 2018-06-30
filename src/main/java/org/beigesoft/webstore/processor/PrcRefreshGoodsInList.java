@@ -675,7 +675,7 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
               } else {
                 specChIdIn.append(", ");
               }
-              specChIdIn.append(gs.getSpecifics().getItsId().toString());
+              specChIdIn.append(gs.getLongValue1().toString());
             }
           }
           specIdIn.append(")");

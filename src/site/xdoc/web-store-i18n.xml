@@ -209,6 +209,7 @@
         Persistable model org.beigesoft.webstore.persistable.I18nSpecificInList holds i18n values:
         <ul>
           <li>itsVersion - Long change time</li>
+          <li>itsName - item's I18N name (cached from I18nInvItem/I18nServiceToSell...)</li>
           <li>itemId - Long, Goods/Service/SEGoods/SEService ID, not null</li>
           <li>itsType - EShopItemType, Goods/Service/SEGoods/SEService, not null.</li>
           <li>lang - Languages, the language</li>
@@ -220,7 +221,7 @@
       <p>In that case item list is made with extended query, e.g. for goods list:
 <pre style="white-space: pre-wrap;">
 select ALLGOODS.ITSTYPE, ALLGOODS.ITEMID, IMAGEURL, ITSPRICE, PREVIOUSPRICE, AVAILABLEQUANTITY, ITSRATING, DETAILSMETHOD,
-case when I18NINVITEM.ITSNAME is null then ALLGOODS.ITSNAME else I18NINVITEM.ITSNAME end as ITSNAME,
+case when I18NSPECIFICINLIST.ITSNAME is null then ALLGOODS.ITSNAME else I18NSPECIFICINLIST.ITSNAME end as ITSNAME,
 case when I18NSPECIFICINLIST.SPECIFICINLIST is null then ALLGOODS.SPECIFICINLIST else I18NSPECIFICINLIST.SPECIFICINLIST end as SPECIFICINLIST
 from (
   select ITSTYPE, ITEMID, ITSNAME, IMAGEURL, SPECIFICINLIST, ITSPRICE, PREVIOUSPRICE, AVAILABLEQUANTITY, ITSRATING, DETAILSMETHOD
@@ -230,10 +231,6 @@ from (
 join (
   select distinct GOODS as GOODSINCATALOG from GOODSCATALOGS where ITSCATALOG in (1,2,3,4,5)
  ) as GOODSINCATALOGALL on GOODSINCATALOGALL.GOODSINCATALOG=ALLGOODS.ITEMID
-left join (
-  select * from I18NINVITEM
-  where LANG='ru' 
-) as I18NINVITEM on I18NINVITEM.HASNAME=ALLGOODS.ITEMID
 left join (
   select * from I18NSPECIFICINLIST
   where LANG='ru' and ITSTYPE=0

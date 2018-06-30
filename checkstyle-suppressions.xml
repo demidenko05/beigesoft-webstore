@@ -10,7 +10,7 @@
   <suppress checks="LineLength"
     files="PrcRefreshGoodsInList"/>
   <suppress checks="MethodLength"
-    files="PrcRefreshGoodsInList"/>
+    files="PrcRefreshGoodsInList|PrcWebstorePage"/>
   <suppress checks="ParameterNumber"
     files="PrcRefreshGoodsInList"/>
 </suppressions>

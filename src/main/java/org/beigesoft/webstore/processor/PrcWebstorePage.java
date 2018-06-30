@@ -79,6 +79,18 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   private String queryGilForCatNoAucSmPr;
 
   /**
+   * <p>Total uery goods in list for catalog not auctioning
+   * same price for all customers.</p>
+   **/
+  private String queryGilForCatNoAucSmPrTotal;
+
+  /**
+   * <p>I18N uery goods in list for catalog not auctioning
+   * same price for all customers.</p>
+   **/
+  private String queryGilForCatNoAucSmPrI18n;
+
+  /**
    * <p>Page service.</p>
    */
   private ISrvPage srvPage;
@@ -124,16 +136,16 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
 
   /**
    * <p>Process entity request.</p>
-   * @param pAddParam additional param
+   * @param pReqVars additional param
    * @param pRequestData Request Data
    * @throws Exception - an exception
    **/
   @Override
-  public final void process(final Map<String, Object> pAddParam,
+  public final void process(final Map<String, Object> pReqVars,
     final IRequestData pRequestData) throws Exception {
-    pRequestData.setAttribute("catalogs", lazyRetrieveCatalogs(pAddParam));
+    pRequestData.setAttribute("catalogs", lazyRetrieveCatalogs(pReqVars));
     TradingSettings tradingSettings = (TradingSettings)
-      pAddParam.get("tradingSettings");
+      pReqVars.get("tradingSettings");
     String catalogIdStr = pRequestData.getParameter("catalogId");
     Long catId = null;
     if (catalogIdStr != null) {
@@ -148,7 +160,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
       // then the main (root) catalog ID still present in request
       TradingCatalog tcat = findTradingCatalogById(this.catalogs, catId);
       if (tcat == null) {
-        this.logger.warn(pAddParam, PrcWebstorePage.class,
+        this.logger.warn(pReqVars, PrcWebstorePage.class,
           "Can't find catalog #" + catId);
       } else {
         if (tradingSettings.getIsUsePriceForCustomer()) {
@@ -172,19 +184,33 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
             "Auctioning not yet implemented!");
         }
         FilterInteger filterPrice = revialFilterPrice(tcat,
-          pAddParam, pRequestData);
+          pReqVars, pRequestData);
         FilterItems<CatalogGs> filterCatalog = revialFilterCatalog(tcat,
-          pAddParam, pRequestData);
+          pReqVars, pRequestData);
         List<SpecificsFilter> filtersSpecifics = revialFiltersSpecifics(tcat,
-          pAddParam, pRequestData);
+          pReqVars, pRequestData);
         String whereAdd = revealWhereAdd(filterPrice);
         String whereCatalog = revealWhereCatalog(tcat, filterCatalog);
-        String query = lazyGetQueryGilForCatNoAucSmPr().replace(
-          ":CATALOGFILTER", whereCatalog).replace(":WHEREADD", whereAdd);
+        String query = null;
+        if (tradingSettings.getUseAdvancedI18n()) {
+          String lang = (String) pReqVars.get("lang");
+          String langDef = (String) pReqVars.get("langDef");
+          if (!lang.equals(langDef)) {
+            query = lazyGetQueryGilForCatNoAucSmPrI18n().replace(
+              ":CATALOGFILTER", whereCatalog).replace(":WHEREADD", whereAdd)
+                .replace(":LANG", lang);
+          }
+        }
+        if (query == null) {
+          query = lazyGetQueryGilForCatNoAucSmPr().replace(
+            ":CATALOGFILTER", whereCatalog).replace(":WHEREADD", whereAdd);
+        }
+        String queryRc = lazyGetQueryGilForCatNoAucSmPrTotal().replace(
+            ":CATALOGFILTER", whereCatalog).replace(":WHEREADD", whereAdd);
         if (filtersSpecifics != null) {
           if (getLogger().getIsShowDebugMessagesFor(getClass())
             && getLogger().getDetailLevel() > 2000) {
-            getLogger().debug(pAddParam, PrcWebstorePage.class,
+            getLogger().debug(pReqVars, PrcWebstorePage.class,
               "filters apecifics: size: " + filtersSpecifics.size());
           }
           SpecificsFiltersWhere whereSpec =
@@ -194,11 +220,11 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
               ":WHERESPGDFILTER", whereSpec.getWhere()).replace(
                 ":SPGDFILTERCOUNT", whereSpec.getWhereCount().toString());
             query += querySpec;
+            queryRc += querySpec;
           }
         }
         Integer rowCount = this.srvOrm
-          .evalRowCountByQuery(pAddParam, ItemInList.class,
-            "select count(*) as TOTALROWS from (" + query + ") as ALLRC;");
+          .evalRowCountByQuery(pReqVars, ItemInList.class, queryRc);
         Set<String> neededFields = new HashSet<String>();
         neededFields.add("itsType");
         neededFields.add("itemId");
@@ -210,7 +236,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
         neededFields.add("availableQuantity");
         neededFields.add("itsRating");
         neededFields.add("detailsMethod");
-        pAddParam.put("ItemInListneededFields", neededFields);
+        pReqVars.put("ItemInListneededFields", neededFields);
         String pageStr = pRequestData.getParameter("page");
         Integer page;
         if (pageStr != null) {
@@ -225,9 +251,9 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
         }
         int firstResult = (page - 1) * itemsPerPage; //0-20,20-40
         List<ItemInList> itemsList = getSrvOrm()
-          .retrievePageByQuery(pAddParam, ItemInList.class,
+          .retrievePageByQuery(pReqVars, ItemInList.class,
             query, firstResult, itemsPerPage);
-        pAddParam.remove("ItemInListneededFields");
+        pReqVars.remove("ItemInListneededFields");
         Integer paginationTail = Integer.valueOf(mngUvdSettings.getAppSettings()
           .get("paginationTail"));
         List<Page> pages = this.srvPage.evalPages(1, totalPages,
@@ -249,7 +275,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
     }
     if (pRequestData.getAttribute("shoppingCart") == null) {
       ShoppingCart shoppingCart = this.srvShoppingCart
-        .getShoppingCart(pAddParam, pRequestData, false);
+        .getShoppingCart(pReqVars, pRequestData, false);
       if (shoppingCart != null) {
         pRequestData.setAttribute("shoppingCart", shoppingCart);
       }
@@ -277,32 +303,32 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
 
   /**
    * <p>Build catalogs in lazy mode.</p>
-   * @param pAddParam params
+   * @param pReqVars params
    * @return trading catalogs
    * @throws Exception - an exception
    **/
   public final List<TradingCatalog> lazyRetrieveCatalogs(
-    final Map<String, Object> pAddParam) throws Exception {
+    final Map<String, Object> pReqVars) throws Exception {
     if (this.catalogs == null) {
       synchronized (this) {
         if (this.catalogs == null) {
           List<CatalogGs> catalogsGs = getSrvOrm().retrieveListWithConditions(
-            pAddParam, CatalogGs.class, " order by ITSINDEX");
-          pAddParam.put("CatalogSpecificsitsOwnerdeepLevel", 1); //only ID
+            pReqVars, CatalogGs.class, " order by ITSINDEX");
+          pReqVars.put("CatalogSpecificsitsOwnerdeepLevel", 1); //only ID
           for (CatalogGs cat : catalogsGs) {
             CatalogSpecifics cs = new CatalogSpecifics();
             cs.setItsOwner(cat);
-            cat.setUsedSpecifics(getSrvOrm().retrieveListForField(pAddParam,
+            cat.setUsedSpecifics(getSrvOrm().retrieveListForField(pReqVars,
               cs, "itsOwner"));
           }
-          pAddParam.remove("CatalogSpecificsitsOwnerdeepLevel");
+          pReqVars.remove("CatalogSpecificsitsOwnerdeepLevel");
           //only ID:
-          pAddParam.put("SubcatalogsCatalogsGsitsCatalogdeepLevel", 1);
-          pAddParam.put("SubcatalogsCatalogsGssubcatalogdeepLevel", 1);
+          pReqVars.put("SubcatalogsCatalogsGsitsCatalogdeepLevel", 1);
+          pReqVars.put("SubcatalogsCatalogsGssubcatalogdeepLevel", 1);
           List<SubcatalogsCatalogsGs> scList = getSrvOrm().retrieveList(
-            pAddParam, SubcatalogsCatalogsGs.class);
-          pAddParam.remove("SubcatalogsCatalogsGsitsCatalogdeepLevel");
-          pAddParam.remove("SubcatalogsCatalogsGssubcatalogdeepLevel");
+            pReqVars, SubcatalogsCatalogsGs.class);
+          pReqVars.remove("SubcatalogsCatalogsGsitsCatalogdeepLevel");
+          pReqVars.remove("SubcatalogsCatalogsGssubcatalogdeepLevel");
           List<TradingCatalog> result = new ArrayList<TradingCatalog>();
           Set<Long> firstLevel = new HashSet<Long>();
           Set<Long> allLevels = new HashSet<Long>();
@@ -338,7 +364,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
           retrieveSubcatalogs(result, catalogsGs, scList);
           //Sorting all levels recursively:
           sortCatalogs(result);
-          refreshCatalogsFilters(pAddParam,  result);
+          refreshCatalogsFilters(pReqVars,  result);
           this.catalogs = result;
         }
       }
@@ -349,11 +375,11 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   /**
    * <p>Refresh catalog filters, the first catalog in which filter is enabled
    * is propagated into sub-catalogs.</p>
-   * @param pAddParam params
+   * @param pReqVars params
    * @param pCurrentList Catalog List current
    * @throws Exception an Exception
    **/
-  public final void refreshCatalogsFilters(final Map<String, Object> pAddParam,
+  public final void refreshCatalogsFilters(final Map<String, Object> pReqVars,
     final List<TradingCatalog> pCurrentList) throws Exception {
     for (TradingCatalog tc : pCurrentList) {
       if (tc.getSubcatalogs().size() > 0
@@ -364,16 +390,16 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
         if (tc.getCatalog().getUseFilterSpecifics()) {
           CatalogSpecifics cs = new CatalogSpecifics();
           cs.setItsOwner(tc.getCatalog());
-          pAddParam.put("CatalogSpecificsitsOwnerdeepLevel", 1); //only ID
+          pReqVars.put("CatalogSpecificsitsOwnerdeepLevel", 1); //only ID
           tc.getCatalog().setUsedSpecifics(getSrvOrm().retrieveListForField(
-            pAddParam, cs, "itsOwner"));
-          pAddParam.remove("CatalogSpecificsitsOwnerdeepLevel");
+            pReqVars, cs, "itsOwner"));
+          pReqVars.remove("CatalogSpecificsitsOwnerdeepLevel");
         }
         setSubcatalogsFilters(tc);
       } else if (tc.getSubcatalogs().size() > 0) {
         tc.getCatalog().setUsedSpecifics(null); //reset if not null
         //recursion:
-        refreshCatalogsFilters(pAddParam, tc.getSubcatalogs());
+        refreshCatalogsFilters(pReqVars, tc.getSubcatalogs());
       } else {
         tc.getCatalog().setUsedSpecifics(null); //reset if not null
       }
@@ -396,13 +422,13 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   /**
    * <p>Reveal filter price for catalog and fill it from request data.</p>
    * @param pTcat Catalog
-   * @param pAddParam params
+   * @param pReqVars params
    * @param pRequestData Request Data
    * @return filter price or null if catalog hasn't any filter
    * @throws Exception an Exception
    **/
   public final FilterInteger revialFilterPrice(final TradingCatalog pTcat,
-    final Map<String, Object> pAddParam,
+    final Map<String, Object> pReqVars,
       final IRequestData pRequestData) throws Exception {
     if (pTcat.getCatalog().getUseFilterSpecifics()
       || pTcat.getCatalog().getUseFilterSubcatalog()
@@ -430,13 +456,13 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
    * <p>Reveal filters specifics for given catalog
    * and fill it from request data.</p>
    * @param pTcat Catalog
-   * @param pAddParam params
+   * @param pReqVars params
    * @param pRequestData Request Data
    * @return filter specifics or null
    * @throws Exception an Exception
    **/
   public final List<SpecificsFilter> revialFiltersSpecifics(
-    final TradingCatalog pTcat, final Map<String, Object> pAddParam,
+    final TradingCatalog pTcat, final Map<String, Object> pReqVars,
       final IRequestData pRequestData) throws Exception {
     if (pTcat.getCatalog().getUsedSpecifics() != null
       && pTcat.getCatalog().getUsedSpecifics().size() > 0) {
@@ -452,7 +478,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
           spf.setFilter(fltItms);
           spf.setCatSpec(cs);
           res.add(spf);
-          fltItms.setItemsAll(retrieveAllChSpecifics(pAddParam,
+          fltItms.setItemsAll(retrieveAllChSpecifics(pReqVars,
             cs.getSpecifics().getChooseableSpecificsType()));
           String[] valStrs = pRequestData.getParameterValues("fltSp"
             + cs.getSpecifics().getItsId() + "Val");
@@ -464,7 +490,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
               ChooseableSpecifics chs = findChSpecificsById(fltItms
                 .getItemsAll(), id);
               if (chs == null) {
-                this.logger.warn(pAddParam, PrcWebstorePage.class,
+                this.logger.warn(pReqVars, PrcWebstorePage.class,
                   "Can't find chspecifics #: " + id);
               } else {
                 fltItms.getItems().add(chs);
@@ -510,7 +536,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
             }
           }
         } else {
-          this.logger.error(pAddParam, PrcWebstorePage.class,
+          this.logger.error(pReqVars, PrcWebstorePage.class,
             "Filter specifics not implemented yet, for - "
               + cs.getSpecifics().getItsName());
         }
@@ -522,20 +548,20 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   }
   /**
    * <p>Retrieve all choseeable specifics.</p>
-   * @param pAddParam params
+   * @param pReqVars params
    * @param pChSpecType Ch-Specifics Type
    * @return List Ch-Specifics
    * @throws Exception an Exception
    **/
   public final List<ChooseableSpecifics> retrieveAllChSpecifics(
-    final Map<String, Object> pAddParam,
+    final Map<String, Object> pReqVars,
       final ChooseableSpecificsType pChSpecType) throws Exception {
     ChooseableSpecifics chs = new ChooseableSpecifics();
     chs.setItsType(pChSpecType);
-    pAddParam.put("ChooseableSpecificsitsTypedeepLevel", 1); //only ID
+    pReqVars.put("ChooseableSpecificsitsTypedeepLevel", 1); //only ID
     List<ChooseableSpecifics> result = getSrvOrm()
-      .retrieveListForField(pAddParam, chs, "itsType");
-    pAddParam.remove("ChooseableSpecificsitsTypedeepLevel");
+      .retrieveListForField(pReqVars, chs, "itsType");
+    pReqVars.remove("ChooseableSpecificsitsTypedeepLevel");
     return result;
   }
 
@@ -560,13 +586,13 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   /**
    * <p>Reveal filter catalog for catalog and fill it from request data.</p>
    * @param pTcat Catalog
-   * @param pAddParam params
+   * @param pReqVars params
    * @param pRequestData Request Data
    * @return filter catalog or null if catalog hasn't any filter
    * @throws Exception an Exception
    **/
   public final FilterItems<CatalogGs> revialFilterCatalog(
-    final TradingCatalog pTcat, final Map<String, Object> pAddParam,
+    final TradingCatalog pTcat, final Map<String, Object> pReqVars,
       final IRequestData pRequestData) throws Exception {
     if (pTcat.getCatalog().getUseFilterSubcatalog()) {
       FilterItems<CatalogGs> res = new FilterItems<CatalogGs>();
@@ -944,6 +970,20 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   }
 
   /**
+   * <p>Lazy Get queryGilForCatNoAucSmPrTotal.</p>
+   * @return String
+   * @throws Exception - an exception
+   **/
+  public final String
+    lazyGetQueryGilForCatNoAucSmPrTotal() throws Exception {
+    if (this.queryGilForCatNoAucSmPrTotal == null) {
+      String flName = "/webstore/goodsInListForCatalogNotAucSamePriceTotal.sql";
+      this.queryGilForCatNoAucSmPrTotal = loadString(flName);
+    }
+    return this.queryGilForCatNoAucSmPrTotal;
+  }
+
+  /**
    * <p>Lazy Get queryGilForCatNoAucSmPr.</p>
    * @return String
    * @throws Exception - an exception
@@ -955,6 +995,20 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
       this.queryGilForCatNoAucSmPr = loadString(flName);
     }
     return this.queryGilForCatNoAucSmPr;
+  }
+
+  /**
+   * <p>Lazy Get queryGilForCatNoAucSmPrI18n.</p>
+   * @return String
+   * @throws Exception - an exception
+   **/
+  public final String
+    lazyGetQueryGilForCatNoAucSmPrI18n() throws Exception {
+    if (this.queryGilForCatNoAucSmPrI18n == null) {
+      String flName = "/webstore/goodsInListForCatalogNotAucSamePriceI18n.sql";
+      this.queryGilForCatNoAucSmPrI18n = loadString(flName);
+    }
+    return this.queryGilForCatNoAucSmPrI18n;
   }
 
   /**
@@ -1028,6 +1082,24 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
    **/
   public final void setSrvOrm(final ISrvOrm<RS> pSrvOrm) {
     this.srvOrm = pSrvOrm;
+  }
+
+  /**
+   * <p>Setter for queryGilForCatNoAucSmPrI18n.</p>
+   * @param pQueryGilForCatNoAucSmPrI18n reference
+   **/
+  public final void setQueryGilForCatNoAucSmPrI18n(
+    final String pQueryGilForCatNoAucSmPrI18n) {
+    this.queryGilForCatNoAucSmPrI18n = pQueryGilForCatNoAucSmPrI18n;
+  }
+
+  /**
+   * <p>Setter for queryGilForCatNoAucSmPrTotal.</p>
+   * @param pQueryGilForCatNoAucSmPrTotal reference
+   **/
+  public final void setQueryGilForCatNoAucSmPrTotal(
+    final String pQueryGilForCatNoAucSmPrTotal) {
+    this.queryGilForCatNoAucSmPrTotal = pQueryGilForCatNoAucSmPrTotal;
   }
 
   /**

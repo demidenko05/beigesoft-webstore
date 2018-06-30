@@ -170,7 +170,7 @@ public class PrcDetailPage<RS> implements IProcessor {
    **/
   public final List<GoodsSpecific> retrieveGoodsSpecifics(
     final Map<String, Object> pAddParam, final Long pItemId) throws Exception {
-    pAddParam.put("GoodsSpecificspecificsdeepLevel", 4); //HTML templates full
+    pAddParam.put("GoodsSpecificspecificsdeepLevel", 3); //HTML templates full
     HashSet<String> goodsFldNms = new HashSet<String>();
     goodsFldNms.add("itsId");
     goodsFldNms.add("itsName");
@@ -181,7 +181,7 @@ public class PrcDetailPage<RS> implements IProcessor {
     soiFldNms.add("isShowInList");
     soiFldNms.add("itsType");
     soiFldNms.add("itsGroop");
-    soiFldNms.add("chooseableSpecificsType");
+    //soiFldNms.add("chooseableSpecificsType");
     pAddParam.put("SpecificsOfItemneededFields", soiFldNms);
     HashSet<String> soigFldNms = new HashSet<String>();
     soigFldNms.add("itsId");
@@ -190,10 +190,13 @@ public class PrcDetailPage<RS> implements IProcessor {
     soigFldNms.add("templateEnd");
     soigFldNms.add("templateDetail");
     pAddParam.put("SpecificsOfItemGroupneededFields", soigFldNms);
-    HashSet<String> chsptpFldNms = new HashSet<String>();
-    chsptpFldNms.add("itsId");
-    chsptpFldNms.add("htmlTemplate");
-    pAddParam.put("ChooseableSpecificsTypeneededFields", chsptpFldNms);
+    HashSet<String> htmTmFldNms = new HashSet<String>();
+    htmTmFldNms.add("itsId");
+    htmTmFldNms.add("htmlTemplate");
+    pAddParam.put("HtmlTemplateneededFields", htmTmFldNms);
+    //HashSet<String> chsptpFldNms = new HashSet<String>();
+    //chsptpFldNms.add("itsId");
+    //pAddParam.put("ChooseableSpecificsTypeneededFields", chsptpFldNms);
     List<GoodsSpecific> result = getSrvOrm()
       .retrieveListWithConditions(pAddParam, GoodsSpecific.class,
         " where GOODSSPECIFIC.GOODS =" + pItemId
@@ -202,7 +205,8 @@ public class PrcDetailPage<RS> implements IProcessor {
     pAddParam.remove("InvItemneededFields");
     pAddParam.remove("SpecificsOfItemneededFields");
     pAddParam.remove("SpecificsOfItemGroupneededFields");
-    pAddParam.remove("ChooseableSpecificsTypeneededFields");
+    //pAddParam.remove("ChooseableSpecificsTypeneededFields");
+    pAddParam.remove("HtmlTemplateneededFields");
     return result;
   }
 
