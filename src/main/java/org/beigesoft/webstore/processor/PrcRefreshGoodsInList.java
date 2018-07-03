@@ -510,7 +510,7 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
       .equals(ESpecificsItemType.BIGDECIMAL)) {
       val1 = srvNumberToString.print(pOutdGdSp.getNumericValue1().toString(),
         (String) pReqVars.get("dseparatorv"), (String) pReqVars
-          .get("dgseparatorv"), Integer.valueOf(pOutdGdSp.getLongValue2()
+          .get("dgseparatorv"), Integer.valueOf(pOutdGdSp.getLongValue1()
             .intValue()), (Integer) pReqVars.get("digitsInGroup"));
       if (pOutdGdSp.getStringValue1() != null) {
         val2 = pOutdGdSp.getStringValue1();
@@ -533,7 +533,7 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
     } else if (pOutdGdSp.getSpecifics().getItsGroop() != null && pOutdGdSp.getSpecifics().getItsGroop().getTemplateDetail() != null) {
       templateDetail = pOutdGdSp.getSpecifics().getItsGroop().getTemplateDetail().getHtmlTemplate();
     } else {
-      templateDetail = "<b>:SPECNM:</b> :VAL1 :VAL2";
+      templateDetail = " <b>:SPECNM:</b> :VAL1:VAL2";
     }
     String spdet = templateDetail.replace(":SPECNM", pOutdGdSp.getSpecifics().getItsName());
     spdet = spdet.replace(":VAL1", val1);
@@ -809,19 +809,17 @@ public class PrcRefreshGoodsInList<RS> implements IProcessor {
                 .equals(ESpecificsItemType.IMAGE)) {
                 itemInList.setImageUrl(pOutdGdSpList.get(j).getStringValue1());
               } else { // build ItemInList.specificInList:
-                if (wasGrStart && (pOutdGdSpList.get(j).getSpecifics().getItsGroop() == null
-                    || specificsOfItemGroupWas != null
-                      && !pOutdGdSpList.get(j).getSpecifics().getItsGroop().getItsId().equals(specificsOfItemGroupWas.getItsId()))) {
-                  if (pSettingsAdd.getSpecGrSeparator() != null && pSettingsAdd.getSpecGrHtmlEnd() != null) {
-                    itemInList.setSpecificInList(itemInList.getSpecificInList() + pSettingsAdd.getSpecGrHtmlEnd() + pSettingsAdd.getSpecGrSeparator());
-                  } else if (pSettingsAdd.getSpecGrHtmlEnd() != null) {
-                    itemInList.setSpecificInList(itemInList.getSpecificInList() + pSettingsAdd.getSpecGrHtmlEnd());
-                  } else if (pSettingsAdd.getSpecGrSeparator() != null) {
-                    itemInList.setSpecificInList(itemInList.getSpecificInList() + pSettingsAdd.getSpecGrSeparator());
+                if (pOutdGdSpList.get(j).getSpecifics().getItsGroop() == null || specificsOfItemGroupWas == null
+                      || !pOutdGdSpList.get(j).getSpecifics().getItsGroop().getItsId().equals(specificsOfItemGroupWas.getItsId())) {
+                  if (wasGrStart) {
+                    if (pSettingsAdd.getSpecGrSeparator() != null && pSettingsAdd.getSpecGrHtmlEnd() != null) {
+                      itemInList.setSpecificInList(itemInList.getSpecificInList() + pSettingsAdd.getSpecGrHtmlEnd() + pSettingsAdd.getSpecGrSeparator());
+                    } else if (pSettingsAdd.getSpecGrHtmlEnd() != null) {
+                      itemInList.setSpecificInList(itemInList.getSpecificInList() + pSettingsAdd.getSpecGrHtmlEnd());
+                    } else if (pSettingsAdd.getSpecGrSeparator() != null) {
+                      itemInList.setSpecificInList(itemInList.getSpecificInList() + pSettingsAdd.getSpecGrSeparator());
+                    }
                   }
-                }
-                if (pOutdGdSpList.get(j).getSpecifics().getItsGroop() == null || specificsOfItemGroupWas != null
-                      && !pOutdGdSpList.get(j).getSpecifics().getItsGroop().getItsId().equals(specificsOfItemGroupWas.getItsId())) {
                   wasGrStart = true;
                   if (pSettingsAdd.getSpecGrHtmlStart() != null) {
                     itemInList.setSpecificInList(itemInList.getSpecificInList() + pSettingsAdd.getSpecGrHtmlStart());

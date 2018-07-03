@@ -51,68 +51,72 @@ public class UtlTradeJsp {
     StringBuffer sb = new StringBuffer();
     boolean wasGrStart = false;
     SpecificsOfItemGroup specificsOfItemGroupWas = null;
+    if (settingsAdd.getSpecHtmlStart() !=  null) {
+      sb.append(settingsAdd.getSpecHtmlStart());
+    }
     for (GoodsSpecific gs : pGoodsSpecific) {
-      if (wasGrStart && (gs.getSpecifics().getItsGroop() == null
-          || specificsOfItemGroupWas != null
-            && !gs.getSpecifics().getItsGroop().getItsId().equals(specificsOfItemGroupWas.getItsId()))) {
-        if (settingsAdd.getSpecGrSeparator() != null && settingsAdd.getSpecGrHtmlEnd() != null) {
-          sb.append(settingsAdd.getSpecGrHtmlEnd() + settingsAdd.getSpecGrSeparator());
-        } else if (settingsAdd.getSpecGrHtmlEnd() != null) {
-          sb.append(settingsAdd.getSpecGrHtmlEnd());
-        } else if (settingsAdd.getSpecGrSeparator() != null) {
-          sb.append(settingsAdd.getSpecGrSeparator());
+      if (gs.getSpecifics().getIsShowInList() && !gs.getSpecifics().getItsType().equals(ESpecificsItemType.IMAGE)) {
+        if (gs.getSpecifics().getItsGroop() == null || specificsOfItemGroupWas == null
+          || !gs.getSpecifics().getItsGroop().getItsId().equals(specificsOfItemGroupWas.getItsId())) {
+          if (wasGrStart) {
+            if (settingsAdd.getSpecGrHtmlEnd() != null) {
+              sb.append(settingsAdd.getSpecGrHtmlEnd());
+            }
+            if (settingsAdd.getSpecGrSeparator() != null) {
+              sb.append(settingsAdd.getSpecGrSeparator());
+            }
+          }
+          wasGrStart = true;
+          if (settingsAdd.getSpecGrHtmlStart() != null) {
+            sb.append(settingsAdd.getSpecGrHtmlStart());
+          }
+          if (gs.getSpecifics().getItsGroop() != null && gs.getSpecifics().getItsGroop().getTemplateStart() != null) {
+            String grst = gs.getSpecifics().getItsGroop().getTemplateStart()
+              .getHtmlTemplate().replace(":SPECGRNM", gs.getSpecifics().getItsGroop().getItsName());
+            sb.append(grst);
+          }
         }
-      }
-      if (gs.getSpecifics().getItsGroop() == null || specificsOfItemGroupWas != null
-            && !gs.getSpecifics().getItsGroop().getItsId().equals(specificsOfItemGroupWas.getItsId())) {
-        wasGrStart = true;
-        if (settingsAdd.getSpecGrHtmlStart() != null) {
-          sb.append(settingsAdd.getSpecGrHtmlStart());
+        String val1 = "";
+        String val2 = "";
+        if (gs.getSpecifics().getItsType().equals(ESpecificsItemType.TEXT)) {
+          val1 = gs.getStringValue1();
+        } else if (gs.getSpecifics().getItsType().equals(ESpecificsItemType.BIGDECIMAL)) {
+          val1 = srvNumberToString.print(gs.getNumericValue1().toString(),
+            (String) pReqVars.get("dseparatorv"), (String) pReqVars
+              .get("dgseparatorv"), Integer.valueOf(gs.getLongValue1()
+                .intValue()), (Integer) pReqVars.get("digitsInGroup"));
+          if (gs.getStringValue1() != null) {
+            val2 = gs.getStringValue1();
+          }
+        } else if (gs.getSpecifics().getItsType().equals(ESpecificsItemType.INTEGER)) {
+          val1 = gs.getLongValue1().toString();
+          if (gs.getStringValue1() != null) {
+            val2 = gs.getStringValue1();
+          }
+        } else if (gs.getSpecifics().getItsType().equals(ESpecificsItemType.CHOOSEABLE_SPECIFICS)) {
+          val1 =  gs.getStringValue1();
+        } else {
+          continue;
         }
-        if (gs.getSpecifics().getItsGroop() != null && gs.getSpecifics().getItsGroop().getTemplateStart() != null) {
-          String grst = gs.getSpecifics().getItsGroop().getTemplateStart()
-            .getHtmlTemplate().replace(":SPECGRNM", gs.getSpecifics().getItsGroop().getItsName());
-          sb.append(grst);
+        String templateDetail;
+        if (gs.getSpecifics().getTempHtml() != null) {
+          templateDetail = gs.getSpecifics().getTempHtml().getHtmlTemplate();
+        } else if (gs.getSpecifics().getItsGroop() != null && gs.getSpecifics().getItsGroop().getTemplateDetail() != null) {
+          templateDetail = gs.getSpecifics().getItsGroop().getTemplateDetail().getHtmlTemplate();
+        } else {
+          templateDetail = " <b>:SPECNM:</b> :VAL1:VAL2";
         }
-      }
-      String val1 = "";
-      String val2 = "";
-      if (gs.getSpecifics().getItsType().equals(ESpecificsItemType.TEXT)) {
-        val1 = gs.getStringValue1();
-      } else if (gs.getSpecifics().getItsType().equals(ESpecificsItemType.BIGDECIMAL)) {
-        val1 = srvNumberToString.print(gs.getNumericValue1().toString(),
-          (String) pReqVars.get("dseparatorv"), (String) pReqVars
-            .get("dgseparatorv"), Integer.valueOf(gs.getLongValue2()
-              .intValue()), (Integer) pReqVars.get("digitsInGroup"));
-        if (gs.getStringValue1() != null) {
-          val2 = gs.getStringValue1();
+        String spdet = templateDetail.replace(":SPECNM", gs.getSpecifics().getItsName());
+        spdet = spdet.replace(":VAL1", val1);
+        spdet = spdet.replace(":VAL2", val2);
+        if (gs.getSpecifics().getItsGroop() != null && specificsOfItemGroupWas != null
+          && gs.getSpecifics().getItsGroop().getItsId().equals(specificsOfItemGroupWas.getItsId())) {
+          sb.append(settingsAdd.getSpecSeparator() + spdet);
+        } else {
+          sb.append(spdet);
         }
-      } else if (gs.getSpecifics().getItsType().equals(ESpecificsItemType.INTEGER)) {
-        val1 = gs.getLongValue1().toString();
-        if (gs.getStringValue1() != null) {
-          val2 = gs.getStringValue1();
-        }
-      } else if (gs.getSpecifics().getItsType().equals(ESpecificsItemType.CHOOSEABLE_SPECIFICS)) {
-        val1 =  gs.getStringValue1();
+        specificsOfItemGroupWas = gs.getSpecifics().getItsGroop();
       }
-      String templateDetail;
-      if (gs.getSpecifics().getTempHtml() != null) {
-        templateDetail = gs.getSpecifics().getTempHtml().getHtmlTemplate();
-      } else if (gs.getSpecifics().getItsGroop() != null && gs.getSpecifics().getItsGroop().getTemplateDetail() != null) {
-        templateDetail = gs.getSpecifics().getItsGroop().getTemplateDetail().getHtmlTemplate();
-      } else {
-        templateDetail = "<b>:SPECNM:</b> :VAL1 :VAL2";
-      }
-      String spdet = templateDetail.replace(":SPECNM", gs.getSpecifics().getItsName());
-      spdet = spdet.replace(":VAL1", val1);
-      spdet = spdet.replace(":VAL2", val2);
-      if (gs.getSpecifics().getItsGroop() != null && specificsOfItemGroupWas != null
-        && gs.getSpecifics().getItsGroop().getItsId().equals(specificsOfItemGroupWas.getItsId())) {
-        sb.append(settingsAdd.getSpecSeparator() + spdet);
-      } else {
-        sb.append(spdet);
-      }
-      specificsOfItemGroupWas = gs.getSpecifics().getItsGroop();
     }
     if (settingsAdd.getSpecGrHtmlEnd() != null) {
       sb.append(settingsAdd.getSpecGrHtmlEnd());

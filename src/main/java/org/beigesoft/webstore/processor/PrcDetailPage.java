@@ -189,6 +189,7 @@ public class PrcDetailPage<RS> implements IProcessor {
     soiFldNms.add("isShowInList");
     soiFldNms.add("itsType");
     soiFldNms.add("itsGroop");
+    soiFldNms.add("tempHtml");
     //soiFldNms.add("chooseableSpecificsType");
     pReqVars.put("SpecificsOfItemneededFields", soiFldNms);
     HashSet<String> soigFldNms = new HashSet<String>();

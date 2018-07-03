@@ -58,7 +58,7 @@ public class PrcGoodsSpecificRetrieve<RS>
       if (entity.getNumericValue1() == null) {
         entity.setNumericValue1(BigDecimal.ZERO);
       }
-      if (entity.getLongValue2() == null) {
+      if (entity.getLongValue1() == null) {
         entity.setLongValue2(2L);
       }
       pReqVars.put("RSisUsePrecision" + entity.getLongValue2(), true);
