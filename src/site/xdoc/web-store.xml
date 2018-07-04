@@ -713,10 +713,8 @@
       <p>Model persistable ItemInList:
         <ul>
           <li>AHasNameIdLongVersion fields</li>
-          <li>goodsId - Long, Goods ID, null if it's service.</li>
           <li>itemId - Long, Goods/Service/SEGoods/SEService ID, not null.</li>
           <li>itsType - EShopItemType, not null.</li>
-          <li>urlInList - String, not null</li>
           <li>imageUrl - String, image URL if exist</li>
           <li>specificInList - String, if exist, addition to name, max length = 500, usually HTML string that briefly describes item.</li>
           <li>itsRating - Integer, goods's rating if exist.</li>

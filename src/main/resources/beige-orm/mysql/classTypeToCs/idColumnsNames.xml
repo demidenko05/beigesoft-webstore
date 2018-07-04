@@ -35,4 +35,7 @@
 <entry key="org.beigesoft.webstore.persistable.I18nSpecificInList">lang,itemId,itsType</entry>
 <entry key="org.beigesoft.webstore.persistable.I18nWebStore">lang</entry>
 <entry key="org.beigesoft.persistable.AI18nName">lang,hasName</entry>
+<entry key="org.beigesoft.webstore.persistable.ServiceSpecifics">service,specifics</entry>
+<entry key="org.beigesoft.webstore.persistable.ServiceCatalog">service,itsCatalog</entry>
+<entry key="org.beigesoft.webstore.persistable.ServicePlace">service,pickUpPlace</entry>
 </properties>

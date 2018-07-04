@@ -175,6 +175,9 @@
   org.beigesoft.webstore.persistable.I18nSpecificsOfItemGroup,
   org.beigesoft.webstore.persistable.I18nWebStore,
   org.beigesoft.webstore.persistable.I18nChooseableSpecifics,
+  org.beigesoft.webstore.persistable.ServiceSpecifics,
+  org.beigesoft.webstore.persistable.ServiceCatalog,
+  org.beigesoft.webstore.persistable.ServicePlace,
   org.beigesoft.webstore.persistable.CustomerGoodsSeen</entry>
 <entry key="settingsKeysForClasses">idColumnsNames, idFieldName, ownerFieldName, constraintAdd, excludeFields, versionAlgorithm</entry>
 <entry key="settingsKeysForFields">definition, isNullable</entry>

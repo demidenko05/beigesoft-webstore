@@ -6,7 +6,7 @@
 
 <suppressions>
   <suppress checks="MagicNumberCheck"
-    files="PrcGoodsSpecificSave|PrcRefreshGoodsInList|PrcDetailPage|PrcWebstorePage"/>
+    files="PrcGoodsSpecificSave|PrcRefreshGoodsInList|PrcDetailPage|PrcWebstorePage|PrcServiceSpecificsSave"/>
   <suppress checks="LineLength"
     files="PrcRefreshGoodsInList|UtlTradeJsp"/>
   <suppress checks="MethodLength"
