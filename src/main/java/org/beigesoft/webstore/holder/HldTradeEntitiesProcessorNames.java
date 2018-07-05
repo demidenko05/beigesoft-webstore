@@ -24,15 +24,15 @@ import org.beigesoft.webstore.persistable.GoodsCatalogs;
 import org.beigesoft.webstore.persistable.ServiceCatalog;
 import org.beigesoft.webstore.processor.PrcAdvisedGoodsForGoodsSave;
 import org.beigesoft.webstore.processor.PrcGoodsCatalogsSave;
-import org.beigesoft.webstore.processor.PrcServiceCatalogSave;
+import org.beigesoft.webstore.processor.PrcItemCatalogSave;
 import org.beigesoft.webstore.processor.PrcSubcatalogsCatalogsGsSave;
 import org.beigesoft.webstore.processor.PrcGoodsAdviseCategoriesSave;
-import org.beigesoft.webstore.processor.PrcServiceSpecificsSave;
+import org.beigesoft.webstore.processor.PrcItemSpecificsSave;
 import org.beigesoft.webstore.processor.PrcGoodsSpecificSave;
 import org.beigesoft.webstore.processor.PrcGoodsSpecificRetrieve;
-import org.beigesoft.webstore.processor.PrcServiceSpecificsRetrieve;
+import org.beigesoft.webstore.processor.PrcItemSpecificsRetrieve;
 import org.beigesoft.webstore.processor.PrcGoodsSpecificDelete;
-import org.beigesoft.webstore.processor.PrcServiceSpecificsDelete;
+import org.beigesoft.webstore.processor.PrcItemSpecificsDelete;
 import org.beigesoft.webstore.processor.PrcSettingsAddSave;
 import org.beigesoft.webstore.processor.PrcTradingSettingsSave;
 
@@ -56,7 +56,7 @@ public class HldTradeEntitiesProcessorNames
     if (pClass == GoodsSpecific.class) {
       return PrcGoodsSpecificRetrieve.class.getSimpleName();
     } else if (pClass == ServiceSpecifics.class) {
-      return PrcServiceSpecificsRetrieve.class.getSimpleName();
+      return PrcItemSpecificsRetrieve.class.getSimpleName();
     }
     return null;
   }
@@ -70,6 +70,8 @@ public class HldTradeEntitiesProcessorNames
   public final String getForPrint(final Class<?> pClass) {
     if (pClass == GoodsSpecific.class) {
       return PrcGoodsSpecificRetrieve.class.getSimpleName();
+    } else if (pClass == ServiceSpecifics.class) {
+      return PrcItemSpecificsRetrieve.class.getSimpleName();
     }
     return null;
   }
@@ -88,7 +90,7 @@ public class HldTradeEntitiesProcessorNames
     } else if (pClass == TradingSettings.class) {
       return PrcTradingSettingsSave.class.getSimpleName();
     } else if (pClass == ServiceCatalog.class) {
-      return PrcServiceCatalogSave.class.getSimpleName();
+      return PrcItemCatalogSave.class.getSimpleName();
     } else if (pClass == GoodsCatalogs.class) {
       return PrcGoodsCatalogsSave.class.getSimpleName();
     } else if (pClass == SubcatalogsCatalogsGs.class) {
@@ -96,7 +98,7 @@ public class HldTradeEntitiesProcessorNames
     } else if (pClass == GoodsAdviseCategories.class) {
       return PrcGoodsAdviseCategoriesSave.class.getSimpleName();
     } else if (pClass == ServiceSpecifics.class) {
-      return PrcServiceSpecificsSave.class.getSimpleName();
+      return PrcItemSpecificsSave.class.getSimpleName();
     } else if (pClass == GoodsSpecific.class) {
       return PrcGoodsSpecificSave.class.getSimpleName();
     }
@@ -153,7 +155,7 @@ public class HldTradeEntitiesProcessorNames
     if (pClass == GoodsSpecific.class) {
       return PrcGoodsSpecificDelete.class.getSimpleName();
     } else if (pClass == ServiceSpecifics.class) {
-      return PrcServiceSpecificsDelete.class.getSimpleName();
+      return PrcItemSpecificsDelete.class.getSimpleName();
     }
     return null;
   }
@@ -177,6 +179,8 @@ public class HldTradeEntitiesProcessorNames
   public final String getForRetrieveForEditDelete(final Class<?> pClass) {
     if (pClass == GoodsSpecific.class) {
       return PrcGoodsSpecificRetrieve.class.getSimpleName();
+    } else if (pClass == ServiceSpecifics.class) {
+      return PrcItemSpecificsRetrieve.class.getSimpleName();
     }
     return null;
   }

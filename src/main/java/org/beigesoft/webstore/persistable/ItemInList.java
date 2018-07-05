@@ -17,6 +17,7 @@ import java.util.Date;
 
 import org.beigesoft.webstore.model.EShopItemType;
 import org.beigesoft.persistable.AHasNameIdLongVersion;
+import org.beigesoft.accounting.persistable.UnitOfMeasure;
 
 /**
  * <pre>
@@ -141,6 +142,11 @@ public class ItemInList extends AHasNameIdLongVersion {
    * <p>Method to render details (page), NULL - no detail page.</p>
    **/
   private Integer detailsMethod;
+
+  /**
+   * <p>Unit Of Measure, optional, e.g. per night or per hour.</p>
+   **/
+  private UnitOfMeasure unitOfMeasure;
 
   //Simple getters and setters:
   /**
@@ -461,5 +467,21 @@ public class ItemInList extends AHasNameIdLongVersion {
    **/
   public final void setDetailsMethod(final Integer pDetailsMethod) {
     this.detailsMethod = pDetailsMethod;
+  }
+
+  /**
+   * <p>Geter for unitOfMeasure.</p>
+   * @return UnitOfMeasure
+   **/
+  public final UnitOfMeasure getUnitOfMeasure() {
+    return this.unitOfMeasure;
+  }
+
+  /**
+   * <p>Setter for unitOfMeasure.</p>
+   * @param pUnitOfMeasure reference
+   **/
+  public final void setUnitOfMeasure(final UnitOfMeasure pUnitOfMeasure) {
+    this.unitOfMeasure = pUnitOfMeasure;
   }
 }

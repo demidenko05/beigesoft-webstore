@@ -20,20 +20,24 @@ import java.io.OutputStream;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 
+import org.beigesoft.model.IHasName;
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.service.IEntityProcessor;
 import org.beigesoft.service.ISrvOrm;
-import org.beigesoft.webstore.persistable.ServiceSpecifics;
-import org.beigesoft.webstore.persistable.ServiceSpecificsId;
+import org.beigesoft.webstore.persistable.base.AItemSpecifics;
+import org.beigesoft.webstore.persistable.base.AItemSpecificsId;
 
 /**
- * <p>Service that save ServiceSpecifics into DB.</p>
+ * <p>Service that save AItemSpecifics<T> into DB.</p>
  *
  * @param <RS> platform dependent record set type
+ * @param <T> item type
+ * @param <ID> ID type
  * @author Yury Demidenko
  */
-public class PrcServiceSpecificsSave<RS>
-  implements IEntityProcessor<ServiceSpecifics, ServiceSpecificsId> {
+public class
+  PrcItemSpecificsSave<RS, T extends IHasName, ID extends AItemSpecificsId<T>>
+    implements IEntityProcessor<AItemSpecifics<T, ID>, ID> {
 
   /**
    * <p>ORM service.</p>
@@ -62,9 +66,9 @@ public class PrcServiceSpecificsSave<RS>
    * @throws Exception - an exception
    **/
   @Override
-  public final ServiceSpecifics process(
+  public final AItemSpecifics<T, ID> process(
     final Map<String, Object> pAddParam,
-      final ServiceSpecifics pEntity,
+      final AItemSpecifics<T, ID> pEntity,
         final IRequestData pRequestData) throws Exception {
     //Beige-ORM refresh:
     pEntity.setSpecifics(getSrvOrm().retrieveEntity(pAddParam,

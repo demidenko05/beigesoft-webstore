@@ -15,20 +15,22 @@ package org.beigesoft.webstore.processor;
 import java.util.Map;
 
 import org.beigesoft.model.IRequestData;
+import org.beigesoft.model.IHasName;
 import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.service.IEntityProcessor;
 import org.beigesoft.service.ISrvOrm;
-import org.beigesoft.webstore.persistable.ServiceCatalog;
-import org.beigesoft.webstore.persistable.ServiceCatalogId;
+import org.beigesoft.webstore.persistable.base.AItemCatalog;
+import org.beigesoft.webstore.persistable.base.ItemCatalogId;
 
 /**
- * <p>Service that save ServiceCatalog into DB.</p>
+ * <p>Service that save Item Catalog into DB.</p>
  *
  * @param <RS> platform dependent record set type
+ * @param <T> item type
  * @author Yury Demidenko
  */
-public class PrcServiceCatalogSave<RS>
-  implements IEntityProcessor<ServiceCatalog, ServiceCatalogId> {
+public class PrcItemCatalogSave<RS, T extends IHasName>
+  implements IEntityProcessor<AItemCatalog<T>, ItemCatalogId<T>> {
 
   /**
    * <p>ORM service.</p>
@@ -45,9 +47,9 @@ public class PrcServiceCatalogSave<RS>
    * @throws Exception - an exception
    **/
   @Override
-  public final ServiceCatalog process(
+  public final AItemCatalog<T> process(
     final Map<String, Object> pAddParam,
-      final ServiceCatalog pEntity,
+      final AItemCatalog<T> pEntity,
         final IRequestData pRequestData) throws Exception {
     if (!pEntity.getIsNew()) {
       if (pAddParam.get("user") != null) {
@@ -63,14 +65,8 @@ public class PrcServiceCatalogSave<RS>
     pEntity.setItsCatalog(getSrvOrm()
       .retrieveEntity(pAddParam, pEntity.getItsCatalog()));
     if (pEntity.getItsCatalog().getHasSubcatalogs()) {
-      if (pAddParam.get("user") != null) {
-        throw new ExceptionWithCode(ExceptionWithCode.WRONG_PARAMETER,
-          "catalog_must_be_for_goods",
-            pAddParam.get("user").toString());
-      } else {
-        throw new ExceptionWithCode(ExceptionWithCode.WRONG_PARAMETER,
+      throw new ExceptionWithCode(ExceptionWithCode.WRONG_PARAMETER,
           "catalog_must_be_for_goods");
-      }
     }
     if (pEntity.getIsNew()) {
       getSrvOrm().insertEntity(pAddParam, pEntity);

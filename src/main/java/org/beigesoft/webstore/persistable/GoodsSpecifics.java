@@ -13,22 +13,22 @@ package org.beigesoft.webstore.persistable;
  */
 
 import org.beigesoft.webstore.persistable.base.AItemSpecifics;
-import org.beigesoft.accounting.persistable.ServiceToSale;
+import org.beigesoft.accounting.persistable.InvItem;
 
 /**
  * <p>
- * Model of Specifics values for a Service.
+ * Model of Specifics values for a item.
  * </p>
  *
  * @author Yury Demidenko
  */
-public class ServiceSpecifics
-  extends AItemSpecifics<ServiceToSale, ServiceSpecificsId> {
+public class GoodsSpecifics
+  extends AItemSpecifics<InvItem, GoodsSpecificsId> {
 
   /**
    * <p>Complex ID. Must be initialized cause reflection use.</p>
    **/
-  private ServiceSpecificsId itsId = new ServiceSpecificsId();
+  private GoodsSpecificsId itsId = new GoodsSpecificsId();
 
   /**
    * <p>Item specifics.</p>
@@ -36,16 +36,16 @@ public class ServiceSpecifics
   private SpecificsOfItem specifics;
 
   /**
-   * <p>Service.</p>
+   * <p>Goods.</p>
    **/
-  private ServiceToSale item;
+  private InvItem item;
 
   /**
    * <p>Usually it's simple getter that return model ID.</p>
    * @return ID model ID
    **/
   @Override
-  public final ServiceSpecificsId getItsId() {
+  public final GoodsSpecificsId getItsId() {
     return this.itsId;
   }
 
@@ -54,7 +54,7 @@ public class ServiceSpecifics
    * @param pItsId model ID
    **/
   @Override
-  public final void setItsId(final ServiceSpecificsId pItsId) {
+  public final void setItsId(final GoodsSpecificsId pItsId) {
     this.itsId = pItsId;
     if (this.itsId != null) {
       setSpecifics(this.itsId.getSpecifics());
@@ -73,7 +73,7 @@ public class ServiceSpecifics
   public final void setSpecifics(final SpecificsOfItem pSpecifics) {
     this.specifics = pSpecifics;
     if (this.itsId == null) {
-      this.itsId = new ServiceSpecificsId();
+      this.itsId = new GoodsSpecificsId();
     }
     this.itsId.setSpecifics(this.specifics);
   }
@@ -92,7 +92,7 @@ public class ServiceSpecifics
    * @return T
    **/
   @Override
-  public final ServiceToSale getItem() {
+  public final InvItem getItem() {
     return this.item;
   }
 
@@ -101,10 +101,10 @@ public class ServiceSpecifics
    * @param pItem reference
    **/
   @Override
-  public final void setItem(final ServiceToSale pItem) {
+  public final void setItem(final InvItem pItem) {
     this.item = pItem;
     if (getItsId() == null) {
-      setItsId(new ServiceSpecificsId());
+      setItsId(new GoodsSpecificsId());
     }
     getItsId().setItem(this.item);
   }

@@ -15,23 +15,27 @@ package org.beigesoft.webstore.processor;
 import java.util.Map;
 import java.io.File;
 
+import org.beigesoft.model.IHasName;
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.service.IEntityProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.webstore.model.ESpecificsItemType;
-import org.beigesoft.webstore.persistable.ServiceSpecifics;
-import org.beigesoft.webstore.persistable.ServiceSpecificsId;
+import org.beigesoft.webstore.persistable.base.AItemSpecifics;
+import org.beigesoft.webstore.persistable.base.AItemSpecificsId;
 
 /**
- * <p>Service that delete ServiceSpecifics include uploaded file if exist
+ * <p>Service that delete Item Specifics include uploaded file if exist
  * from DB.</p>
  *
  * @param <RS> platform dependent record set type
+ * @param <T> item type
+ * @param <ID> ID type
  * @author Yury Demidenko
  */
-public class PrcServiceSpecificsDelete<RS>
-  implements IEntityProcessor<ServiceSpecifics, ServiceSpecificsId> {
+public class
+  PrcItemSpecificsDelete<RS, T extends IHasName, ID extends AItemSpecificsId<T>>
+    implements IEntityProcessor<AItemSpecifics<T, ID>, ID> {
 
   /**
    * <p>ORM service.</p>
@@ -48,12 +52,13 @@ public class PrcServiceSpecificsDelete<RS>
    * @throws Exception - an exception
    **/
   @Override
-  public final ServiceSpecifics process(
+  public final AItemSpecifics<T, ID> process(
     final Map<String, Object> pAddParam,
-      final ServiceSpecifics pEntity,
+      final AItemSpecifics<T, ID> pEntity,
         final IRequestData pRequestData) throws Exception {
     //Refresh, TODO Web-MVC should handle pass subentity fields:
-    ServiceSpecifics entity = getSrvOrm().retrieveEntity(pAddParam, pEntity);
+    AItemSpecifics<T, ID> entity =
+      getSrvOrm().retrieveEntity(pAddParam, pEntity);
     if (entity.getStringValue2() != null && (entity.getSpecifics()
       .getItsType().equals(ESpecificsItemType.FILE)
         || entity.getSpecifics().getItsType()

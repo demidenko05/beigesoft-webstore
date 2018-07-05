@@ -12,9 +12,6 @@ package org.beigesoft.webstore.persistable;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import java.util.Date;
-import java.math.BigDecimal;
-
 import org.beigesoft.model.AEditableHasVersion;
 import org.beigesoft.model.IHasId;
 import org.beigesoft.accounting.persistable.ServiceToSale;

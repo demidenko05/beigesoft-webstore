@@ -12,8 +12,8 @@ package org.beigesoft.webstore.persistable;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import org.beigesoft.model.AEditableHasVersion;
-import org.beigesoft.model.IHasId;
+import org.beigesoft.webstore.persistable.base.AItemCatalog;
+import org.beigesoft.webstore.persistable.base.ItemCatalogId;
 import org.beigesoft.accounting.persistable.ServiceToSale;
 
 /**
@@ -23,87 +23,32 @@ import org.beigesoft.accounting.persistable.ServiceToSale;
  *
  * @author Yury Demidenko
  */
-public class ServiceCatalog extends AEditableHasVersion
-  implements IHasId<ServiceCatalogId> {
+public class ServiceCatalog extends AItemCatalog<ServiceToSale> {
 
   /**
-   * <p>Complex ID. Must be initialized cause reflection use.</p>
+   * <p>Service.</p>
    **/
-  private ServiceCatalogId itsId = new ServiceCatalogId();
+  private ServiceToSale item;
 
   /**
-   * <p>Service Catalog, not null, its hasSubitsCatalog=false.</p>
-   **/
-  private CatalogGs itsCatalog;
-
-  /**
-   * <p>Service, not null.</p>
-   **/
-  private ServiceToSale service;
-
-  /**
-   * <p>Usually it's simple getter that return model ID.</p>
-   * @return ID model ID
+   * <p>Getter for item.</p>
+   * @return T
    **/
   @Override
-  public final ServiceCatalogId getItsId() {
-    return this.itsId;
+  public final ServiceToSale getItem() {
+    return this.item;
   }
 
   /**
-   * <p>Usually it's simple setter for model ID.</p>
-   * @param pItsId model ID
+   * <p>Setter for item.</p>
+   * @param pItem reference
    **/
   @Override
-  public final void setItsId(final ServiceCatalogId pItsId) {
-    this.itsId = pItsId;
-    if (this.itsId != null) {
-      this.itsCatalog = this.itsId.getItsCatalog();
-      this.service = this.itsId.getService();
-    } else {
-      this.itsCatalog = null;
-      this.service = null;
+  public final void setItem(final ServiceToSale pItem) {
+    this.item = pItem;
+    if (getItsId() == null) {
+      setItsId(new ItemCatalogId<ServiceToSale>());
     }
-  }
-
-  /**
-   * <p>Setter for pCatalog.</p>
-   * @param pCatalog reference
-   **/
-  public final void setItsCatalog(final CatalogGs pCatalog) {
-    this.itsCatalog = pCatalog;
-    if (this.itsId == null) {
-      this.itsId = new ServiceCatalogId();
-    }
-    this.itsId.setItsCatalog(this.itsCatalog);
-  }
-
-  /**
-   * <p>Setter for service.</p>
-   * @param pService reference
-   **/
-  public final void setService(final ServiceToSale pService) {
-    this.service = pService;
-    if (this.itsId == null) {
-      this.itsId = new ServiceCatalogId();
-    }
-    this.itsId.setService(this.service);
-  }
-
-  //Simple getters and setters:
-  /**
-   * <p>Getter for itsCatalog.</p>
-   * @return CatalogGs
-   **/
-  public final CatalogGs getItsCatalog() {
-    return this.itsCatalog;
-  }
-
-  /**
-   * <p>Getter for service.</p>
-   * @return ServiceToSale
-   **/
-  public final ServiceToSale getService() {
-    return this.service;
+    getItsId().setItem(this.item);
   }
 }

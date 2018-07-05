@@ -29,8 +29,6 @@
 <entry key="org.beigesoft.webstore.persistable.GoodsCatalogs">goods,itsCatalog</entry>
 <entry key="org.beigesoft.webstore.persistable.GoodsPrice">goods,priceCategory</entry>
 <entry key="org.beigesoft.webstore.persistable.GoodsSpecific">goods,specifics</entry>
-<entry key="org.beigesoft.webstore.persistable.ServiceSpecifics">service,specifics</entry>
-<entry key="org.beigesoft.webstore.persistable.ServiceCatalog">service,itsCatalog</entry>
 <entry key="org.beigesoft.webstore.persistable.GoodsAvailable">goods,pickUpPlace</entry>
 <entry key="org.beigesoft.webstore.persistable.SubcatalogsCatalogsGs">subcatalog,itsCatalog</entry>
 <entry key="org.beigesoft.webstore.persistable.ShoppingCart">buyer</entry>
@@ -38,4 +36,6 @@
 <entry key="org.beigesoft.webstore.persistable.I18nWebStore">lang</entry>
 <entry key="org.beigesoft.persistable.AI18nName">lang,hasName</entry>
 <entry key="org.beigesoft.webstore.persistable.ServicePlace">service,pickUpPlace</entry>
+<entry key="org.beigesoft.webstore.persistable.base.AItemSpecifics">item,specifics</entry>
+<entry key="org.beigesoft.webstore.persistable.base.AItemCatalog">item,itsCatalog</entry>
 </properties>

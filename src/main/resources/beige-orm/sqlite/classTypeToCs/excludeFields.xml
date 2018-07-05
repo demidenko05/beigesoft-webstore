@@ -26,7 +26,7 @@
 <entry key="org.beigesoft.webstore.persistable.SubcatalogsCatalogsGs">itsId</entry>
 <entry key="org.beigesoft.webstore.persistable.I18nSpecificInList">itsId</entry>
 <entry key="org.beigesoft.persistable.AI18nName">itsId</entry>
-<entry key="org.beigesoft.webstore.persistable.ServiceSpecifics">itsId</entry>
-<entry key="org.beigesoft.webstore.persistable.ServiceCatalog">itsId</entry>
 <entry key="org.beigesoft.webstore.persistable.ServicePlace">itsId</entry>
+<entry key="org.beigesoft.webstore.persistable.base.AItemSpecifics">itsId</entry>
+<entry key="org.beigesoft.webstore.persistable.base.AItemCatalog">itsId</entry>
 </properties>

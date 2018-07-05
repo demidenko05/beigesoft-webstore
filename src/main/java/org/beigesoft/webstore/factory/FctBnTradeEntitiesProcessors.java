@@ -15,6 +15,7 @@ package org.beigesoft.webstore.factory;
 import java.util.Map;
 import java.util.HashMap;
 
+import org.beigesoft.model.IHasName;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IEntityProcessor;
 import org.beigesoft.settings.IMngSettings;
@@ -23,22 +24,22 @@ import org.beigesoft.orm.factory.FctBnEntitiesProcessors;
 import org.beigesoft.orm.processor.PrcEntityRetrieve;
 import org.beigesoft.webstore.service.ISrvSettingsAdd;
 import org.beigesoft.webstore.service.ISrvTradingSettings;
-import org.beigesoft.webstore.persistable.ServiceSpecifics;
-import org.beigesoft.webstore.persistable.ServiceSpecificsId;
+import org.beigesoft.webstore.persistable.base.AItemSpecifics;
+import org.beigesoft.webstore.persistable.base.AItemSpecificsId;
 import org.beigesoft.webstore.persistable.GoodsSpecific;
 import org.beigesoft.webstore.persistable.GoodsSpecificId;
 import org.beigesoft.webstore.processor.PrcAdvisedGoodsForGoodsSave;
 import org.beigesoft.webstore.processor.PrcGoodsCatalogsSave;
-import org.beigesoft.webstore.processor.PrcServiceCatalogSave;
+import org.beigesoft.webstore.processor.PrcItemCatalogSave;
 import org.beigesoft.webstore.processor.PrcSettingsAddSave;
 import org.beigesoft.webstore.processor.PrcTradingSettingsSave;
 import org.beigesoft.webstore.processor.PrcSubcatalogsCatalogsGsSave;
 import org.beigesoft.webstore.processor.PrcGoodsAdviseCategoriesSave;
-import org.beigesoft.webstore.processor.PrcServiceSpecificsSave;
+import org.beigesoft.webstore.processor.PrcItemSpecificsSave;
 import org.beigesoft.webstore.processor.PrcGoodsSpecificSave;
-import org.beigesoft.webstore.processor.PrcServiceSpecificsRetrieve;
+import org.beigesoft.webstore.processor.PrcItemSpecificsRetrieve;
 import org.beigesoft.webstore.processor.PrcGoodsSpecificRetrieve;
-import org.beigesoft.webstore.processor.PrcServiceSpecificsDelete;
+import org.beigesoft.webstore.processor.PrcItemSpecificsDelete;
 import org.beigesoft.webstore.processor.PrcGoodsSpecificDelete;
 
 /**
@@ -127,8 +128,8 @@ public class FctBnTradeEntitiesProcessors<RS>
             .equals(PrcTradingSettingsSave.class.getSimpleName())) {
             proc = lazyGetPrcTradingSettingsSave(pAddParam);
           } else if (pBeanName
-            .equals(PrcServiceCatalogSave.class.getSimpleName())) {
-            proc = lazyGetPrcServiceCatalogSave(pAddParam);
+            .equals(PrcItemCatalogSave.class.getSimpleName())) {
+            proc = lazyGetPrcItemCatalogSave(pAddParam);
           } else if (pBeanName
             .equals(PrcGoodsCatalogsSave.class.getSimpleName())) {
             proc = lazyGetPrcGoodsCatalogsSave(pAddParam);
@@ -139,20 +140,20 @@ public class FctBnTradeEntitiesProcessors<RS>
             .equals(PrcGoodsAdviseCategoriesSave.class.getSimpleName())) {
             proc = lazyGetPrcGoodsAdviseCategoriesSave(pAddParam);
           } else if (pBeanName
-            .equals(PrcServiceSpecificsDelete.class.getSimpleName())) {
-            proc = lazyGetPrcServiceSpecificsDelete(pAddParam);
+            .equals(PrcItemSpecificsDelete.class.getSimpleName())) {
+            proc = lazyGetPrcItemSpecificsDelete(pAddParam);
           } else if (pBeanName
             .equals(PrcGoodsSpecificDelete.class.getSimpleName())) {
             proc = lazyGetPrcGoodsSpecificDelete(pAddParam);
           } else if (pBeanName
-            .equals(PrcServiceSpecificsRetrieve.class.getSimpleName())) {
-            proc = lazyGetPrcServiceSpecificsRetrieve(pAddParam);
+            .equals(PrcItemSpecificsRetrieve.class.getSimpleName())) {
+            proc = lazyGetPrcItemSpecificsRetrieve(pAddParam);
           } else if (pBeanName
             .equals(PrcGoodsSpecificRetrieve.class.getSimpleName())) {
             proc = lazyGetPrcGoodsSpecificRetrieve(pAddParam);
           } else if (pBeanName
-            .equals(PrcServiceSpecificsSave.class.getSimpleName())) {
-            proc = lazyGetPrcServiceSpecificsSave(pAddParam);
+            .equals(PrcItemSpecificsSave.class.getSimpleName())) {
+            proc = lazyGetPrcItemSpecificsSave(pAddParam);
           } else if (pBeanName
             .equals(PrcGoodsSpecificSave.class.getSimpleName())) {
             proc = lazyGetPrcGoodsSpecificSave(pAddParam);
@@ -248,25 +249,25 @@ public class FctBnTradeEntitiesProcessors<RS>
   }
 
   /**
-   * <p>Get PrcServiceCatalogSave (create and put into map).</p>
+   * <p>Get PrcItemCatalogSave (create and put into map).</p>
    * @param pAddParam additional param
-   * @return requested PrcServiceCatalogSave
+   * @return requested PrcItemCatalogSave
    * @throws Exception - an exception
    */
-  protected final PrcServiceCatalogSave<RS>
-    lazyGetPrcServiceCatalogSave(
+  protected final PrcItemCatalogSave<RS, IHasName>
+    lazyGetPrcItemCatalogSave(
       final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcServiceCatalogSave<RS> proc =
-      (PrcServiceCatalogSave<RS>)
+    PrcItemCatalogSave<RS, IHasName> proc =
+      (PrcItemCatalogSave<RS, IHasName>)
       this.processorsMap
-        .get(PrcServiceCatalogSave.class.getSimpleName());
+        .get(PrcItemCatalogSave.class.getSimpleName());
     if (proc == null) {
-      proc = new PrcServiceCatalogSave<RS>();
+      proc = new PrcItemCatalogSave<RS, IHasName>();
       proc.setSrvOrm(getSrvOrm());
       //assigning fully initialized object:
       this.processorsMap
-        .put(PrcServiceCatalogSave.class.getSimpleName(), proc);
+        .put(PrcItemCatalogSave.class.getSimpleName(), proc);
     }
     return proc;
   }
@@ -344,25 +345,27 @@ public class FctBnTradeEntitiesProcessors<RS>
   }
 
   /**
-   * <p>Get PrcServiceSpecificsDelete (create and put into map).</p>
+   * <p>Get PrcItemSpecificsDelete (create and put into map).</p>
    * @param pAddParam additional param
-   * @return requested PrcServiceSpecificsDelete
+   * @return requested PrcItemSpecificsDelete
    * @throws Exception - an exception
    */
-  protected final PrcServiceSpecificsDelete<RS>
-    lazyGetPrcServiceSpecificsDelete(
-      final Map<String, Object> pAddParam) throws Exception {
+  protected final
+    PrcItemSpecificsDelete<RS, IHasName, AItemSpecificsId<IHasName>>
+      lazyGetPrcItemSpecificsDelete(
+        final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcServiceSpecificsDelete<RS> proc =
-      (PrcServiceSpecificsDelete<RS>)
+    PrcItemSpecificsDelete<RS, IHasName, AItemSpecificsId<IHasName>> proc =
+      (PrcItemSpecificsDelete<RS, IHasName, AItemSpecificsId<IHasName>>)
       this.processorsMap
-        .get(PrcServiceSpecificsDelete.class.getSimpleName());
+        .get(PrcItemSpecificsDelete.class.getSimpleName());
     if (proc == null) {
-      proc = new PrcServiceSpecificsDelete<RS>();
+      proc =
+        new PrcItemSpecificsDelete<RS, IHasName, AItemSpecificsId<IHasName>>();
       proc.setSrvOrm(getSrvOrm());
        //assigning fully initialized object:
       this.processorsMap
-        .put(PrcServiceSpecificsDelete.class.getSimpleName(), proc);
+        .put(PrcItemSpecificsDelete.class.getSimpleName(), proc);
     }
     return proc;
   }
@@ -392,30 +395,33 @@ public class FctBnTradeEntitiesProcessors<RS>
   }
 
   /**
-   * <p>Get PrcServiceSpecificsRetrieve (create and put into map).</p>
+   * <p>Get PrcItemSpecificsRetrieve (create and put into map).</p>
    * @param pAddParam additional param
-   * @return requested PrcServiceSpecificsRetrieve
+   * @return requested PrcItemSpecificsRetrieve
    * @throws Exception - an exception
    */
-  protected final PrcServiceSpecificsRetrieve<RS>
-    lazyGetPrcServiceSpecificsRetrieve(
-      final Map<String, Object> pAddParam) throws Exception {
+  protected final
+    PrcItemSpecificsRetrieve<RS, IHasName, AItemSpecificsId<IHasName>>
+      lazyGetPrcItemSpecificsRetrieve(
+        final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcServiceSpecificsRetrieve<RS> proc =
-      (PrcServiceSpecificsRetrieve<RS>)
+    PrcItemSpecificsRetrieve<RS, IHasName, AItemSpecificsId<IHasName>> proc =
+      (PrcItemSpecificsRetrieve<RS, IHasName, AItemSpecificsId<IHasName>>)
       this.processorsMap
-        .get(PrcServiceSpecificsRetrieve.class.getSimpleName());
+        .get(PrcItemSpecificsRetrieve.class.getSimpleName());
     if (proc == null) {
-      proc = new PrcServiceSpecificsRetrieve<RS>();
+      proc =
+    new PrcItemSpecificsRetrieve<RS, IHasName, AItemSpecificsId<IHasName>>();
       @SuppressWarnings("unchecked")
-      PrcEntityRetrieve<RS, ServiceSpecifics, ServiceSpecificsId> procDlg =
-        (PrcEntityRetrieve<RS, ServiceSpecifics, ServiceSpecificsId>)
-          this.fctBnEntitiesProcessors
+    PrcEntityRetrieve<RS, AItemSpecifics<IHasName, AItemSpecificsId<IHasName>>,
+      AItemSpecificsId<IHasName>> procDlg = (PrcEntityRetrieve<RS,
+        AItemSpecifics<IHasName, AItemSpecificsId<IHasName>>,
+          AItemSpecificsId<IHasName>>) this.fctBnEntitiesProcessors
             .lazyGet(pAddParam, PrcEntityRetrieve.class.getSimpleName());
       proc.setPrcEntityRetrieve(procDlg);
       //assigning fully initialized object:
       this.processorsMap
-        .put(PrcServiceSpecificsRetrieve.class.getSimpleName(), proc);
+        .put(PrcItemSpecificsRetrieve.class.getSimpleName(), proc);
     }
     return proc;
   }
@@ -450,27 +456,28 @@ public class FctBnTradeEntitiesProcessors<RS>
   }
 
   /**
-   * <p>Get PrcServiceSpecificsSave (create and put into map).</p>
+   * <p>Get PrcItemSpecificsSave (create and put into map).</p>
    * @param pAddParam additional param
-   * @return requested PrcServiceSpecificsSave
+   * @return requested PrcItemSpecificsSave
    * @throws Exception - an exception
    */
-  protected final PrcServiceSpecificsSave<RS>
-    lazyGetPrcServiceSpecificsSave(
+  protected final PrcItemSpecificsSave<RS, IHasName, AItemSpecificsId<IHasName>>
+    lazyGetPrcItemSpecificsSave(
       final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcServiceSpecificsSave<RS> proc =
-      (PrcServiceSpecificsSave<RS>)
+    PrcItemSpecificsSave<RS, IHasName, AItemSpecificsId<IHasName>> proc =
+      (PrcItemSpecificsSave<RS, IHasName, AItemSpecificsId<IHasName>>)
       this.processorsMap
-        .get(PrcServiceSpecificsSave.class.getSimpleName());
+        .get(PrcItemSpecificsSave.class.getSimpleName());
     if (proc == null) {
-      proc = new PrcServiceSpecificsSave<RS>();
+      proc =
+        new PrcItemSpecificsSave<RS, IHasName, AItemSpecificsId<IHasName>>();
       proc.setSrvOrm(getSrvOrm());
       proc.setUploadDirectory(getUploadDirectory());
       proc.setWebAppPath(getWebAppPath());
       //assigning fully initialized object:
       this.processorsMap
-        .put(PrcServiceSpecificsSave.class.getSimpleName(), proc);
+        .put(PrcItemSpecificsSave.class.getSimpleName(), proc);
     }
     return proc;
   }

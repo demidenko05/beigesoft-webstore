@@ -6,11 +6,11 @@
 
 <suppressions>
   <suppress checks="MagicNumberCheck"
-    files="PrcGoodsSpecificSave|PrcRefreshGoodsInList|PrcDetailPage|PrcWebstorePage|PrcServiceSpecificsSave"/>
+    files="PrcGoodsSpecificSave|PrcRefreshGoodsInList|PrcRefreshItemsInList|PrcDetailPage|PrcItemPage|PrcWebstorePage|PrcItemSpecificsSave"/>
   <suppress checks="LineLength"
-    files="PrcRefreshGoodsInList|UtlTradeJsp"/>
+    files="PrcRefreshGoodsInList|PrcRefreshItemsInList|UtlTradeJsp"/>
   <suppress checks="MethodLength"
-    files="PrcRefreshGoodsInList|PrcWebstorePage"/>
+    files="PrcRefreshGoodsInList|PrcRefreshItemsInList|PrcWebstorePage"/>
   <suppress checks="ParameterNumber"
-    files="PrcRefreshGoodsInList"/>
+    files="PrcRefreshGoodsInList|PrcRefreshItemsInList"/>
 </suppressions>

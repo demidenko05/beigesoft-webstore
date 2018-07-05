@@ -1,4 +1,4 @@
-package org.beigesoft.webstore.persistable;
+package org.beigesoft.webstore.persistable.base;
 
 /*
  * Copyright (c) 2018 Beigesoft™
@@ -12,41 +12,43 @@ package org.beigesoft.webstore.persistable;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import org.beigesoft.accounting.persistable.ServiceToSale;
+import org.beigesoft.model.IHasName;
+import org.beigesoft.webstore.persistable.CatalogGs;
 
 /**
  * <p>
- * Model of ID of Catalog that contains of Service.
+ * Model of Catalog that contains of Item (Goods/Service/SeGoods/SeService).
  * </p>
  *
+ * @param <T> item type
  * @author Yury Demidenko
  */
-public class ServiceCatalogId {
+public class ItemCatalogId<T extends IHasName> {
 
   /**
-   * <p>Service Catalog, not null, its hasSubcatalogs=false.</p>
+   * <p>Item Catalog, not null, its hasSubcatalogs=false.</p>
    **/
   private CatalogGs itsCatalog;
 
   /**
-   * <p>Service, not null.</p>
+   * <p>Item, not null.</p>
    **/
-  private ServiceToSale service;
+  private T item;
 
   /**
    * <p>Minimal constructor.</p>
    **/
-  public ServiceCatalogId() {
+  public ItemCatalogId() {
   }
 
   /**
    * <p>Useful constructor.</p>
    * @param pCatalog reference
-   * @param pService reference
+   * @param pItem reference
    **/
-  public ServiceCatalogId(final CatalogGs pCatalog,
-    final ServiceToSale pService) {
-    this.service = pService;
+  public ItemCatalogId(final CatalogGs pCatalog,
+    final T pItem) {
+    this.item = pItem;
     this.itsCatalog = pCatalog;
   }
 
@@ -68,18 +70,18 @@ public class ServiceCatalogId {
   }
 
   /**
-   * <p>Getter for service.</p>
-   * @return ServiceToSale
+   * <p>Getter for item.</p>
+   * @return T
    **/
-  public final ServiceToSale getService() {
-    return this.service;
+  public final T getItem() {
+    return this.item;
   }
 
   /**
-   * <p>Setter for service.</p>
-   * @param pService reference
+   * <p>Setter for item.</p>
+   * @param pItem reference
    **/
-  public final void setService(final ServiceToSale pService) {
-    this.service = pService;
+  public final void setItem(final T pItem) {
+    this.item = pItem;
   }
 }

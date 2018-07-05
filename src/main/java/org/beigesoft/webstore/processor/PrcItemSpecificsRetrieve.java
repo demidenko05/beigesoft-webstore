@@ -15,26 +15,30 @@ package org.beigesoft.webstore.processor;
 import java.util.Map;
 import java.math.BigDecimal;
 
+import org.beigesoft.model.IHasName;
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.service.IEntityProcessor;
 import org.beigesoft.orm.processor.PrcEntityRetrieve;
 import org.beigesoft.webstore.model.ESpecificsItemType;
-import org.beigesoft.webstore.persistable.ServiceSpecifics;
-import org.beigesoft.webstore.persistable.ServiceSpecificsId;
+import org.beigesoft.webstore.persistable.base.AItemSpecifics;
+import org.beigesoft.webstore.persistable.base.AItemSpecificsId;
 
 /**
- * <p>Service that retrieve ServiceSpecifics.</p>
+ * <p>Service that retrieve Item Specifics.</p>
  *
  * @param <RS> platform dependent record set type
+ * @param <T> item type
+ * @param <ID> ID type
  * @author Yury Demidenko
  */
-public class PrcServiceSpecificsRetrieve<RS>
-  implements IEntityProcessor<ServiceSpecifics, ServiceSpecificsId> {
+public class PrcItemSpecificsRetrieve<RS, T extends IHasName,
+  ID extends AItemSpecificsId<T>>
+    implements IEntityProcessor<AItemSpecifics<T, ID>, ID> {
 
   /**
    * <p>Entity retrieve delegator.</p>
    **/
-  private PrcEntityRetrieve<RS, ServiceSpecifics, ServiceSpecificsId>
+  private PrcEntityRetrieve<RS, AItemSpecifics<T, ID>, ID>
     prcEntityRetrieve;
 
   /**
@@ -47,10 +51,10 @@ public class PrcServiceSpecificsRetrieve<RS>
    * @throws Exception - an exception
    **/
   @Override
-  public final ServiceSpecifics process(final Map<String, Object> pReqVars,
-    final ServiceSpecifics pEntity,
+  public final AItemSpecifics<T, ID> process(final Map<String, Object> pReqVars,
+    final AItemSpecifics<T, ID> pEntity,
       final IRequestData pRequestData) throws Exception {
-    ServiceSpecifics entity = this.prcEntityRetrieve
+    AItemSpecifics<T, ID> entity = this.prcEntityRetrieve
       .process(pReqVars, pEntity, pRequestData);
     if (entity.getSpecifics().getItsType() != null
       && entity.getSpecifics().getItsType()
@@ -69,9 +73,9 @@ public class PrcServiceSpecificsRetrieve<RS>
   //Simple getters and setters:
   /**
    * <p>Getter for prcEntityRetrieve.</p>
-   * @return PrcEntityRetrieve<RS, ServiceSpecifics, ServiceSpecificsId>
+   * @return PrcEntityRetrieve<RS, AItemSpecifics<T, ID>, ID>
    **/
-  public final PrcEntityRetrieve<RS, ServiceSpecifics, ServiceSpecificsId>
+  public final PrcEntityRetrieve<RS, AItemSpecifics<T, ID>, ID>
     getPrcEntityRetrieve() {
     return this.prcEntityRetrieve;
   }
@@ -81,7 +85,7 @@ public class PrcServiceSpecificsRetrieve<RS>
    * @param pPrcEntityRetrieve reference
    **/
   public final void setPrcEntityRetrieve(
-    final PrcEntityRetrieve<RS, ServiceSpecifics, ServiceSpecificsId>
+    final PrcEntityRetrieve<RS, AItemSpecifics<T, ID>, ID>
       pPrcEntityRetrieve) {
     this.prcEntityRetrieve = pPrcEntityRetrieve;
   }

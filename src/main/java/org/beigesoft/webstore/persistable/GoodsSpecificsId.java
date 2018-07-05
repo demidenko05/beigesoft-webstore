@@ -13,26 +13,26 @@ package org.beigesoft.webstore.persistable;
  */
 
 import org.beigesoft.webstore.persistable.base.AItemSpecificsId;
-import org.beigesoft.accounting.persistable.ServiceToSale;
+import org.beigesoft.accounting.persistable.InvItem;
 
 /**
  * <p>
- * Model of ID of Specifics values for a Service.
+ * Model of ID of Specifics values for a Goods.
  * </p>
  *
  * @author Yury Demidenko
  */
-public class ServiceSpecificsId extends AItemSpecificsId<ServiceToSale> {
+public class GoodsSpecificsId extends AItemSpecificsId<InvItem> {
 
   /**
-   * <p>Service.</p>
+   * <p>Goods.</p>
    **/
-  private ServiceToSale item;
+  private InvItem item;
 
   /**
    * <p>Minimal constructor.</p>
    **/
-  public ServiceSpecificsId() {
+  public GoodsSpecificsId() {
   }
 
   /**
@@ -40,18 +40,18 @@ public class ServiceSpecificsId extends AItemSpecificsId<ServiceToSale> {
    * @param pSpecifics reference
    * @param pItem reference
    **/
-  public ServiceSpecificsId(final SpecificsOfItem pSpecifics,
-    final ServiceToSale pItem) {
+  public GoodsSpecificsId(final SpecificsOfItem pSpecifics,
+    final InvItem pItem) {
     this.item = pItem;
     setSpecifics(pSpecifics);
   }
 
   /**
    * <p>Getter for item.</p>
-   * @return ServiceToSale
+   * @return InvItem
    **/
   @Override
-  public final ServiceToSale getItem() {
+  public final InvItem getItem() {
     return this.item;
   }
 
@@ -60,7 +60,7 @@ public class ServiceSpecificsId extends AItemSpecificsId<ServiceToSale> {
    * @param pItem reference
    **/
   @Override
-  public final void setItem(final ServiceToSale pItem) {
+  public final void setItem(final InvItem pItem) {
     this.item = pItem;
   }
 }
