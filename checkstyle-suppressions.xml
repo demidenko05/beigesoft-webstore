@@ -8,7 +8,7 @@
   <suppress checks="MagicNumberCheck"
     files="PrcGoodsSpecificSave|PrcRefreshGoodsInList|PrcRefreshItemsInList|PrcDetailPage|PrcItemPage|PrcWebstorePage|PrcItemSpecificsSave"/>
   <suppress checks="LineLength"
-    files="PrcRefreshGoodsInList|PrcRefreshItemsInList|UtlTradeJsp"/>
+    files="PrcRefreshGoodsInList|PrcRefreshItemsInList|UtlTradeJsp|FctBnTradeEntitiesProcessors"/>
   <suppress checks="MethodLength"
     files="PrcRefreshGoodsInList|PrcRefreshItemsInList|PrcWebstorePage"/>
   <suppress checks="ParameterNumber"

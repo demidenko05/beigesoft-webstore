@@ -13,27 +13,26 @@ package org.beigesoft.webstore.persistable;
  */
 
 import org.beigesoft.webstore.persistable.base.AItemCatalog;
-import org.beigesoft.accounting.persistable.ServiceToSale;
+import org.beigesoft.accounting.persistable.InvItem;
 
 /**
  * <p>
- * Model of Catalog that contains of Service.
+ * Model of Catalog that contains of Goods.
  * </p>
  *
  * @author Yury Demidenko
  */
-public class ServiceCatalog
-  extends AItemCatalog<ServiceToSale, ServiceCatalogId> {
+public class GoodsCatalog extends AItemCatalog<InvItem, GoodsCatalogId> {
 
   /**
    * <p>ID.</p>
    **/
-  private ServiceCatalogId itsId = new ServiceCatalogId();
+  private GoodsCatalogId itsId = new GoodsCatalogId();
 
   /**
-   * <p>Service.</p>
+   * <p>Goods.</p>
    **/
-  private ServiceToSale item;
+  private InvItem item;
 
   /**
    * <p>Item Catalog, not null, its hasSubitsCatalogs=false.</p>
@@ -42,10 +41,10 @@ public class ServiceCatalog
 
   /**
    * <p>Usually it's simple getter that return model ID.</p>
-   * @return ServiceCatalogId model ID
+   * @return GoodsCatalogId model ID
    **/
   @Override
-  public final ServiceCatalogId getItsId() {
+  public final GoodsCatalogId getItsId() {
     return this.itsId;
   }
 
@@ -54,7 +53,7 @@ public class ServiceCatalog
    * @param pItsId model ID
    **/
   @Override
-  public final void setItsId(final ServiceCatalogId pItsId) {
+  public final void setItsId(final GoodsCatalogId pItsId) {
     this.itsId = pItsId;
     if (this.itsId != null) {
       this.itsCatalog = this.itsId.getItsCatalog();
@@ -72,7 +71,7 @@ public class ServiceCatalog
   public final void setItsCatalog(final CatalogGs pCatalog) {
     this.itsCatalog = pCatalog;
     if (this.itsId == null) {
-      this.itsId = new ServiceCatalogId();
+      this.itsId = new GoodsCatalogId();
     }
     this.itsId.setItsCatalog(this.itsCatalog);
   }
@@ -87,10 +86,10 @@ public class ServiceCatalog
 
   /**
    * <p>Getter for item.</p>
-   * @return ServiceToSale
+   * @return InvItem
    **/
   @Override
-  public final ServiceToSale getItem() {
+  public final InvItem getItem() {
     return this.item;
   }
 
@@ -99,10 +98,10 @@ public class ServiceCatalog
    * @param pItem reference
    **/
   @Override
-  public final void setItem(final ServiceToSale pItem) {
+  public final void setItem(final InvItem pItem) {
     this.item = pItem;
     if (getItsId() == null) {
-      setItsId(new ServiceCatalogId());
+      setItsId(new GoodsCatalogId());
     }
     getItsId().setItem(this.item);
   }

@@ -12,7 +12,7 @@ package org.beigesoft.webstore.persistable.base;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import org.beigesoft.model.IHasName;
+import org.beigesoft.model.IHasIdName;
 import org.beigesoft.webstore.persistable.CatalogGs;
 
 /**
@@ -23,7 +23,7 @@ import org.beigesoft.webstore.persistable.CatalogGs;
  * @param <T> item type
  * @author Yury Demidenko
  */
-public class ItemCatalogId<T extends IHasName> {
+public abstract class AItemCatalogId<T extends IHasIdName<Long>> {
 
   /**
    * <p>Item Catalog, not null, its hasSubcatalogs=false.</p>
@@ -31,26 +31,15 @@ public class ItemCatalogId<T extends IHasName> {
   private CatalogGs itsCatalog;
 
   /**
-   * <p>Item, not null.</p>
+   * <p>Getter for item.</p>
+   * @return T
    **/
-  private T item;
-
+  public abstract T getItem();
   /**
-   * <p>Minimal constructor.</p>
-   **/
-  public ItemCatalogId() {
-  }
-
-  /**
-   * <p>Useful constructor.</p>
-   * @param pCatalog reference
+   * <p>Setter for item.</p>
    * @param pItem reference
    **/
-  public ItemCatalogId(final CatalogGs pCatalog,
-    final T pItem) {
-    this.item = pItem;
-    this.itsCatalog = pCatalog;
-  }
+  public abstract void setItem(final T pItem);
 
   //Simple getters and setters:
   /**
@@ -67,21 +56,5 @@ public class ItemCatalogId<T extends IHasName> {
    **/
   public final void setItsCatalog(final CatalogGs pCatalog) {
     this.itsCatalog = pCatalog;
-  }
-
-  /**
-   * <p>Getter for item.</p>
-   * @return T
-   **/
-  public final T getItem() {
-    return this.item;
-  }
-
-  /**
-   * <p>Setter for item.</p>
-   * @param pItem reference
-   **/
-  public final void setItem(final T pItem) {
-    this.item = pItem;
   }
 }

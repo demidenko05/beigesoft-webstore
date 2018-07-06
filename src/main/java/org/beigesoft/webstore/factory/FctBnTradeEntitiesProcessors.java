@@ -1,7 +1,7 @@
 package org.beigesoft.webstore.factory;
 
 /*
- * Copyright (c) 2017 Beigesoft ™
+ * Copyright (c) 2017 Beigesoft™
  *
  * Licensed under the GNU General Public License (GPL), Version 2.0
  * (the "License");
@@ -15,7 +15,7 @@ package org.beigesoft.webstore.factory;
 import java.util.Map;
 import java.util.HashMap;
 
-import org.beigesoft.model.IHasName;
+import org.beigesoft.model.IHasIdName;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IEntityProcessor;
 import org.beigesoft.settings.IMngSettings;
@@ -26,6 +26,7 @@ import org.beigesoft.webstore.service.ISrvSettingsAdd;
 import org.beigesoft.webstore.service.ISrvTradingSettings;
 import org.beigesoft.webstore.persistable.base.AItemSpecifics;
 import org.beigesoft.webstore.persistable.base.AItemSpecificsId;
+import org.beigesoft.webstore.persistable.base.AItemCatalogId;
 import org.beigesoft.webstore.persistable.GoodsSpecific;
 import org.beigesoft.webstore.persistable.GoodsSpecificId;
 import org.beigesoft.webstore.processor.PrcAdvisedGoodsForGoodsSave;
@@ -50,8 +51,7 @@ import org.beigesoft.webstore.processor.PrcGoodsSpecificDelete;
  * @param <RS> platform dependent record set type
  * @author Yury Demidenko
  */
-public class FctBnTradeEntitiesProcessors<RS>
-  implements IFactoryAppBeansByName<IEntityProcessor> {
+public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<IEntityProcessor> {
 
   /**
    * <p>Factory non-acc entity processors.
@@ -95,9 +95,7 @@ public class FctBnTradeEntitiesProcessors<RS>
   /**
    * <p>Converters map "converter name"-"object' s converter".</p>
    **/
-  private final Map<String, IEntityProcessor>
-    processorsMap =
-      new HashMap<String, IEntityProcessor>();
+  private final Map<String, IEntityProcessor> processorsMap = new HashMap<String, IEntityProcessor>();
 
   /**
    * <p>Get bean in lazy mode (if bean is null then initialize it).</p>
@@ -182,20 +180,14 @@ public class FctBnTradeEntitiesProcessors<RS>
    * @return requested PrcAdvisedGoodsForGoodsSave
    * @throws Exception - an exception
    */
-  protected final PrcAdvisedGoodsForGoodsSave<RS>
-    lazyGetPrcAdvisedGoodsForGoodsSave(
-      final Map<String, Object> pAddParam) throws Exception {
+  protected final PrcAdvisedGoodsForGoodsSave<RS> lazyGetPrcAdvisedGoodsForGoodsSave(final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcAdvisedGoodsForGoodsSave<RS> proc =
-      (PrcAdvisedGoodsForGoodsSave<RS>)
-      this.processorsMap
-        .get(PrcAdvisedGoodsForGoodsSave.class.getSimpleName());
+    PrcAdvisedGoodsForGoodsSave<RS> proc = (PrcAdvisedGoodsForGoodsSave<RS>) this.processorsMap.get(PrcAdvisedGoodsForGoodsSave.class.getSimpleName());
     if (proc == null) {
       proc = new PrcAdvisedGoodsForGoodsSave<RS>();
       proc.setSrvOrm(getSrvOrm());
       //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcAdvisedGoodsForGoodsSave.class.getSimpleName(), proc);
+      this.processorsMap.put(PrcAdvisedGoodsForGoodsSave.class.getSimpleName(), proc);
     }
     return proc;
   }
@@ -206,20 +198,14 @@ public class FctBnTradeEntitiesProcessors<RS>
    * @return requested PrcSettingsAddSave
    * @throws Exception - an exception
    */
-  protected final PrcSettingsAddSave<RS>
-    lazyGetPrcSettingsAddSave(
-      final Map<String, Object> pAddParam) throws Exception {
+  protected final PrcSettingsAddSave<RS> lazyGetPrcSettingsAddSave(final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcSettingsAddSave<RS> proc =
-      (PrcSettingsAddSave<RS>)
-      this.processorsMap
-        .get(PrcSettingsAddSave.class.getSimpleName());
+    PrcSettingsAddSave<RS> proc = (PrcSettingsAddSave<RS>) this.processorsMap.get(PrcSettingsAddSave.class.getSimpleName());
     if (proc == null) {
       proc = new PrcSettingsAddSave<RS>();
       proc.setSrvSettingsAdd(getSrvSettingsAdd());
       //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcSettingsAddSave.class.getSimpleName(), proc);
+      this.processorsMap.put(PrcSettingsAddSave.class.getSimpleName(), proc);
     }
     return proc;
   }
@@ -230,20 +216,14 @@ public class FctBnTradeEntitiesProcessors<RS>
    * @return requested PrcTradingSettingsSave
    * @throws Exception - an exception
    */
-  protected final PrcTradingSettingsSave<RS>
-    lazyGetPrcTradingSettingsSave(
-      final Map<String, Object> pAddParam) throws Exception {
+  protected final PrcTradingSettingsSave<RS> lazyGetPrcTradingSettingsSave(final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcTradingSettingsSave<RS> proc =
-      (PrcTradingSettingsSave<RS>)
-      this.processorsMap
-        .get(PrcTradingSettingsSave.class.getSimpleName());
+    PrcTradingSettingsSave<RS> proc = (PrcTradingSettingsSave<RS>) this.processorsMap.get(PrcTradingSettingsSave.class.getSimpleName());
     if (proc == null) {
       proc = new PrcTradingSettingsSave<RS>();
       proc.setSrvTradingSettings(getSrvTradingSettings());
       //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcTradingSettingsSave.class.getSimpleName(), proc);
+      this.processorsMap.put(PrcTradingSettingsSave.class.getSimpleName(), proc);
     }
     return proc;
   }
@@ -254,20 +234,17 @@ public class FctBnTradeEntitiesProcessors<RS>
    * @return requested PrcItemCatalogSave
    * @throws Exception - an exception
    */
-  protected final PrcItemCatalogSave<RS, IHasName>
-    lazyGetPrcItemCatalogSave(
-      final Map<String, Object> pAddParam) throws Exception {
+  protected final PrcItemCatalogSave<RS, IHasIdName<Long>, AItemCatalogId<IHasIdName<Long>>>
+    lazyGetPrcItemCatalogSave(final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcItemCatalogSave<RS, IHasName> proc =
-      (PrcItemCatalogSave<RS, IHasName>)
-      this.processorsMap
-        .get(PrcItemCatalogSave.class.getSimpleName());
+    PrcItemCatalogSave<RS, IHasIdName<Long>, AItemCatalogId<IHasIdName<Long>>> proc =
+      (PrcItemCatalogSave<RS, IHasIdName<Long>, AItemCatalogId<IHasIdName<Long>>>)
+        this.processorsMap.get(PrcItemCatalogSave.class.getSimpleName());
     if (proc == null) {
-      proc = new PrcItemCatalogSave<RS, IHasName>();
+      proc = new PrcItemCatalogSave<RS, IHasIdName<Long>, AItemCatalogId<IHasIdName<Long>>>();
       proc.setSrvOrm(getSrvOrm());
       //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcItemCatalogSave.class.getSimpleName(), proc);
+      this.processorsMap.put(PrcItemCatalogSave.class.getSimpleName(), proc);
     }
     return proc;
   }
@@ -278,20 +255,14 @@ public class FctBnTradeEntitiesProcessors<RS>
    * @return requested PrcGoodsCatalogsSave
    * @throws Exception - an exception
    */
-  protected final PrcGoodsCatalogsSave<RS>
-    lazyGetPrcGoodsCatalogsSave(
-      final Map<String, Object> pAddParam) throws Exception {
+  protected final PrcGoodsCatalogsSave<RS> lazyGetPrcGoodsCatalogsSave(final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcGoodsCatalogsSave<RS> proc =
-      (PrcGoodsCatalogsSave<RS>)
-      this.processorsMap
-        .get(PrcGoodsCatalogsSave.class.getSimpleName());
+    PrcGoodsCatalogsSave<RS> proc = (PrcGoodsCatalogsSave<RS>) this.processorsMap.get(PrcGoodsCatalogsSave.class.getSimpleName());
     if (proc == null) {
       proc = new PrcGoodsCatalogsSave<RS>();
       proc.setSrvOrm(getSrvOrm());
       //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcGoodsCatalogsSave.class.getSimpleName(), proc);
+      this.processorsMap.put(PrcGoodsCatalogsSave.class.getSimpleName(), proc);
     }
     return proc;
   }
@@ -302,20 +273,14 @@ public class FctBnTradeEntitiesProcessors<RS>
    * @return requested PrcSubcatalogsCatalogsGsSave
    * @throws Exception - an exception
    */
-  protected final PrcSubcatalogsCatalogsGsSave<RS>
-    lazyGetPrcSubcatalogsCatalogsGsSave(
-      final Map<String, Object> pAddParam) throws Exception {
+  protected final PrcSubcatalogsCatalogsGsSave<RS> lazyGetPrcSubcatalogsCatalogsGsSave(final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcSubcatalogsCatalogsGsSave<RS> proc =
-      (PrcSubcatalogsCatalogsGsSave<RS>)
-      this.processorsMap
-        .get(PrcSubcatalogsCatalogsGsSave.class.getSimpleName());
+    PrcSubcatalogsCatalogsGsSave<RS> proc = (PrcSubcatalogsCatalogsGsSave<RS>) this.processorsMap.get(PrcSubcatalogsCatalogsGsSave.class.getSimpleName());
     if (proc == null) {
       proc = new PrcSubcatalogsCatalogsGsSave<RS>();
       proc.setSrvOrm(getSrvOrm());
       //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcSubcatalogsCatalogsGsSave.class.getSimpleName(), proc);
+      this.processorsMap.put(PrcSubcatalogsCatalogsGsSave.class.getSimpleName(), proc);
     }
     return proc;
   }
@@ -326,9 +291,7 @@ public class FctBnTradeEntitiesProcessors<RS>
    * @return requested PrcGoodsAdviseCategoriesSave
    * @throws Exception - an exception
    */
-  protected final PrcGoodsAdviseCategoriesSave<RS>
-    lazyGetPrcGoodsAdviseCategoriesSave(
-      final Map<String, Object> pAddParam) throws Exception {
+  protected final PrcGoodsAdviseCategoriesSave<RS> lazyGetPrcGoodsAdviseCategoriesSave(final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
     PrcGoodsAdviseCategoriesSave<RS> proc =
       (PrcGoodsAdviseCategoriesSave<RS>)
@@ -338,8 +301,7 @@ public class FctBnTradeEntitiesProcessors<RS>
       proc = new PrcGoodsAdviseCategoriesSave<RS>();
       proc.setSrvOrm(getSrvOrm());
       //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcGoodsAdviseCategoriesSave.class.getSimpleName(), proc);
+      this.processorsMap.put(PrcGoodsAdviseCategoriesSave.class.getSimpleName(), proc);
     }
     return proc;
   }
@@ -350,22 +312,17 @@ public class FctBnTradeEntitiesProcessors<RS>
    * @return requested PrcItemSpecificsDelete
    * @throws Exception - an exception
    */
-  protected final
-    PrcItemSpecificsDelete<RS, IHasName, AItemSpecificsId<IHasName>>
-      lazyGetPrcItemSpecificsDelete(
-        final Map<String, Object> pAddParam) throws Exception {
+  protected final PrcItemSpecificsDelete<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>
+    lazyGetPrcItemSpecificsDelete(final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcItemSpecificsDelete<RS, IHasName, AItemSpecificsId<IHasName>> proc =
-      (PrcItemSpecificsDelete<RS, IHasName, AItemSpecificsId<IHasName>>)
-      this.processorsMap
-        .get(PrcItemSpecificsDelete.class.getSimpleName());
+    PrcItemSpecificsDelete<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>> proc =
+      (PrcItemSpecificsDelete<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>)
+        this.processorsMap.get(PrcItemSpecificsDelete.class.getSimpleName());
     if (proc == null) {
-      proc =
-        new PrcItemSpecificsDelete<RS, IHasName, AItemSpecificsId<IHasName>>();
+      proc = new PrcItemSpecificsDelete<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>();
       proc.setSrvOrm(getSrvOrm());
        //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcItemSpecificsDelete.class.getSimpleName(), proc);
+      this.processorsMap.put(PrcItemSpecificsDelete.class.getSimpleName(), proc);
     }
     return proc;
   }
@@ -376,20 +333,14 @@ public class FctBnTradeEntitiesProcessors<RS>
    * @return requested PrcGoodsSpecificDelete
    * @throws Exception - an exception
    */
-  protected final PrcGoodsSpecificDelete<RS>
-    lazyGetPrcGoodsSpecificDelete(
-      final Map<String, Object> pAddParam) throws Exception {
+  protected final PrcGoodsSpecificDelete<RS> lazyGetPrcGoodsSpecificDelete(final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcGoodsSpecificDelete<RS> proc =
-      (PrcGoodsSpecificDelete<RS>)
-      this.processorsMap
-        .get(PrcGoodsSpecificDelete.class.getSimpleName());
+    PrcGoodsSpecificDelete<RS> proc = (PrcGoodsSpecificDelete<RS>) this.processorsMap.get(PrcGoodsSpecificDelete.class.getSimpleName());
     if (proc == null) {
       proc = new PrcGoodsSpecificDelete<RS>();
       proc.setSrvOrm(getSrvOrm());
        //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcGoodsSpecificDelete.class.getSimpleName(), proc);
+      this.processorsMap.put(PrcGoodsSpecificDelete.class.getSimpleName(), proc);
     }
     return proc;
   }
@@ -400,28 +351,21 @@ public class FctBnTradeEntitiesProcessors<RS>
    * @return requested PrcItemSpecificsRetrieve
    * @throws Exception - an exception
    */
-  protected final
-    PrcItemSpecificsRetrieve<RS, IHasName, AItemSpecificsId<IHasName>>
-      lazyGetPrcItemSpecificsRetrieve(
-        final Map<String, Object> pAddParam) throws Exception {
+  protected final PrcItemSpecificsRetrieve<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>
+      lazyGetPrcItemSpecificsRetrieve(final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcItemSpecificsRetrieve<RS, IHasName, AItemSpecificsId<IHasName>> proc =
-      (PrcItemSpecificsRetrieve<RS, IHasName, AItemSpecificsId<IHasName>>)
-      this.processorsMap
-        .get(PrcItemSpecificsRetrieve.class.getSimpleName());
+    PrcItemSpecificsRetrieve<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>> proc =
+      (PrcItemSpecificsRetrieve<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>)
+        this.processorsMap.get(PrcItemSpecificsRetrieve.class.getSimpleName());
     if (proc == null) {
-      proc =
-    new PrcItemSpecificsRetrieve<RS, IHasName, AItemSpecificsId<IHasName>>();
+      proc = new PrcItemSpecificsRetrieve<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>();
       @SuppressWarnings("unchecked")
-    PrcEntityRetrieve<RS, AItemSpecifics<IHasName, AItemSpecificsId<IHasName>>,
-      AItemSpecificsId<IHasName>> procDlg = (PrcEntityRetrieve<RS,
-        AItemSpecifics<IHasName, AItemSpecificsId<IHasName>>,
-          AItemSpecificsId<IHasName>>) this.fctBnEntitiesProcessors
-            .lazyGet(pAddParam, PrcEntityRetrieve.class.getSimpleName());
+      PrcEntityRetrieve<RS, AItemSpecifics<IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>, AItemSpecificsId<IHasIdName<Long>>>
+        procDlg = (PrcEntityRetrieve<RS, AItemSpecifics<IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>, AItemSpecificsId<IHasIdName<Long>>>)
+          this.fctBnEntitiesProcessors.lazyGet(pAddParam, PrcEntityRetrieve.class.getSimpleName());
       proc.setPrcEntityRetrieve(procDlg);
       //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcItemSpecificsRetrieve.class.getSimpleName(), proc);
+      this.processorsMap.put(PrcItemSpecificsRetrieve.class.getSimpleName(), proc);
     }
     return proc;
   }
@@ -432,25 +376,18 @@ public class FctBnTradeEntitiesProcessors<RS>
    * @return requested PrcGoodsSpecificRetrieve
    * @throws Exception - an exception
    */
-  protected final PrcGoodsSpecificRetrieve<RS>
-    lazyGetPrcGoodsSpecificRetrieve(
-      final Map<String, Object> pAddParam) throws Exception {
+  protected final PrcGoodsSpecificRetrieve<RS> lazyGetPrcGoodsSpecificRetrieve(final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcGoodsSpecificRetrieve<RS> proc =
-      (PrcGoodsSpecificRetrieve<RS>)
-      this.processorsMap
-        .get(PrcGoodsSpecificRetrieve.class.getSimpleName());
+    PrcGoodsSpecificRetrieve<RS> proc = (PrcGoodsSpecificRetrieve<RS>) this.processorsMap.get(PrcGoodsSpecificRetrieve.class.getSimpleName());
     if (proc == null) {
       proc = new PrcGoodsSpecificRetrieve<RS>();
       @SuppressWarnings("unchecked")
       PrcEntityRetrieve<RS, GoodsSpecific, GoodsSpecificId> procDlg =
         (PrcEntityRetrieve<RS, GoodsSpecific, GoodsSpecificId>)
-          this.fctBnEntitiesProcessors
-            .lazyGet(pAddParam, PrcEntityRetrieve.class.getSimpleName());
+          this.fctBnEntitiesProcessors.lazyGet(pAddParam, PrcEntityRetrieve.class.getSimpleName());
       proc.setPrcEntityRetrieve(procDlg);
       //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcGoodsSpecificRetrieve.class.getSimpleName(), proc);
+      this.processorsMap.put(PrcGoodsSpecificRetrieve.class.getSimpleName(), proc);
     }
     return proc;
   }
@@ -461,23 +398,19 @@ public class FctBnTradeEntitiesProcessors<RS>
    * @return requested PrcItemSpecificsSave
    * @throws Exception - an exception
    */
-  protected final PrcItemSpecificsSave<RS, IHasName, AItemSpecificsId<IHasName>>
-    lazyGetPrcItemSpecificsSave(
-      final Map<String, Object> pAddParam) throws Exception {
+  protected final PrcItemSpecificsSave<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>
+    lazyGetPrcItemSpecificsSave(final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcItemSpecificsSave<RS, IHasName, AItemSpecificsId<IHasName>> proc =
-      (PrcItemSpecificsSave<RS, IHasName, AItemSpecificsId<IHasName>>)
-      this.processorsMap
-        .get(PrcItemSpecificsSave.class.getSimpleName());
+    PrcItemSpecificsSave<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>> proc =
+      (PrcItemSpecificsSave<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>)
+        this.processorsMap.get(PrcItemSpecificsSave.class.getSimpleName());
     if (proc == null) {
-      proc =
-        new PrcItemSpecificsSave<RS, IHasName, AItemSpecificsId<IHasName>>();
+      proc = new PrcItemSpecificsSave<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>();
       proc.setSrvOrm(getSrvOrm());
       proc.setUploadDirectory(getUploadDirectory());
       proc.setWebAppPath(getWebAppPath());
       //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcItemSpecificsSave.class.getSimpleName(), proc);
+      this.processorsMap.put(PrcItemSpecificsSave.class.getSimpleName(), proc);
     }
     return proc;
   }
@@ -488,22 +421,16 @@ public class FctBnTradeEntitiesProcessors<RS>
    * @return requested PrcGoodsSpecificSave
    * @throws Exception - an exception
    */
-  protected final PrcGoodsSpecificSave<RS>
-    lazyGetPrcGoodsSpecificSave(
-      final Map<String, Object> pAddParam) throws Exception {
+  protected final PrcGoodsSpecificSave<RS> lazyGetPrcGoodsSpecificSave(final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcGoodsSpecificSave<RS> proc =
-      (PrcGoodsSpecificSave<RS>)
-      this.processorsMap
-        .get(PrcGoodsSpecificSave.class.getSimpleName());
+    PrcGoodsSpecificSave<RS> proc = (PrcGoodsSpecificSave<RS>) this.processorsMap.get(PrcGoodsSpecificSave.class.getSimpleName());
     if (proc == null) {
       proc = new PrcGoodsSpecificSave<RS>();
       proc.setSrvOrm(getSrvOrm());
       proc.setUploadDirectory(getUploadDirectory());
       proc.setWebAppPath(getWebAppPath());
       //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcGoodsSpecificSave.class.getSimpleName(), proc);
+      this.processorsMap.put(PrcGoodsSpecificSave.class.getSimpleName(), proc);
     }
     return proc;
   }

@@ -15,7 +15,7 @@ package org.beigesoft.webstore.processor;
 import java.util.Map;
 import java.math.BigDecimal;
 
-import org.beigesoft.model.IHasName;
+import org.beigesoft.model.IHasIdName;
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.service.IEntityProcessor;
 import org.beigesoft.orm.processor.PrcEntityRetrieve;
@@ -31,7 +31,7 @@ import org.beigesoft.webstore.persistable.base.AItemSpecificsId;
  * @param <ID> ID type
  * @author Yury Demidenko
  */
-public class PrcItemSpecificsRetrieve<RS, T extends IHasName,
+public class PrcItemSpecificsRetrieve<RS, T extends IHasIdName<Long>,
   ID extends AItemSpecificsId<T>>
     implements IEntityProcessor<AItemSpecifics<T, ID>, ID> {
 

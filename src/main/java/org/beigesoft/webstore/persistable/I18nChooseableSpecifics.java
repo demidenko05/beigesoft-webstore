@@ -12,7 +12,6 @@ package org.beigesoft.webstore.persistable;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import org.beigesoft.model.IHasId;
 import org.beigesoft.persistable.AI18nName;
 import org.beigesoft.persistable.Languages;
 
@@ -23,8 +22,8 @@ import org.beigesoft.persistable.Languages;
  *
  * @author Yury Demidenko
  */
-public class I18nChooseableSpecifics extends AI18nName
-  implements IHasId<IdI18nChooseableSpecifics> {
+public class I18nChooseableSpecifics
+  extends AI18nName<ChooseableSpecifics, IdI18nChooseableSpecifics> {
 
   /**
    * <p>ID.</p>
@@ -70,6 +69,7 @@ public class I18nChooseableSpecifics extends AI18nName
    * <p>Setter for lang.</p>
    * @param pLang reference
    **/
+  @Override
   public final void setLang(final Languages pLang) {
     this.lang = pLang;
     if (this.itsId == null) {
@@ -82,6 +82,7 @@ public class I18nChooseableSpecifics extends AI18nName
    * <p>Setter for hasName.</p>
    * @param pHasName reference
    **/
+  @Override
   public final void setHasName(final ChooseableSpecifics pHasName) {
     this.hasName = pHasName;
     if (this.itsId == null) {
@@ -90,11 +91,11 @@ public class I18nChooseableSpecifics extends AI18nName
     this.itsId.setHasName(this.hasName);
   }
 
-  //SGS:
   /**
    * <p>Getter for hasName.</p>
    * @return ChooseableSpecifics
    **/
+  @Override
   public final ChooseableSpecifics getHasName() {
     return this.hasName;
   }
@@ -103,6 +104,7 @@ public class I18nChooseableSpecifics extends AI18nName
    * <p>Getter for lang.</p>
    * @return Languages
    **/
+  @Override
   public final Languages getLang() {
     return this.lang;
   }

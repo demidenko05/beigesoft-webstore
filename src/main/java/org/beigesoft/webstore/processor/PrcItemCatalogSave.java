@@ -15,22 +15,24 @@ package org.beigesoft.webstore.processor;
 import java.util.Map;
 
 import org.beigesoft.model.IRequestData;
-import org.beigesoft.model.IHasName;
+import org.beigesoft.model.IHasIdName;
 import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.service.IEntityProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.webstore.persistable.base.AItemCatalog;
-import org.beigesoft.webstore.persistable.base.ItemCatalogId;
+import org.beigesoft.webstore.persistable.base.AItemCatalogId;
 
 /**
  * <p>Service that save Item Catalog into DB.</p>
  *
  * @param <RS> platform dependent record set type
  * @param <T> item type
+ * @param <ID> ID type
  * @author Yury Demidenko
  */
-public class PrcItemCatalogSave<RS, T extends IHasName>
-  implements IEntityProcessor<AItemCatalog<T>, ItemCatalogId<T>> {
+public class PrcItemCatalogSave
+  <RS, T extends IHasIdName<Long>, ID extends AItemCatalogId<T>>
+    implements IEntityProcessor<AItemCatalog<T, ID>, ID> {
 
   /**
    * <p>ORM service.</p>
@@ -47,9 +49,9 @@ public class PrcItemCatalogSave<RS, T extends IHasName>
    * @throws Exception - an exception
    **/
   @Override
-  public final AItemCatalog<T> process(
+  public final AItemCatalog<T, ID> process(
     final Map<String, Object> pAddParam,
-      final AItemCatalog<T> pEntity,
+      final AItemCatalog<T, ID> pEntity,
         final IRequestData pRequestData) throws Exception {
     if (!pEntity.getIsNew()) {
       if (pAddParam.get("user") != null) {

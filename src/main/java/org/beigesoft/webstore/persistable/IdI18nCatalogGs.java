@@ -12,7 +12,7 @@ package org.beigesoft.webstore.persistable;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import org.beigesoft.persistable.Languages;
+import org.beigesoft.persistable.AI18nNameId;
 
 /**
  * <p>
@@ -21,7 +21,7 @@ import org.beigesoft.persistable.Languages;
  *
  * @author Yury Demidenko
  */
-public class IdI18nCatalogGs {
+public class IdI18nCatalogGs extends AI18nNameId<CatalogGs> {
 
   /**
    * <p>Internationalized thing.</p>
@@ -29,15 +29,10 @@ public class IdI18nCatalogGs {
   private CatalogGs hasName;
 
   /**
-   * <p>The language.</p>
-   **/
-  private Languages lang;
-
-  //Simple getters and setters:
-  /**
    * <p>Getter for hasName.</p>
    * @return CatalogGs
    **/
+  @Override
   public final CatalogGs getHasName() {
     return this.hasName;
   }
@@ -46,23 +41,8 @@ public class IdI18nCatalogGs {
    * <p>Setter for hasName.</p>
    * @param pHasName reference
    **/
+  @Override
   public final void setHasName(final CatalogGs pHasName) {
     this.hasName = pHasName;
-  }
-
-  /**
-   * <p>Getter for lang.</p>
-   * @return Languages
-   **/
-  public final Languages getLang() {
-    return this.lang;
-  }
-
-  /**
-   * <p>Setter for lang.</p>
-   * @param pLang reference
-   **/
-  public final void setLang(final Languages pLang) {
-    this.lang = pLang;
   }
 }
