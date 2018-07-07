@@ -9,6 +9,7 @@ alter table GOODSINLISTLUV add column SERVICEPRICELUV integer default null;
 alter table GOODSINLISTLUV add column SERVICEPLACELUV integer default null;
 alter table GOODSINLISTLUV add column SERVICERATINGLUV integer default null;
 alter table SPECIFICSOFITEM add column TEMPHTML integer default null references HTMLTEMPLATE(ITSID);
-alter table SPECIFICSOFITEM add column UNITOFMEASURE integer default null references UNITOFMEASURE(ITSID);
+alter table ITEMINLIST add column UNITOFMEASURE integer default null references UNITOFMEASURE(ITSID);
 alter table I18NSPECIFICINLIST add column ITSNAME text;
+drop table GOODSSPECIFIC;
 update DATABASEINFO set DATABASEVERSION=7, DESCRIPTION='Beige Accounting OIO DB version 7';

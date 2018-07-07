@@ -15,7 +15,7 @@ package org.beigesoft.webstore.processor;
 import java.util.Map;
 
 import org.beigesoft.model.IRequestData;
-import org.beigesoft.model.IHasIdName;
+import org.beigesoft.model.IHasIdLongVersion;
 import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.service.IEntityProcessor;
 import org.beigesoft.service.ISrvOrm;
@@ -31,7 +31,7 @@ import org.beigesoft.webstore.persistable.base.AItemCatalogId;
  * @author Yury Demidenko
  */
 public class PrcItemCatalogSave
-  <RS, T extends IHasIdName<Long>, ID extends AItemCatalogId<T>>
+  <RS, T extends IHasIdLongVersion, ID extends AItemCatalogId<T>>
     implements IEntityProcessor<AItemCatalog<T, ID>, ID> {
 
   /**

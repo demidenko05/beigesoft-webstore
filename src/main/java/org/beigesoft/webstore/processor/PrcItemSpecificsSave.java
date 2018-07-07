@@ -20,7 +20,7 @@ import java.io.OutputStream;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 
-import org.beigesoft.model.IHasIdName;
+import org.beigesoft.model.IHasIdLongVersion;
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.service.IEntityProcessor;
 import org.beigesoft.service.ISrvOrm;
@@ -35,7 +35,7 @@ import org.beigesoft.webstore.persistable.base.AItemSpecificsId;
  * @param <ID> ID type
  * @author Yury Demidenko
  */
-public class PrcItemSpecificsSave<RS, T extends IHasIdName<Long>,
+public class PrcItemSpecificsSave<RS, T extends IHasIdLongVersion,
   ID extends AItemSpecificsId<T>>
     implements IEntityProcessor<AItemSpecifics<T, ID>, ID> {
 

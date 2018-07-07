@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 
 import org.beigesoft.model.AEditableHasVersion;
 import org.beigesoft.model.IHasId;
-import org.beigesoft.model.IHasIdName;
+import org.beigesoft.model.IHasIdLongVersion;
 import org.beigesoft.webstore.persistable.SpecificsOfItem;
 
 /**
@@ -30,7 +30,7 @@ import org.beigesoft.webstore.persistable.SpecificsOfItem;
  * @author Yury Demidenko
  */
 public abstract class
-  AItemSpecifics<T extends IHasIdName<Long>, ID extends AItemSpecificsId<T>>
+  AItemSpecifics<T extends IHasIdLongVersion, ID extends AItemSpecificsId<T>>
     extends AEditableHasVersion implements IHasId<ID> {
 
   /**

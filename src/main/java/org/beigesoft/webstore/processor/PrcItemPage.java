@@ -210,14 +210,14 @@ public class PrcItemPage<RS> implements IProcessor {
       String langDef = (String) pReqVars.get("langDef");
       if (!lang.equals(langDef)) {
         String qd = lazyGetQuerySpecificsGoodsDetailI18n()
-          .replace(":GOODSID", pItemId.toString()).replace(":LANG", lang);
+          .replace(":ITEMID", pItemId.toString()).replace(":LANG", lang);
         result = getSrvOrm().retrieveListByQuery(pReqVars,
           GoodsSpecifics.class, qd);
       }
     }
     if (result == null) {
       result = getSrvOrm().retrieveListWithConditions(pReqVars,
-        GoodsSpecifics.class, " where GOODSSPECIFIC.GOODS=" + pItemId
+        GoodsSpecifics.class, " where GOODSSPECIFICS.ITEM=" + pItemId
           + " order by SPECIFICS.ITSINDEX");
     }
     pReqVars.remove("GoodsSpecificsspecificsdeepLevel");

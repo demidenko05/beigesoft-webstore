@@ -25,7 +25,7 @@ import org.beigesoft.service.ISrvEntitiesPage;
 import org.beigesoft.service.ISrvNumberToString;
 import org.beigesoft.service.PrcRefreshHndlI18n;
 import org.beigesoft.webstore.processor.PrcAssignGoodsToCatalog;
-import org.beigesoft.webstore.processor.PrcRefreshGoodsInList;
+import org.beigesoft.webstore.processor.PrcRefreshItemsInList;
 import org.beigesoft.webstore.processor.PrcRefreshCatalog;
 
 /**
@@ -99,9 +99,9 @@ public class FctBnTradeProcessors<RS>
         // make sure again whether it's null after locking:
         proc = this.processorsMap.get(pBeanName);
         if (proc == null) {
-          if (pBeanName.equals(PrcRefreshGoodsInList
+          if (pBeanName.equals(PrcRefreshItemsInList
             .class.getSimpleName())) {
-            proc = lazyGetPrcRefreshGoodsInList(pAddParam);
+            proc = lazyGetPrcRefreshItemsInList(pAddParam);
           } else if (pBeanName.equals(PrcRefreshHndlI18n
             .class.getSimpleName())) {
             proc = lazyGetPrcRefreshHndlI18n(pAddParam);
@@ -174,26 +174,26 @@ public class FctBnTradeProcessors<RS>
   }
 
   /**
-   * <p>Lazy get PrcRefreshGoodsInList.</p>
+   * <p>Lazy get PrcRefreshItemsInList.</p>
    * @param pAddParam additional param
-   * @return requested PrcRefreshGoodsInList
+   * @return requested PrcRefreshItemsInList
    * @throws Exception - an exception
    */
-  protected final PrcRefreshGoodsInList<RS>
-    lazyGetPrcRefreshGoodsInList(
+  protected final PrcRefreshItemsInList<RS>
+    lazyGetPrcRefreshItemsInList(
       final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcRefreshGoodsInList<RS> proc = (PrcRefreshGoodsInList<RS>)
+    PrcRefreshItemsInList<RS> proc = (PrcRefreshItemsInList<RS>)
       this.processorsMap
-        .get(PrcRefreshGoodsInList.class.getSimpleName());
+        .get(PrcRefreshItemsInList.class.getSimpleName());
     if (proc == null) {
-      proc = new PrcRefreshGoodsInList<RS>();
+      proc = new PrcRefreshItemsInList<RS>();
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvDatabase(getSrvDatabase());
       proc.setSrvNumberToString(getSrvNumberToString());
       //assigning fully initialized object:
       this.processorsMap
-        .put(PrcRefreshGoodsInList.class.getSimpleName(), proc);
+        .put(PrcRefreshItemsInList.class.getSimpleName(), proc);
     }
     return proc;
   }

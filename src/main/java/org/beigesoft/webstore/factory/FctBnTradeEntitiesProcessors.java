@@ -15,7 +15,7 @@ package org.beigesoft.webstore.factory;
 import java.util.Map;
 import java.util.HashMap;
 
-import org.beigesoft.model.IHasIdName;
+import org.beigesoft.model.IHasIdLongVersion;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IEntityProcessor;
 import org.beigesoft.settings.IMngSettings;
@@ -234,14 +234,14 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
    * @return requested PrcItemCatalogSave
    * @throws Exception - an exception
    */
-  protected final PrcItemCatalogSave<RS, IHasIdName<Long>, AItemCatalogId<IHasIdName<Long>>>
+  protected final PrcItemCatalogSave<RS, IHasIdLongVersion, AItemCatalogId<IHasIdLongVersion>>
     lazyGetPrcItemCatalogSave(final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcItemCatalogSave<RS, IHasIdName<Long>, AItemCatalogId<IHasIdName<Long>>> proc =
-      (PrcItemCatalogSave<RS, IHasIdName<Long>, AItemCatalogId<IHasIdName<Long>>>)
+    PrcItemCatalogSave<RS, IHasIdLongVersion, AItemCatalogId<IHasIdLongVersion>> proc =
+      (PrcItemCatalogSave<RS, IHasIdLongVersion, AItemCatalogId<IHasIdLongVersion>>)
         this.processorsMap.get(PrcItemCatalogSave.class.getSimpleName());
     if (proc == null) {
-      proc = new PrcItemCatalogSave<RS, IHasIdName<Long>, AItemCatalogId<IHasIdName<Long>>>();
+      proc = new PrcItemCatalogSave<RS, IHasIdLongVersion, AItemCatalogId<IHasIdLongVersion>>();
       proc.setSrvOrm(getSrvOrm());
       //assigning fully initialized object:
       this.processorsMap.put(PrcItemCatalogSave.class.getSimpleName(), proc);
@@ -312,14 +312,14 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
    * @return requested PrcItemSpecificsDelete
    * @throws Exception - an exception
    */
-  protected final PrcItemSpecificsDelete<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>
+  protected final PrcItemSpecificsDelete<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>
     lazyGetPrcItemSpecificsDelete(final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcItemSpecificsDelete<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>> proc =
-      (PrcItemSpecificsDelete<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>)
+    PrcItemSpecificsDelete<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>> proc =
+      (PrcItemSpecificsDelete<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>)
         this.processorsMap.get(PrcItemSpecificsDelete.class.getSimpleName());
     if (proc == null) {
-      proc = new PrcItemSpecificsDelete<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>();
+      proc = new PrcItemSpecificsDelete<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>();
       proc.setSrvOrm(getSrvOrm());
        //assigning fully initialized object:
       this.processorsMap.put(PrcItemSpecificsDelete.class.getSimpleName(), proc);
@@ -351,17 +351,17 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
    * @return requested PrcItemSpecificsRetrieve
    * @throws Exception - an exception
    */
-  protected final PrcItemSpecificsRetrieve<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>
+  protected final PrcItemSpecificsRetrieve<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>
       lazyGetPrcItemSpecificsRetrieve(final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcItemSpecificsRetrieve<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>> proc =
-      (PrcItemSpecificsRetrieve<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>)
+    PrcItemSpecificsRetrieve<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>> proc =
+      (PrcItemSpecificsRetrieve<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>)
         this.processorsMap.get(PrcItemSpecificsRetrieve.class.getSimpleName());
     if (proc == null) {
-      proc = new PrcItemSpecificsRetrieve<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>();
+      proc = new PrcItemSpecificsRetrieve<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>();
       @SuppressWarnings("unchecked")
-      PrcEntityRetrieve<RS, AItemSpecifics<IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>, AItemSpecificsId<IHasIdName<Long>>>
-        procDlg = (PrcEntityRetrieve<RS, AItemSpecifics<IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>, AItemSpecificsId<IHasIdName<Long>>>)
+      PrcEntityRetrieve<RS, AItemSpecifics<IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>, AItemSpecificsId<IHasIdLongVersion>>
+        procDlg = (PrcEntityRetrieve<RS, AItemSpecifics<IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>, AItemSpecificsId<IHasIdLongVersion>>)
           this.fctBnEntitiesProcessors.lazyGet(pAddParam, PrcEntityRetrieve.class.getSimpleName());
       proc.setPrcEntityRetrieve(procDlg);
       //assigning fully initialized object:
@@ -398,14 +398,14 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
    * @return requested PrcItemSpecificsSave
    * @throws Exception - an exception
    */
-  protected final PrcItemSpecificsSave<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>
+  protected final PrcItemSpecificsSave<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>
     lazyGetPrcItemSpecificsSave(final Map<String, Object> pAddParam) throws Exception {
     @SuppressWarnings("unchecked")
-    PrcItemSpecificsSave<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>> proc =
-      (PrcItemSpecificsSave<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>)
+    PrcItemSpecificsSave<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>> proc =
+      (PrcItemSpecificsSave<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>)
         this.processorsMap.get(PrcItemSpecificsSave.class.getSimpleName());
     if (proc == null) {
-      proc = new PrcItemSpecificsSave<RS, IHasIdName<Long>, AItemSpecificsId<IHasIdName<Long>>>();
+      proc = new PrcItemSpecificsSave<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>();
       proc.setSrvOrm(getSrvOrm());
       proc.setUploadDirectory(getUploadDirectory());
       proc.setWebAppPath(getWebAppPath());

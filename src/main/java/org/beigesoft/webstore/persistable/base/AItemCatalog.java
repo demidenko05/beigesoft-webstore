@@ -14,7 +14,7 @@ package org.beigesoft.webstore.persistable.base;
 
 import org.beigesoft.model.AEditableHasVersion;
 import org.beigesoft.model.IHasId;
-import org.beigesoft.model.IHasIdName;
+import org.beigesoft.model.IHasIdLongVersion;
 import org.beigesoft.webstore.persistable.CatalogGs;
 
 /**
@@ -28,7 +28,7 @@ import org.beigesoft.webstore.persistable.CatalogGs;
  * @author Yury Demidenko
  */
 public abstract class
-  AItemCatalog<T extends IHasIdName<Long>, ID extends AItemCatalogId<T>>
+  AItemCatalog<T extends IHasIdLongVersion, ID extends AItemCatalogId<T>>
     extends AEditableHasVersion implements IHasId<ID> {
 
   /**

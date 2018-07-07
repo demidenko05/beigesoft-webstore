@@ -12,7 +12,7 @@ package org.beigesoft.webstore.persistable.base;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import org.beigesoft.model.IHasIdName;
+import org.beigesoft.model.IHasIdLongVersion;
 import org.beigesoft.webstore.persistable.SpecificsOfItem;
 
 /**
@@ -24,7 +24,7 @@ import org.beigesoft.webstore.persistable.SpecificsOfItem;
  * @param <T> item type
  * @author Yury Demidenko
  */
-public abstract class AItemSpecificsId<T extends IHasIdName<Long>> {
+public abstract class AItemSpecificsId<T extends IHasIdLongVersion> {
 
   /**
    * <p>Item specifics.</p>

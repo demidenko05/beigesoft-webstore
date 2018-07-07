@@ -20,8 +20,8 @@ import java.util.HashSet;
 import java.util.Collections;
 import java.math.BigDecimal;
 
+import org.beigesoft.model.IHasIdLongVersionName;
 import org.beigesoft.model.IRequestData;
-import org.beigesoft.model.IHasIdName;
 import org.beigesoft.comparator.CmprHasVersion;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvDatabase;
@@ -35,6 +35,7 @@ import org.beigesoft.accounting.persistable.UnitOfMeasure;
 import org.beigesoft.webstore.model.ESpecificsItemType;
 import org.beigesoft.webstore.model.EShopItemType;
 import org.beigesoft.persistable.Languages;
+import org.beigesoft.persistable.LangPreferences;
 import org.beigesoft.persistable.AI18nName;
 import org.beigesoft.webstore.persistable.base.AItemSpecifics;
 import org.beigesoft.webstore.persistable.GoodsSpecifics;
@@ -91,31 +92,24 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
     retrieveStartData(pReqVars);
     SettingsAdd settingsAdd = (SettingsAdd) pReqVars.get("settingsAdd");
     TradingSettings tradingSettings = (TradingSettings) pReqVars.get("tradingSettings");
-    GoodsInListLuv goodsInListLuv =
-      (GoodsInListLuv) pReqVars.get("goodsInListLuv");
+    GoodsInListLuv goodsInListLuv = (GoodsInListLuv) pReqVars.get("goodsInListLuv");
     pReqVars.remove("goodsInListLuv");
     String refreshAllGs = pRequestData.getParameter("refreshAllGs");
     List<GoodsSpecifics> outdatedGoodsSpecifics;
     if (refreshAllGs != null) {
-      outdatedGoodsSpecifics = retrieveGoodsSpecifics(pReqVars, "");
+      outdatedGoodsSpecifics = retrieveItemSpecificsLst(pReqVars, "", GoodsSpecifics.class);
     } else {
-      outdatedGoodsSpecifics =
-        retrieveOutdatedGoodsSpecifics(pReqVars, goodsInListLuv);
+      outdatedGoodsSpecifics = retrieveOutdatedGoodsSpecifics(pReqVars, goodsInListLuv);
     }
-    updateForGoodsSpecificsList(pReqVars, outdatedGoodsSpecifics,
-      settingsAdd, goodsInListLuv, tradingSettings, I18nInvItem.class, EShopItemType.GOODS);
+    updateForGoodsSpecificsList(pReqVars, outdatedGoodsSpecifics, settingsAdd, goodsInListLuv, tradingSettings, I18nInvItem.class, EShopItemType.GOODS);
     pRequestData.setAttribute("totalUpdatedGdSp", outdatedGoodsSpecifics.size());
-    List<GoodsPrice> outdatedGoodsPrice =
-      retrieveOutdatedGoodsPrice(pReqVars, goodsInListLuv);
-    updateForGoodsPriceList(pReqVars, outdatedGoodsPrice,
-      settingsAdd, goodsInListLuv);
+    List<GoodsPrice> outdatedGoodsPrice = retrieveOutdatedGoodsPrice(pReqVars, goodsInListLuv);
+    updateForGoodsPriceList(pReqVars, outdatedGoodsPrice, settingsAdd, goodsInListLuv);
     pRequestData.setAttribute("totalUpdatedGdPr", outdatedGoodsPrice.size());
-    List<GoodsAvailable> outdatedGoodsAvailable =
-      retrieveOutdatedGoodsAvailable(pReqVars, goodsInListLuv);
-    updateForGoodsAvailableList(pReqVars, outdatedGoodsAvailable,
-      settingsAdd, goodsInListLuv);
-    pRequestData.setAttribute("totalUpdatedGdAv",
-      outdatedGoodsAvailable.size());
+    List<GoodsAvailable> outdatedGoodsAvailable = retrieveOutdatedGoodsAvailable(pReqVars, goodsInListLuv);
+    updateForGoodsAvailableList(pReqVars, outdatedGoodsAvailable, settingsAdd, goodsInListLuv);
+    pRequestData.setAttribute("totalUpdatedGdAv", outdatedGoodsAvailable.size());
+    pReqVars.remove("langPreferences");
   }
 
   /**
@@ -127,17 +121,17 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
     final Map<String, Object> pReqVars) throws Exception {
     try {
       this.srvDatabase.setIsAutocommit(false);
-      this.srvDatabase.
-        setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
+      this.srvDatabase.setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
       this.srvDatabase.beginTransaction();
-      GoodsInListLuv goodsInListLuv = getSrvOrm()
-        .retrieveEntityById(pReqVars, GoodsInListLuv.class, 1L);
+      GoodsInListLuv goodsInListLuv = getSrvOrm().retrieveEntityById(pReqVars, GoodsInListLuv.class, 1L);
       if (goodsInListLuv == null) {
         goodsInListLuv = new GoodsInListLuv();
         goodsInListLuv.setItsId(1L);
         getSrvOrm().insertEntity(pReqVars, goodsInListLuv);
       }
       pReqVars.put("goodsInListLuv", goodsInListLuv);
+      List<LangPreferences> langPreferences = this.srvOrm.retrieveList(pReqVars, LangPreferences.class);
+      pReqVars.put("langPreferences", langPreferences);
       this.srvDatabase.commitTransaction();
     } catch (Exception ex) {
       if (!this.srvDatabase.getIsAutocommit()) {
@@ -162,19 +156,16 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
     List<GoodsAvailable> result = null;
     try {
       this.srvDatabase.setIsAutocommit(false);
-      this.srvDatabase.
-        setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
+      this.srvDatabase.setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
       this.srvDatabase.beginTransaction();
       String tblNm = GoodsAvailable.class.getSimpleName().toUpperCase();
       String verCond;
       if (pGoodsInListLuv.getGoodsAvailableLuv() != null) {
-        verCond = " where " + tblNm + ".ITSVERSION>" + pGoodsInListLuv
-          .getGoodsAvailableLuv().toString();
+        verCond = " where " + tblNm + ".ITSVERSION>" + pGoodsInListLuv.getGoodsAvailableLuv().toString();
       } else {
         verCond = "";
       }
-      result = getSrvOrm().retrieveListWithConditions(pReqVars,
-        GoodsAvailable.class, verCond + " order by " + tblNm + ".ITSVERSION");
+      result = getSrvOrm().retrieveListWithConditions(pReqVars, GoodsAvailable.class, verCond + " order by " + tblNm + ".ITSVERSION");
       this.srvDatabase.commitTransaction();
     } catch (Exception ex) {
       if (!this.srvDatabase.getIsAutocommit()) {
@@ -193,9 +184,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
    * @param pOutdGdAv outdated GoodsAvailable
    * @throws Exception - an exception
    **/
-  public final void updateForGoodsAvailable(
-    final Map<String, Object> pReqVars,
-      final GoodsAvailable pOutdGdAv) throws Exception {
+  public final void updateForGoodsAvailable(final Map<String, Object> pReqVars, final GoodsAvailable pOutdGdAv) throws Exception {
     String whereStr = "where ITSTYPE=0 and ITEMID=" + pOutdGdAv
       .getGoods().getItsId();
     ItemInList itemInList = getSrvOrm()
@@ -220,17 +209,13 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
    * @param pGoodsInListLuv goodsInListLuv
    * @throws Exception - an exception
    **/
-  public final void updateForGoodsAvailableList(
-    final Map<String, Object> pReqVars,
-      final List<GoodsAvailable> pOutdGdAvList,
-        final SettingsAdd pSettingsAdd,
-          final GoodsInListLuv pGoodsInListLuv) throws Exception {
+  public final void updateForGoodsAvailableList(final Map<String, Object> pReqVars, final List<GoodsAvailable> pOutdGdAvList,
+    final SettingsAdd pSettingsAdd, final GoodsInListLuv pGoodsInListLuv) throws Exception {
     if (pOutdGdAvList.size() == 0) {
       //Beige ORM may return empty list
       return;
     }
-    int steps = pOutdGdAvList.size() / pSettingsAdd
-      .getRecordsPerTransaction();
+    int steps = pOutdGdAvList.size() / pSettingsAdd.getRecordsPerTransaction();
     int currentStep = 1;
     Long lastUpdatedVersion = null;
     do {
@@ -239,10 +224,8 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
         this.srvDatabase.
           setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
         this.srvDatabase.beginTransaction();
-        int stepLen = Math.min(pOutdGdAvList.size(), currentStep
-          * pSettingsAdd.getRecordsPerTransaction());
-        for (int i = (currentStep - 1) * pSettingsAdd
-          .getRecordsPerTransaction(); i < stepLen; i++) {
+        int stepLen = Math.min(pOutdGdAvList.size(), currentStep * pSettingsAdd.getRecordsPerTransaction());
+        for (int i = (currentStep - 1) * pSettingsAdd.getRecordsPerTransaction(); i < stepLen; i++) {
           GoodsAvailable goodsSpecific = pOutdGdAvList.get(i);
           updateForGoodsAvailable(pReqVars, goodsSpecific);
           lastUpdatedVersion = goodsSpecific.getItsVersion();
@@ -274,14 +257,12 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
     List<GoodsPrice> result = null;
     try {
       this.srvDatabase.setIsAutocommit(false);
-      this.srvDatabase.
-        setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
+      this.srvDatabase.setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
       this.srvDatabase.beginTransaction();
       String tblNm = GoodsPrice.class.getSimpleName().toUpperCase();
       String verCond;
       if (pGoodsInListLuv.getGoodsPriceLuv() != null) {
-        verCond = " where " + tblNm + ".ITSVERSION>" + pGoodsInListLuv
-          .getGoodsPriceLuv().toString();
+        verCond = " where " + tblNm + ".ITSVERSION>" + pGoodsInListLuv.getGoodsPriceLuv().toString();
       } else {
         verCond = "";
       }
@@ -305,13 +286,9 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
    * @param pOutdGdPr outdated GoodsPrice
    * @throws Exception - an exception
    **/
-  public final void updateForGoodsPrice(
-    final Map<String, Object> pReqVars,
-      final GoodsPrice pOutdGdPr) throws Exception {
-    String whereStr = "where ITSTYPE=0 and ITEMID=" + pOutdGdPr
-      .getGoods().getItsId();
-    ItemInList itemInList = getSrvOrm()
-      .retrieveEntityWithConditions(pReqVars, ItemInList.class, whereStr);
+  public final void updateForGoodsPrice(final Map<String, Object> pReqVars, final GoodsPrice pOutdGdPr) throws Exception {
+    String whereStr = "where ITSTYPE=0 and ITEMID=" + pOutdGdPr.getGoods().getItsId();
+    ItemInList itemInList = getSrvOrm().retrieveEntityWithConditions(pReqVars, ItemInList.class, whereStr);
     if (itemInList == null) {
       itemInList = createGoodsInList(pReqVars, pOutdGdPr.getGoods());
     }
@@ -333,29 +310,22 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
    * @param pGoodsInListLuv goodsInListLuv
    * @throws Exception - an exception
    **/
-  public final void updateForGoodsPriceList(
-    final Map<String, Object> pReqVars,
-      final List<GoodsPrice> pOutdGdPrList,
-        final SettingsAdd pSettingsAdd,
-          final GoodsInListLuv pGoodsInListLuv) throws Exception {
+  public final void updateForGoodsPriceList(final Map<String, Object> pReqVars, final List<GoodsPrice> pOutdGdPrList,
+    final SettingsAdd pSettingsAdd, final GoodsInListLuv pGoodsInListLuv) throws Exception {
     if (pOutdGdPrList.size() == 0) {
       //Beige ORM may return empty list
       return;
     }
-    int steps = pOutdGdPrList.size() / pSettingsAdd
-      .getRecordsPerTransaction();
+    int steps = pOutdGdPrList.size() / pSettingsAdd.getRecordsPerTransaction();
     int currentStep = 1;
     Long lastUpdatedVersion = null;
     do {
       try {
         this.srvDatabase.setIsAutocommit(false);
-        this.srvDatabase.
-          setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
+        this.srvDatabase.setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
         this.srvDatabase.beginTransaction();
-        int stepLen = Math.min(pOutdGdPrList.size(), currentStep
-          * pSettingsAdd.getRecordsPerTransaction());
-        for (int i = (currentStep - 1) * pSettingsAdd
-          .getRecordsPerTransaction(); i < stepLen; i++) {
+        int stepLen = Math.min(pOutdGdPrList.size(), currentStep * pSettingsAdd.getRecordsPerTransaction());
+        for (int i = (currentStep - 1) * pSettingsAdd.getRecordsPerTransaction(); i < stepLen; i++) {
           GoodsPrice goodsSpecific = pOutdGdPrList.get(i);
           updateForGoodsPrice(pReqVars, goodsSpecific);
           lastUpdatedVersion = goodsSpecific.getItsVersion();
@@ -381,32 +351,33 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
    * @return Outdated GoodsSpecifics list
    * @throws Exception - an exception
    **/
-  public final List<GoodsSpecifics> retrieveOutdatedGoodsSpecifics(
-    final Map<String, Object> pReqVars,
-      final GoodsInListLuv pGoodsInListLuv) throws Exception {
-    String verCondGs = " where GOODSSPECIFIC.GOODS in "
-    + " (select distinct  GOODS from GOODSSPECIFIC join SPECIFICSOFITEM on GOODSSPECIFIC.SPECIFICS=SPECIFICSOFITEM.ITSID where GOODSSPECIFIC.ITSVERSION>"
+  public final List<GoodsSpecifics> retrieveOutdatedGoodsSpecifics(final Map<String, Object> pReqVars,
+    final GoodsInListLuv pGoodsInListLuv) throws Exception {
+    String verCondGs = " where GOODSSPECIFICS.ITEM in "
+    + " (select distinct  ITEM from GOODSSPECIFICS join SPECIFICSOFITEM on GOODSSPECIFICS.SPECIFICS=SPECIFICSOFITEM.ITSID where GOODSSPECIFICS.ITSVERSION>"
     + pGoodsInListLuv.getGoodsSpecificLuv().toString() + ")";
-    return retrieveGoodsSpecifics(pReqVars, verCondGs);
+    return retrieveItemSpecificsLst(pReqVars, verCondGs, GoodsSpecifics.class);
   }
 
   /**
-   * <p>Retrieve GoodsSpecifics.</p>
+   * <p>Retrieve Item Specifics list.</p>
+   * @param <T> Item Specifics type
+   * @param <I> Item type
    * @param pReqVars additional param
    * @param pWhere empty string "" or WHERE clause, e.g. " where ..."
-   * @return GoodsSpecifics list
+   * @param pItemSpecClass ItemSpec Class
+   * @return Item Specifics list
    * @throws Exception - an exception
    **/
-  public final List<GoodsSpecifics> retrieveGoodsSpecifics(
+  public final <T extends AItemSpecifics<I, ?>, I extends IHasIdLongVersionName> List<T> retrieveItemSpecificsLst(
     final Map<String, Object> pReqVars,
-      final String pWhere) throws Exception {
-    List<GoodsSpecifics> result = null;
+      final String pWhere, final Class<T> pItemSpecClass) throws Exception {
+    List<T> result = null;
     try {
       this.srvDatabase.setIsAutocommit(false);
-      this.srvDatabase.
-        setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
+      this.srvDatabase.setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
       this.srvDatabase.beginTransaction();
-      pReqVars.put("GoodsSpecificsspecificsdeepLevel", 2); //HTML templates only ID
+      pReqVars.put(pItemSpecClass.getSimpleName() + "specificsdeepLevel", 2); //HTML templates only ID
       pReqVars.put("SpecificsOfItemtempHtmldeepLevel", 1); //HTML templates only ID
       HashSet<String> goodsFldNms = new HashSet<String>();
       goodsFldNms.add("itsId");
@@ -427,10 +398,8 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
       soigFldNms.add("templateEnd");
       soigFldNms.add("templateDetail");
       pReqVars.put("SpecificsOfItemGroupneededFields", soigFldNms);
-      result = getSrvOrm().retrieveListWithConditions(pReqVars,
-        GoodsSpecifics.class, pWhere
-          + " order by GOODS.ITSID, SPECIFICS.ITSINDEX");
-      pReqVars.remove("GoodsSpecificsspecificsdeepLevel");
+      result = getSrvOrm().retrieveListWithConditions(pReqVars, pItemSpecClass, pWhere + " order by ITEM.ITSID, SPECIFICS.ITSINDEX");
+      pReqVars.remove(pItemSpecClass.getSimpleName() + "specificsdeepLevel");
       pReqVars.remove("SpecificsOfItemtempHtmldeepLevel");
       pReqVars.remove("InvItemneededFields");
       pReqVars.remove("SpecificsOfItemneededFields");
@@ -446,11 +415,11 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
     }
     //make list of goods ordered by max(last updated specific) for that goods
     //goods itsVersion holds max(last updated specific):
-    List<InvItem> itemsForSpecifics = new ArrayList<InvItem>();
+    List<I> itemsForSpecifics = new ArrayList<I>();
     //also list of all used HTML templates ID to retrieve their full-filled list
     Set<Long> htmlTemplatesIds = new HashSet<Long>();
-    InvItem currItem = null;
-    for (GoodsSpecifics gs : result) {
+    I currItem = null;
+    for (AItemSpecifics<I, ?> gs : result) {
       if (gs.getSpecifics().getTempHtml() != null) {
         htmlTemplatesIds.add(gs.getSpecifics().getTempHtml().getItsId());
       }
@@ -475,7 +444,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
         }
       }
     }
-    CmprHasVersion<InvItem> cmp = new CmprHasVersion<InvItem>();
+    CmprHasVersion<I> cmp = new CmprHasVersion<I>();
     Collections.sort(itemsForSpecifics, cmp);
     pReqVars.put("itemsForSpecifics", itemsForSpecifics);
     pReqVars.put("htmlTemplatesIds", htmlTemplatesIds);
@@ -497,37 +466,37 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
    * @throws Exception - an exception
    **/
   public final <T extends AItemSpecifics<?, ?>> void updateGoodsSpecificsInList(
-    final Map<String, Object> pReqVars,
-      final SettingsAdd pSettingsAdd, final T pOutdGdSp,
-      final ItemInList pItemInList,
-        final SpecificsOfItemGroup pSpecificsOfItemGroupWas,
-          final List<I18nSpecificInList> pI18nSpecInListLst,
-            final List<I18nSpecificsOfItem> pI18nSpecLst,
-              final List<I18nChooseableSpecifics> pI18nChSpecLst,
-                final List<I18nUnitOfMeasure> pI18nUomLst) throws Exception {
+    final Map<String, Object> pReqVars, final SettingsAdd pSettingsAdd, final T pOutdGdSp,
+      final ItemInList pItemInList, final SpecificsOfItemGroup pSpecificsOfItemGroupWas,
+        final List<I18nSpecificInList> pI18nSpecInListLst, final List<I18nSpecificsOfItem> pI18nSpecLst,
+          final List<I18nChooseableSpecifics> pI18nChSpecLst, final List<I18nUnitOfMeasure> pI18nUomLst) throws Exception {
     String val1 = "";
     String val2 = "";
-    if (pOutdGdSp.getSpecifics().getItsType()
-      .equals(ESpecificsItemType.TEXT)) {
+    @SuppressWarnings("unchecked")
+    List<LangPreferences> langPreferences = (List<LangPreferences>) pReqVars.get("langPreferences");
+    LangPreferences currLp = langPreferences.get(0);
+    for (LangPreferences lp : langPreferences) {
+      if (lp.getIsDefault()) {
+        currLp = lp;
+        break;
+      }
+    }
+    if (pOutdGdSp.getSpecifics().getItsType().equals(ESpecificsItemType.TEXT)) {
       //i18n not implemented, use chooseable specifics instead
       val1 = pOutdGdSp.getStringValue1();
-    } else if (pOutdGdSp.getSpecifics().getItsType()
-      .equals(ESpecificsItemType.BIGDECIMAL)) {
+    } else if (pOutdGdSp.getSpecifics().getItsType().equals(ESpecificsItemType.BIGDECIMAL)) {
       val1 = srvNumberToString.print(pOutdGdSp.getNumericValue1().toString(),
-        (String) pReqVars.get("dseparatorv"), (String) pReqVars
-          .get("dgseparatorv"), Integer.valueOf(pOutdGdSp.getLongValue1()
-            .intValue()), (Integer) pReqVars.get("digitsInGroup"));
+        currLp.getDecimalSep().getItsId(), currLp.getDecimalGroupSep().getItsId(),
+          Integer.valueOf(pOutdGdSp.getLongValue1().intValue()), currLp.getDigitsInGroup());
       if (pOutdGdSp.getStringValue1() != null) {
         val2 = pOutdGdSp.getStringValue1();
       }
-    } else if (pOutdGdSp.getSpecifics().getItsType()
-      .equals(ESpecificsItemType.INTEGER)) {
+    } else if (pOutdGdSp.getSpecifics().getItsType().equals(ESpecificsItemType.INTEGER)) {
       val1 = pOutdGdSp.getLongValue1().toString();
       if (pOutdGdSp.getStringValue1() != null) {
         val2 = pOutdGdSp.getStringValue1();
       }
-    } else if (pOutdGdSp.getSpecifics().getItsType()
-      .equals(ESpecificsItemType.CHOOSEABLE_SPECIFICS)) {
+    } else if (pOutdGdSp.getSpecifics().getItsType().equals(ESpecificsItemType.CHOOSEABLE_SPECIFICS)) {
       val1 =  pOutdGdSp.getStringValue1();
     } else {
       return;
@@ -551,15 +520,25 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
     }
     if (pI18nSpecInListLst != null) {
       for (I18nSpecificInList i18nspl : pI18nSpecInListLst) {
+        for (LangPreferences lp : langPreferences) {
+          if (lp.getLang().getItsId().equals(i18nspl.getLang().getItsId())) {
+            currLp = lp;
+            break;
+          }
+        }
+        if (pOutdGdSp.getSpecifics().getItsType().equals(ESpecificsItemType.BIGDECIMAL)) {
+          val1 = srvNumberToString.print(pOutdGdSp.getNumericValue1().toString(),
+            currLp.getDecimalSep().getItsId(), currLp.getDecimalGroupSep().getItsId(),
+              Integer.valueOf(pOutdGdSp.getLongValue1().intValue()), currLp.getDigitsInGroup());
+        }
         if (pOutdGdSp.getSpecifics().getItsType().equals(ESpecificsItemType.BIGDECIMAL)
           || pOutdGdSp.getSpecifics().getItsType().equals(ESpecificsItemType.INTEGER)
-            && pOutdGdSp.getLongValue1() != null) {
+            && pOutdGdSp.getLongValue2() != null) {
           UnitOfMeasure uom = new UnitOfMeasure();
           uom.setItsName(pOutdGdSp.getStringValue1());
-          uom.setItsId(pOutdGdSp.getLongValue1());
+          uom.setItsId(pOutdGdSp.getLongValue2());
           val2 = findUomName(pI18nUomLst, uom, i18nspl.getLang());
-        } else if (pOutdGdSp.getSpecifics().getItsType()
-          .equals(ESpecificsItemType.CHOOSEABLE_SPECIFICS)) {
+        } else if (pOutdGdSp.getSpecifics().getItsType().equals(ESpecificsItemType.CHOOSEABLE_SPECIFICS)) {
           ChooseableSpecifics sp = new ChooseableSpecifics();
           sp.setItsName(pOutdGdSp.getStringValue1());
           sp.setItsId(pOutdGdSp.getLongValue1());
@@ -619,7 +598,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
       return;
     }
     @SuppressWarnings("unchecked")
-    List<IHasIdName<Long>> itemsForSpecifics = (List<IHasIdName<Long>>) pReqVars.get("itemsForSpecifics");
+    List<IHasIdLongVersionName> itemsForSpecifics = (List<IHasIdLongVersionName>) pReqVars.get("itemsForSpecifics");
     pReqVars.remove("itemsForSpecifics");
     @SuppressWarnings("unchecked")
     Set<Long> htmlTemplatesIds = (Set<Long>) pReqVars.get("htmlTemplatesIds");
@@ -639,7 +618,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
       this.srvDatabase.beginTransaction();
       StringBuffer itemsIdsIn = new StringBuffer("(");
       boolean isFirst = true;
-      for (IHasIdName<Long> it : itemsForSpecifics) {
+      for (IHasIdLongVersionName it : itemsForSpecifics) {
         if (isFirst) {
           isFirst = false;
         } else {
@@ -769,7 +748,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
         this.srvDatabase.beginTransaction();
         int stepLen = Math.min(itemsForSpecifics.size(), currentStep * pSettingsAdd.getRecordsPerTransaction());
         for (int i = (currentStep - 1) * pSettingsAdd.getRecordsPerTransaction(); i < stepLen; i++) {
-          IHasIdName<Long> item = itemsForSpecifics.get(i);
+          IHasIdLongVersionName item = itemsForSpecifics.get(i);
           ItemInList itemInList = findItemInListFor(itemsInList, item.getItsId(), pItemType);
           if (itemInList == null) {
             itemInList = createItemInList(pReqVars, item.getItsId(), item.getItsName(), pItemType);
@@ -894,7 +873,8 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
               }
             }
           }
-          lastUpdatedVersion = pOutdGdSpList.get(j).getItsVersion();
+          //item holds item-specifics version
+          lastUpdatedVersion = item.getItsVersion();
         }
         if (pItemType.equals(EShopItemType.GOODS)) {
           pGoodsInListLuv.setGoodsSpecificLuv(lastUpdatedVersion);
@@ -1001,7 +981,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
    * @return I18nSpecificInList with given goods and lang if exist or null
    **/
   protected final I18nSpecificInList findI18nSpecificInListFor(final List<I18nSpecificInList> pSpecificInListLst,
-    final IHasIdName<Long> pItem, final EShopItemType pItemType, final Languages pLang) {
+    final IHasIdLongVersionName pItem, final EShopItemType pItemType, final Languages pLang) {
     int j = 0;
     while (j < pSpecificInListLst.size()) {
       if (pSpecificInListLst.get(j).getItemId().equals(pItem.getItsId())
@@ -1041,7 +1021,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
    * @return the first index of specific with given item
    * it throws Exception - if out of bounds
    **/
-  protected final <T extends AItemSpecifics<?,  ?>> int findFirstIdxFor(final List<T> pOutdGdSpList, final IHasIdName<Long> pItem) {
+  protected final <T extends AItemSpecifics<?,  ?>> int findFirstIdxFor(final List<T> pOutdGdSpList, final IHasIdLongVersionName pItem) {
     int j = 0;
     while (!pOutdGdSpList.get(j).getItem().getItsId().equals(pItem.getItsId())) {
       j++;

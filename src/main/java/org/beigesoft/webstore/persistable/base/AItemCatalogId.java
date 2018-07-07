@@ -12,7 +12,7 @@ package org.beigesoft.webstore.persistable.base;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import org.beigesoft.model.IHasIdName;
+import org.beigesoft.model.IHasIdLongVersion;
 import org.beigesoft.webstore.persistable.CatalogGs;
 
 /**
@@ -23,7 +23,7 @@ import org.beigesoft.webstore.persistable.CatalogGs;
  * @param <T> item type
  * @author Yury Demidenko
  */
-public abstract class AItemCatalogId<T extends IHasIdName<Long>> {
+public abstract class AItemCatalogId<T extends IHasIdLongVersion> {
 
   /**
    * <p>Item Catalog, not null, its hasSubcatalogs=false.</p>
