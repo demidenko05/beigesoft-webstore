@@ -22,7 +22,6 @@ import org.beigesoft.webstore.persistable.I18nCatalogGs;
 import org.beigesoft.webstore.persistable.I18nWebStore;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.persistable.SettingsAdd;
-import org.beigesoft.webstore.persistable.GoodsSpecific;
 import org.beigesoft.webstore.persistable.SpecificsOfItemGroup;
 import org.beigesoft.webstore.persistable.base.AItemSpecifics;
 
@@ -56,95 +55,6 @@ public class UtlTradeJsp {
       sb.append(settingsAdd.getSpecHtmlStart());
     }
     for (AItemSpecifics<?, ?> gs : pItemSpecLst) {
-      if (gs.getSpecifics().getIsShowInList() && !gs.getSpecifics().getItsType().equals(ESpecificsItemType.IMAGE)) {
-        if (gs.getSpecifics().getItsGroop() == null || specificsOfItemGroupWas == null
-          || !gs.getSpecifics().getItsGroop().getItsId().equals(specificsOfItemGroupWas.getItsId())) {
-          if (wasGrStart) {
-            if (settingsAdd.getSpecGrHtmlEnd() != null) {
-              sb.append(settingsAdd.getSpecGrHtmlEnd());
-            }
-            if (settingsAdd.getSpecGrSeparator() != null) {
-              sb.append(settingsAdd.getSpecGrSeparator());
-            }
-          }
-          wasGrStart = true;
-          if (settingsAdd.getSpecGrHtmlStart() != null) {
-            sb.append(settingsAdd.getSpecGrHtmlStart());
-          }
-          if (gs.getSpecifics().getItsGroop() != null && gs.getSpecifics().getItsGroop().getTemplateStart() != null) {
-            String grst = gs.getSpecifics().getItsGroop().getTemplateStart()
-              .getHtmlTemplate().replace(":SPECGRNM", gs.getSpecifics().getItsGroop().getItsName());
-            sb.append(grst);
-          }
-        }
-        String val1 = "";
-        String val2 = "";
-        if (gs.getSpecifics().getItsType().equals(ESpecificsItemType.TEXT)) {
-          val1 = gs.getStringValue1();
-        } else if (gs.getSpecifics().getItsType().equals(ESpecificsItemType.BIGDECIMAL)) {
-          val1 = srvNumberToString.print(gs.getNumericValue1().toString(),
-            (String) pReqVars.get("dseparatorv"), (String) pReqVars
-              .get("dgseparatorv"), Integer.valueOf(gs.getLongValue1()
-                .intValue()), (Integer) pReqVars.get("digitsInGroup"));
-          if (gs.getStringValue1() != null) {
-            val2 = gs.getStringValue1();
-          }
-        } else if (gs.getSpecifics().getItsType().equals(ESpecificsItemType.INTEGER)) {
-          val1 = gs.getLongValue1().toString();
-          if (gs.getStringValue1() != null) {
-            val2 = gs.getStringValue1();
-          }
-        } else if (gs.getSpecifics().getItsType().equals(ESpecificsItemType.CHOOSEABLE_SPECIFICS)) {
-          val1 =  gs.getStringValue1();
-        } else {
-          continue;
-        }
-        String templateDetail;
-        if (gs.getSpecifics().getTempHtml() != null) {
-          templateDetail = gs.getSpecifics().getTempHtml().getHtmlTemplate();
-        } else if (gs.getSpecifics().getItsGroop() != null && gs.getSpecifics().getItsGroop().getTemplateDetail() != null) {
-          templateDetail = gs.getSpecifics().getItsGroop().getTemplateDetail().getHtmlTemplate();
-        } else {
-          templateDetail = " <b>:SPECNM:</b> :VAL1:VAL2";
-        }
-        String spdet = templateDetail.replace(":SPECNM", gs.getSpecifics().getItsName());
-        spdet = spdet.replace(":VAL1", val1);
-        spdet = spdet.replace(":VAL2", val2);
-        if (gs.getSpecifics().getItsGroop() != null && specificsOfItemGroupWas != null
-          && gs.getSpecifics().getItsGroop().getItsId().equals(specificsOfItemGroupWas.getItsId())) {
-          sb.append(settingsAdd.getSpecSeparator() + spdet);
-        } else {
-          sb.append(spdet);
-        }
-        specificsOfItemGroupWas = gs.getSpecifics().getItsGroop();
-      }
-    }
-    if (settingsAdd.getSpecGrHtmlEnd() != null) {
-      sb.append(settingsAdd.getSpecGrHtmlEnd());
-    }
-    if (settingsAdd.getSpecHtmlEnd() != null) {
-      sb.append(settingsAdd.getSpecHtmlEnd());
-    }
-    return sb.toString();
-  }
-
-  /**
-   * <p>It makes goods specifics string.</p>
-   * @param pReqVars additional param
-   * @param pGoodsSpecific GoodsSpecific list
-   * @return appearance
-   **/
-  public final String goodsSpecificsStr(
-    final Map<String, Object> pReqVars,
-      final List<GoodsSpecific> pGoodsSpecific) {
-    SettingsAdd settingsAdd = (SettingsAdd) pReqVars.get("settingsAdd");
-    StringBuffer sb = new StringBuffer();
-    boolean wasGrStart = false;
-    SpecificsOfItemGroup specificsOfItemGroupWas = null;
-    if (settingsAdd.getSpecHtmlStart() !=  null) {
-      sb.append(settingsAdd.getSpecHtmlStart());
-    }
-    for (GoodsSpecific gs : pGoodsSpecific) {
       if (gs.getSpecifics().getIsShowInList() && !gs.getSpecifics().getItsType().equals(ESpecificsItemType.IMAGE)) {
         if (gs.getSpecifics().getItsGroop() == null || specificsOfItemGroupWas == null
           || !gs.getSpecifics().getItsGroop().getItsId().equals(specificsOfItemGroupWas.getItsId())) {

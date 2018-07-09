@@ -12,4 +12,8 @@ alter table SPECIFICSOFITEM add column TEMPHTML integer default null references 
 alter table ITEMINLIST add column UNITOFMEASURE integer default null references UNITOFMEASURE(ITSID);
 alter table I18NSPECIFICINLIST add column ITSNAME text;
 drop table GOODSSPECIFIC;
+drop table GOODSCATALOGS;
+drop table GOODSPRICE;
+drop table GOODSAVAILABLE;
+update GOODSINLISTLUV set GOODSAVAILABLELUV=null;
 update DATABASEINFO set DATABASEVERSION=7, DESCRIPTION='Beige Accounting OIO DB version 7';

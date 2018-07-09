@@ -136,7 +136,6 @@
   org.beigesoft.webstore.persistable.PriceCategoryOfItems,
   org.beigesoft.webstore.persistable.PriceCategoryOfBuyers,
   org.beigesoft.webstore.persistable.PriceCategory,
-  org.beigesoft.webstore.persistable.GoodsPrice,
   org.beigesoft.webstore.persistable.BuyerPriceCategory,
   org.beigesoft.webstore.persistable.HtmlTemplate,
   org.beigesoft.webstore.persistable.ChooseableSpecificsType,
@@ -145,7 +144,7 @@
   org.beigesoft.webstore.persistable.SpecificsOfItem,
   org.beigesoft.webstore.persistable.GoodsSpecifics,
   org.beigesoft.webstore.persistable.CatalogGs,
-  org.beigesoft.webstore.persistable.GoodsCatalogs,
+  org.beigesoft.webstore.persistable.GoodsCatalog,
   org.beigesoft.webstore.persistable.SubcatalogsCatalogsGs,
   org.beigesoft.webstore.persistable.AdviseCategoryOfGs,
   org.beigesoft.webstore.persistable.GoodsAdviseCategories,
@@ -155,7 +154,6 @@
   org.beigesoft.webstore.persistable.SeGoods,
   org.beigesoft.webstore.persistable.SeService,
   org.beigesoft.webstore.persistable.PickUpPlace,
-  org.beigesoft.webstore.persistable.GoodsAvailable,
   org.beigesoft.webstore.persistable.GoodsInListLuv,
   org.beigesoft.webstore.persistable.SettingsAdd,
   org.beigesoft.webstore.persistable.ShoppingCart,
@@ -178,6 +176,8 @@
   org.beigesoft.webstore.persistable.ServiceSpecifics,
   org.beigesoft.webstore.persistable.ServiceCatalog,
   org.beigesoft.webstore.persistable.ServicePlace,
+  org.beigesoft.webstore.persistable.PriceGoods,
+  org.beigesoft.webstore.persistable.GoodsPlace,
   org.beigesoft.webstore.persistable.CustomerGoodsSeen</entry>
 <entry key="settingsKeysForClasses">idColumnsNames, idFieldName, ownerFieldName, constraintAdd, excludeFields, versionAlgorithm</entry>
 <entry key="settingsKeysForFields">definition, isNullable</entry>

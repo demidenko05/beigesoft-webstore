@@ -24,7 +24,7 @@ import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.service.ISrvEntitiesPage;
 import org.beigesoft.service.ISrvNumberToString;
 import org.beigesoft.service.PrcRefreshHndlI18n;
-import org.beigesoft.webstore.processor.PrcAssignGoodsToCatalog;
+import org.beigesoft.webstore.processor.PrcAssignItemsToCatalog;
 import org.beigesoft.webstore.processor.PrcRefreshItemsInList;
 import org.beigesoft.webstore.processor.PrcRefreshCatalog;
 
@@ -108,12 +108,16 @@ public class FctBnTradeProcessors<RS>
           } else if (pBeanName.equals(PrcRefreshCatalog
             .class.getSimpleName())) {
             proc = lazyGetPrcRefreshCatalog(pAddParam);
-          } else if (pBeanName.equals(PrcAssignGoodsToCatalog
+          } else if (pBeanName.equals(PrcAssignItemsToCatalog
             .class.getSimpleName())) {
-            proc = lazyGetPrcAssignGoodsToCatalog(pAddParam);
+            proc = lazyGetPrcAssignItemsToCatalog(pAddParam);
           }
         }
       }
+    }
+    if (proc == null) {
+      this.logger.info(null, FctBnTradeProcessors.class,
+        pBeanName + " not found!");
     }
     return proc;
   }
@@ -139,14 +143,16 @@ public class FctBnTradeProcessors<RS>
   protected final PrcRefreshHndlI18n
     lazyGetPrcRefreshHndlI18n(
       final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcRefreshHndlI18n.class.getSimpleName();
     PrcRefreshHndlI18n proc = (PrcRefreshHndlI18n) this.processorsMap
-      .get(PrcRefreshHndlI18n.class.getSimpleName());
+      .get(beanName);
     if (proc == null) {
       proc = new PrcRefreshHndlI18n();
       proc.setI18nRequestHandler(this.i18nRequestHandler);
       //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcRefreshHndlI18n.class.getSimpleName(), proc);
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnTradeProcessors.class,
+        beanName + " has been created.");
     }
     return proc;
   }
@@ -160,15 +166,17 @@ public class FctBnTradeProcessors<RS>
   protected final PrcRefreshCatalog
     lazyGetPrcRefreshCatalog(
       final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcRefreshCatalog.class.getSimpleName();
     PrcRefreshCatalog proc = (PrcRefreshCatalog) this.processorsMap
-      .get(PrcRefreshCatalog.class.getSimpleName());
+      .get(beanName);
     if (proc == null) {
       proc = new PrcRefreshCatalog();
       proc.getListeners().add(this.fctBnPublicTradeProcessors
         .lazyGetPrcWebstorePage(pAddParam));
       //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcRefreshCatalog.class.getSimpleName(), proc);
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnTradeProcessors.class,
+        beanName + " has been created.");
     }
     return proc;
   }
@@ -182,42 +190,44 @@ public class FctBnTradeProcessors<RS>
   protected final PrcRefreshItemsInList<RS>
     lazyGetPrcRefreshItemsInList(
       final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcRefreshItemsInList.class.getSimpleName();
     @SuppressWarnings("unchecked")
     PrcRefreshItemsInList<RS> proc = (PrcRefreshItemsInList<RS>)
-      this.processorsMap
-        .get(PrcRefreshItemsInList.class.getSimpleName());
+      this.processorsMap.get(beanName);
     if (proc == null) {
       proc = new PrcRefreshItemsInList<RS>();
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvDatabase(getSrvDatabase());
       proc.setSrvNumberToString(getSrvNumberToString());
       //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcRefreshItemsInList.class.getSimpleName(), proc);
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnTradeProcessors.class,
+        beanName + " has been created.");
     }
     return proc;
   }
 
   /**
-   * <p>Lazy get PrcAssignGoodsToCatalog.</p>
+   * <p>Lazy get PrcAssignItemsToCatalog.</p>
    * @param pAddParam additional param
-   * @return requested PrcAssignGoodsToCatalog
+   * @return requested PrcAssignItemsToCatalog
    * @throws Exception - an exception
    */
-  protected final PrcAssignGoodsToCatalog<RS>
-    lazyGetPrcAssignGoodsToCatalog(
+  protected final PrcAssignItemsToCatalog<RS>
+    lazyGetPrcAssignItemsToCatalog(
       final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcAssignItemsToCatalog.class.getSimpleName();
     @SuppressWarnings("unchecked")
-    PrcAssignGoodsToCatalog<RS> proc = (PrcAssignGoodsToCatalog<RS>)
-      this.processorsMap
-        .get(PrcAssignGoodsToCatalog.class.getSimpleName());
+    PrcAssignItemsToCatalog<RS> proc = (PrcAssignItemsToCatalog<RS>)
+      this.processorsMap.get(beanName);
     if (proc == null) {
-      proc = new PrcAssignGoodsToCatalog<RS>();
+      proc = new PrcAssignItemsToCatalog<RS>();
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvEntitiesPage(getSrvEntitiesPage());
       //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcAssignGoodsToCatalog.class.getSimpleName(), proc);
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnTradeProcessors.class,
+        beanName + " has been created.");
     }
     return proc;
   }

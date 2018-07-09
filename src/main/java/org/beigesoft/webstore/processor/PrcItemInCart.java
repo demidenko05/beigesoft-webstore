@@ -33,8 +33,8 @@ import org.beigesoft.webstore.persistable.ShoppingCart;
 import org.beigesoft.webstore.persistable.CartItem;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.persistable.BuyerPriceCategory;
-import org.beigesoft.webstore.persistable.GoodsPriceId;
-import org.beigesoft.webstore.persistable.GoodsPrice;
+import org.beigesoft.webstore.persistable.PriceGoodsId;
+import org.beigesoft.webstore.persistable.PriceGoods;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
@@ -139,16 +139,16 @@ public class PrcItemInCart<RS> implements IProcessor {
           if (cartItemType.equals(EShopItemType.GOODS)) {
             InvItem goods = new InvItem();
             goods.setItsId(cartItemId);
-            GoodsPriceId gpId = new GoodsPriceId();
-            gpId.setGoods(goods);
+            PriceGoodsId gpId = new PriceGoodsId();
+            gpId.setItem(goods);
             gpId.setPriceCategory(buyerPrCat.getPriceCategory());
-            GoodsPrice goodsPrice = new GoodsPrice();
+            PriceGoods goodsPrice = new PriceGoods();
             goodsPrice.setItsId(gpId);
             goodsPrice = this.getSrvOrm().
               retrieveEntity(pAddParam, goodsPrice);
             if (goodsPrice != null) {
               price = goodsPrice.getItsPrice();
-              cartItem.setItsName(goodsPrice.getGoods().getItsName());
+              cartItem.setItsName(goodsPrice.getItem().getItsName());
               break;
             }
           }
@@ -158,8 +158,8 @@ public class PrcItemInCart<RS> implements IProcessor {
       if (price == null) {
         //retrieve price for all:
         if (cartItemType.equals(EShopItemType.GOODS)) {
-          List<GoodsPrice> goodsPrices = this.getSrvOrm().
-            retrieveListWithConditions(pAddParam, GoodsPrice.class,
+          List<PriceGoods> goodsPrices = this.getSrvOrm().
+            retrieveListWithConditions(pAddParam, PriceGoods.class,
               "where GOODS=" + cartItemId);
           if (goodsPrices.size() == 0) {
             throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
@@ -170,7 +170,7 @@ public class PrcItemInCart<RS> implements IProcessor {
               "requested_item_has_several_prices");
           }
           price = goodsPrices.get(0).getItsPrice();
-          cartItem.setItsName(goodsPrices.get(0).getGoods().getItsName());
+          cartItem.setItsName(goodsPrices.get(0).getItem().getItsName());
         } else {
             throw new ExceptionWithCode(ExceptionWithCode.NOT_YET_IMPLEMENTED,
               "add_service_se_not_impl");

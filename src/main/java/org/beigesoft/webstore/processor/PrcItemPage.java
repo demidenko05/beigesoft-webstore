@@ -26,15 +26,15 @@ import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.webstore.model.EShopItemType;
 import org.beigesoft.webstore.model.ESpecificsItemType;
 import org.beigesoft.webstore.persistable.GoodsSpecifics;
-import org.beigesoft.webstore.persistable.GoodsPrice;
-import org.beigesoft.webstore.persistable.GoodsAvailable;
+import org.beigesoft.webstore.persistable.PriceGoods;
+import org.beigesoft.webstore.persistable.GoodsPlace;
 import org.beigesoft.webstore.persistable.CartItem;
 import org.beigesoft.webstore.persistable.ShoppingCart;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
- * <p>Service that retrieve goods/service details. It passes goodsPrice=null
+ * <p>Service that retrieve goods/service details. It passes itemPrice=null
  * in case of outdated or inconsistent price data.
  * JSP should handle wrong price or availability data.</p>
  *
@@ -90,26 +90,26 @@ public class PrcItemPage<RS> implements IProcessor {
   public final void processInvItem(final Map<String, Object> pReqVars,
     final IRequestData pRequestData) throws Exception {
     Long itemId = Long.valueOf(pRequestData.getParameter("itemId"));
-    List<GoodsSpecifics> gsList;
-    List<GoodsAvailable> gaList;
-    GoodsPrice goodsPrice;
-    gsList = retrieveGoodsSpecificss(pReqVars, itemId);
+    List<GoodsSpecifics> itemSpecLst;
+    List<GoodsPlace> itemPlaceLst;
+    PriceGoods itemPrice;
+    itemSpecLst = retrieveGoodsSpecificss(pReqVars, itemId);
     //extract main image if exist:
     int miIdx = -1;
-    for (int i = 0; i < gsList.size(); i++) {
-      if (gsList.get(i).getSpecifics().getItsType()
+    for (int i = 0; i < itemSpecLst.size(); i++) {
+      if (itemSpecLst.get(i).getSpecifics().getItsType()
         .equals(ESpecificsItemType.IMAGE)) {
-        pRequestData.setAttribute("gsMainImage", gsList.get(i));
+        pRequestData.setAttribute("itemImage", itemSpecLst.get(i));
         miIdx = i;
         break;
       }
     }
     if (miIdx != -1) {
-      gsList.remove(miIdx);
+      itemSpecLst.remove(miIdx);
     }
-    goodsPrice = retrieveGoodsPrice(pReqVars, itemId);
-    gaList = getSrvOrm().retrieveListWithConditions(pReqVars,
-        GoodsAvailable.class, " where goods=" + itemId);
+    itemPrice = retrieveGoodsPrice(pReqVars, itemId);
+    itemPlaceLst = getSrvOrm().retrieveListWithConditions(pReqVars,
+        GoodsPlace.class, " where ITEM=" + itemId);
     if (pRequestData.getAttribute("shoppingCart") == null) {
       ShoppingCart shoppingCart = this.srvShoppingCart
         .getShoppingCart(pReqVars, pRequestData, false);
@@ -131,9 +131,9 @@ public class PrcItemPage<RS> implements IProcessor {
         }
       }
     }
-    pRequestData.setAttribute("gsList", gsList);
-    pRequestData.setAttribute("gaList", gaList);
-    pRequestData.setAttribute("goodsPrice", goodsPrice);
+    pRequestData.setAttribute("itemSpecLst", itemSpecLst);
+    pRequestData.setAttribute("itemPlaceLst", itemPlaceLst);
+    pRequestData.setAttribute("itemPrice", itemPrice);
   }
 
   /**
@@ -143,7 +143,7 @@ public class PrcItemPage<RS> implements IProcessor {
    * @return Goods price, null in case of price mistakes
    * @throws Exception - an exception
    **/
-  public final GoodsPrice retrieveGoodsPrice(
+  public final PriceGoods retrieveGoodsPrice(
     final Map<String, Object> pReqVars, final Long pItemId) throws Exception {
     TradingSettings ts = (TradingSettings) pReqVars.get("tradingSettings");
     if (ts.getIsUsePriceForCustomer()) {
@@ -151,14 +151,14 @@ public class PrcItemPage<RS> implements IProcessor {
         "Method price depends of customer's category not yet implemented!");
     }
     // same price for all customers - only record exist:
-    List<GoodsPrice> lst = getSrvOrm().retrieveListWithConditions(pReqVars,
-          GoodsPrice.class, " where goods=" + pItemId);
+    List<PriceGoods> lst = getSrvOrm().retrieveListWithConditions(pReqVars,
+          PriceGoods.class, " where ITEM=" + pItemId);
     if (lst.size() == 1) {
       return lst.get(0);
     } else {
       String itemName;
       if (lst.size() > 0) {
-        itemName = lst.get(0).getGoods().getItsName();
+        itemName = lst.get(0).getItem().getItsName();
       } else {
         itemName = "?";
       }

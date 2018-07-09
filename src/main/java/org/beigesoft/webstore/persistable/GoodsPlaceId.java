@@ -12,37 +12,37 @@ package org.beigesoft.webstore.persistable;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import org.beigesoft.accounting.persistable.ServiceToSale;
+import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.webstore.persistable.base.AItemPlaceId;
 
 /**
  * <p>
- * Model of ID of ServicePlace.
+ * Model of ID of GoodsPlace.
  * </p>
  *
  * @author Yury Demidenko
  */
-public class ServicePlaceId extends AItemPlaceId<ServiceToSale> {
+public class GoodsPlaceId extends AItemPlaceId<InvItem> {
 
   /**
-   * <p>Service, not null.</p>
+   * <p>Goods, not null.</p>
    **/
-  private ServiceToSale item;
+  private InvItem item;
 
   //Simple getters and setters:
   /**
    * <p>Getter for item.</p>
-   * @return ServiceToSale
+   * @return InvItem
    **/
-  public final ServiceToSale getItem() {
+  public final InvItem getItem() {
     return this.item;
   }
 
   /**
    * <p>Setter for item.</p>
-   * @param pService reference
+   * @param pGoods reference
    **/
-  public final void setItem(final ServiceToSale pService) {
-    this.item = pService;
+  public final void setItem(final InvItem pGoods) {
+    this.item = pGoods;
   }
 }

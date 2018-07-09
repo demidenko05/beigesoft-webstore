@@ -14,4 +14,8 @@ alter table ITEMINLIST add column UNITOFMEASURE bigint unsigned default null;
 alter table ITEMINLIST add FOREIGN KEY (UNITOFMEASURE) REFERENCES UNITOFMEASURE(ITSID);
 alter table I18NSPECIFICINLIST add column ITSNAME varchar(255);
 drop table GOODSSPECIFIC;
+drop table GOODSCATALOGS;
+drop table GOODSPRICE;
+drop table GOODSAVAILABLE;
+update GOODSINLISTLUV set GOODSAVAILABLELUV=null;
 update DATABASEINFO set DATABASEVERSION=7, DESCRIPTION='Beige Accounting OIO DB version 7';

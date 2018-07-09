@@ -24,7 +24,7 @@ import org.beigesoft.orm.factory.FctBnProcessors;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.webstore.processor.PrcWebstorePage;
-import org.beigesoft.webstore.processor.PrcDetailPage;
+import org.beigesoft.webstore.processor.PrcItemPage;
 import org.beigesoft.webstore.processor.PrcDelItemFromCart;
 import org.beigesoft.webstore.processor.PrcItemInCart;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
@@ -109,15 +109,19 @@ public class FctBnPublicTradeProcessors<RS>
           } else if (pBeanName.equals(PrcItemInCart
             .class.getSimpleName())) {
             proc = lazyGetPrcItemInCart(pAddParam);
-          } else if (pBeanName.equals(PrcDetailPage
+          } else if (pBeanName.equals(PrcItemPage
             .class.getSimpleName())) {
-            proc = lazyGetPrcDetailPage(pAddParam);
+            proc = lazyGetPrcItemPage(pAddParam);
           } else if (pBeanName.equals(PrcWebstorePage
             .class.getSimpleName())) {
             proc = lazyGetPrcWebstorePage(pAddParam);
           }
         }
       }
+    }
+    if (proc == null) {
+      this.logger.info(null, FctBnPublicTradeProcessors.class,
+        pBeanName + " not found!");
     }
     return proc;
   }
@@ -142,10 +146,10 @@ public class FctBnPublicTradeProcessors<RS>
    */
   protected final PrcDelItemFromCart<RS> lazyGetPrcDelItemFromCart(
     final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcDelItemFromCart.class.getSimpleName();
     @SuppressWarnings("unchecked")
     PrcDelItemFromCart<RS> proc = (PrcDelItemFromCart<RS>)
-      this.processorsMap
-        .get(PrcDelItemFromCart.class.getSimpleName());
+      this.processorsMap.get(beanName);
     if (proc == null) {
       proc = new PrcDelItemFromCart<RS>();
       proc.setSrvOrm(getSrvOrm());
@@ -153,8 +157,9 @@ public class FctBnPublicTradeProcessors<RS>
       proc.setSrvShoppingCart(getSrvShoppingCart());
       proc.setProcessorsFactory(this);
       //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcDelItemFromCart.class.getSimpleName(), proc);
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnPublicTradeProcessors.class,
+        beanName + " has been created.");
     }
     return proc;
   }
@@ -167,10 +172,10 @@ public class FctBnPublicTradeProcessors<RS>
    */
   protected final PrcItemInCart<RS> lazyGetPrcItemInCart(
     final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcItemInCart.class.getSimpleName();
     @SuppressWarnings("unchecked")
     PrcItemInCart<RS> proc = (PrcItemInCart<RS>)
-      this.processorsMap
-        .get(PrcItemInCart.class.getSimpleName());
+      this.processorsMap.get(beanName);
     if (proc == null) {
       proc = new PrcItemInCart<RS>();
       proc.setSrvOrm(getSrvOrm());
@@ -178,32 +183,34 @@ public class FctBnPublicTradeProcessors<RS>
       proc.setSrvShoppingCart(getSrvShoppingCart());
       proc.setProcessorsFactory(this);
       //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcItemInCart.class.getSimpleName(), proc);
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnPublicTradeProcessors.class,
+        beanName + " has been created.");
     }
     return proc;
   }
 
   /**
-   * <p>Lazy get PrcDetailPage.</p>
+   * <p>Lazy get PrcItemPage.</p>
    * @param pAddParam additional param
-   * @return requested PrcDetailPage
+   * @return requested PrcItemPage
    * @throws Exception - an exception
    */
-  protected final PrcDetailPage<RS> lazyGetPrcDetailPage(
+  protected final PrcItemPage<RS> lazyGetPrcItemPage(
     final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcItemPage.class.getSimpleName();
     @SuppressWarnings("unchecked")
-    PrcDetailPage<RS> proc = (PrcDetailPage<RS>)
-      this.processorsMap
-        .get(PrcDetailPage.class.getSimpleName());
+    PrcItemPage<RS> proc = (PrcItemPage<RS>)
+      this.processorsMap.get(beanName);
     if (proc == null) {
-      proc = new PrcDetailPage<RS>();
+      proc = new PrcItemPage<RS>();
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvShoppingCart(getSrvShoppingCart());
       proc.setLogger(getLogger());
       //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcDetailPage.class.getSimpleName(), proc);
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnPublicTradeProcessors.class,
+        beanName + " has been created.");
     }
     return proc;
   }
@@ -216,10 +223,10 @@ public class FctBnPublicTradeProcessors<RS>
    */
   protected final PrcWebstorePage<RS> lazyGetPrcWebstorePage(
     final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcWebstorePage.class.getSimpleName();
     @SuppressWarnings("unchecked")
     PrcWebstorePage<RS> proc = (PrcWebstorePage<RS>)
-      this.processorsMap
-        .get(PrcWebstorePage.class.getSimpleName());
+      this.processorsMap.get(beanName);
     if (proc == null) {
       proc = new PrcWebstorePage<RS>();
       proc.setSrvOrm(getSrvOrm());
@@ -229,8 +236,9 @@ public class FctBnPublicTradeProcessors<RS>
       proc.setSrvPage(getSrvPage());
       proc.setMngUvdSettings(getMngUvdSettings());
       //assigning fully initialized object:
-      this.processorsMap
-        .put(PrcWebstorePage.class.getSimpleName(), proc);
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnPublicTradeProcessors.class,
+        beanName + " has been created.");
     }
     return proc;
   }

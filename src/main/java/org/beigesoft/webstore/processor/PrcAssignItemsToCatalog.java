@@ -1,7 +1,7 @@
 package org.beigesoft.webstore.processor;
 
 /*
- * Copyright (c) 2017 Beigesoft ™
+ * Copyright (c) 2017 Beigesoft™
  *
  * Licensed under the GNU General Public License (GPL), Version 2.0
  * (the "License");
@@ -19,21 +19,25 @@ import java.util.HashSet;
 
 import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.model.IRequestData;
+import org.beigesoft.model.IHasIdLongVersionName;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvEntitiesPage;
 import org.beigesoft.accounting.persistable.InvItem;
-import org.beigesoft.webstore.persistable.GoodsCatalogs;
+import org.beigesoft.accounting.persistable.ServiceToSale;
+import org.beigesoft.webstore.persistable.base.AItemCatalog;
+import org.beigesoft.webstore.persistable.GoodsCatalog;
+import org.beigesoft.webstore.persistable.ServiceCatalog;
 import org.beigesoft.webstore.persistable.CatalogGs;
 import org.beigesoft.webstore.persistable.TradingSettings;
 
 /**
- * <p>Service that add/remove filtered goods to/from chosen catalog.</p>
+ * <p>Service that add/remove filtered items to/from chosen catalog.</p>
  *
  * @param <RS> platform dependent record set type
  * @author Yury Demidenko
  */
-public class PrcAssignGoodsToCatalog<RS> implements IProcessor {
+public class PrcAssignItemsToCatalog<RS> implements IProcessor {
 
   /**
    * <p>ORM service.</p>
@@ -54,19 +58,40 @@ public class PrcAssignGoodsToCatalog<RS> implements IProcessor {
   @Override
   public final void process(final Map<String, Object> pAddParam,
     final IRequestData pRequestData) throws Exception {
+    String itemType = pRequestData.getParameter("itemType");
+    if (InvItem.class.getSimpleName().equals(itemType)) {
+      makeIt(pAddParam, pRequestData, InvItem.class);
+    } else if (ServiceToSale.class.getSimpleName().equals(itemType)) {
+      makeIt(pAddParam, pRequestData, ServiceToSale.class);
+    } else {
+      throw new Exception("NYI: " + itemType);
+    }
+  }
+
+  /**
+   * <p>Makes request for given item class.</p>
+   * @param <T> Item type
+   * @param pAddParam additional param
+   * @param pRequestData Request Data
+   * @param pItemClass Item Class
+   * @throws Exception - an exception
+   **/
+  public final <T extends IHasIdLongVersionName> void makeIt(
+    final Map<String, Object> pAddParam, final IRequestData pRequestData,
+      final Class<T> pItemClass) throws Exception {
     Set<String> filterAppearance = new HashSet<String>();
     pAddParam.put("filterAppearance", filterAppearance);
     this.srvEntitiesPage
-      .revealPageFilterData(pAddParam, pRequestData, InvItem.class);
+      .revealPageFilterData(pAddParam, pRequestData, pItemClass);
     StringBuffer sbWhere = (StringBuffer) pAddParam.get("sbWhere");
     if (sbWhere.length() == 0) {
       throw new ExceptionWithCode(ExceptionWithCode.WRONG_PARAMETER,
         "filter_must_be_not_empty");
     }
-    String goodsCatalogAction = pRequestData
-      .getParameter("goodsCatalogAction");
-    if (!("add".equals(goodsCatalogAction)
-      || "remove".equals(goodsCatalogAction))) {
+    String itemsCatalogAction = pRequestData
+      .getParameter("itemsCatalogAction");
+    if (!("add".equals(itemsCatalogAction)
+      || "remove".equals(itemsCatalogAction))) {
       throw new ExceptionWithCode(ExceptionWithCode.WRONG_PARAMETER,
         "wrong_action");
     }
@@ -87,7 +112,7 @@ public class PrcAssignGoodsToCatalog<RS> implements IProcessor {
         "catalog_must_not_has_subcatalog");
     }
     String whereStr = sbWhere.toString();
-    Integer rowCount = this.srvOrm.evalRowCountWhere(pAddParam, InvItem.class,
+    Integer rowCount = this.srvOrm.evalRowCountWhere(pAddParam, pItemClass,
         whereStr);
     TradingSettings ts = (TradingSettings) pAddParam.get("tradingSettings");
     if (rowCount > ts.getMaxQuantityOfBulkItems()) {
@@ -100,25 +125,32 @@ public class PrcAssignGoodsToCatalog<RS> implements IProcessor {
       throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
         "filtered_list_has_changed");
     }
-    List<InvItem> goodsList = this.srvOrm.retrieveListWithConditions(pAddParam,
-      InvItem.class, "where " + whereStr);
-    for (InvItem goods : goodsList) {
-      GoodsCatalogs gc = new GoodsCatalogs();
-      gc.setItsCatalog(catalogOfGoods);
-      gc.setGoods(goods);
-      if ("add".equals(goodsCatalogAction)) {
-        // add goods to catalog
-        this.srvOrm.insertEntity(pAddParam, gc);
+    List<T> itemsList = this.srvOrm.retrieveListWithConditions(pAddParam,
+      pItemClass, "where " + whereStr);
+    for (T items : itemsList) {
+      AItemCatalog ic;
+      if (pItemClass == InvItem.class) {
+        ic = new GoodsCatalog();
+      } else if (pItemClass == ServiceToSale.class) {
+        ic = new ServiceCatalog();
       } else {
-        // remove goods from catalog
-        this.srvOrm.deleteEntity(pAddParam, gc);
+        throw new Exception("NEI: " + pItemClass);
+      }
+      ic.setItsCatalog(catalogOfGoods);
+      ic.setItem(items);
+      if ("add".equals(itemsCatalogAction)) {
+        // add items to catalog
+        this.srvOrm.insertEntity(pAddParam, ic);
+      } else {
+        // remove items from catalog
+        this.srvOrm.deleteEntity(pAddParam, ic);
       }
     }
-    pRequestData.setAttribute("goodsCatalogAction", goodsCatalogAction);
+    pRequestData.setAttribute("itemsCatalogAction", itemsCatalogAction);
     pRequestData.setAttribute("filterAppearance", filterAppearance);
     pRequestData.setAttribute("totalItems", totalItems);
-    pRequestData.setAttribute("goodsList", goodsList);
-    pRequestData.setAttribute("catalogOfGoods", catalogOfGoods);
+    pRequestData.setAttribute("itemsList", itemsList);
+    pRequestData.setAttribute("catalogOfItems", catalogOfGoods);
   }
 
   //Simple getters and setters:

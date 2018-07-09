@@ -12,9 +12,8 @@ package org.beigesoft.webstore.persistable;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import org.beigesoft.model.AEditableHasVersion;
-import org.beigesoft.model.IHasId;
 import org.beigesoft.accounting.persistable.ServiceToSale;
+import org.beigesoft.webstore.persistable.base.AItemPlace;
 
 /**
  * <p>
@@ -23,8 +22,7 @@ import org.beigesoft.accounting.persistable.ServiceToSale;
  *
  * @author Yury Demidenko
  */
-public class ServicePlace extends AEditableHasVersion
-  implements IHasId<ServicePlaceId> {
+public class ServicePlace extends AItemPlace<ServiceToSale, ServicePlaceId> {
 
   /**
    * <p>Complex ID. Must be initialized cause reflection use.</p>
@@ -39,7 +37,7 @@ public class ServicePlace extends AEditableHasVersion
   /**
    * <p>Service, not null.</p>
    **/
-  private ServiceToSale service;
+  private ServiceToSale item;
 
   /**
    * <p>if present in hundred meters, i.e. 1 means 100meters.</p>
@@ -64,17 +62,27 @@ public class ServicePlace extends AEditableHasVersion
     this.itsId = pItsId;
     if (this.itsId != null) {
       this.pickUpPlace = this.itsId.getPickUpPlace();
-      this.service = this.itsId.getService();
+      this.item = this.itsId.getItem();
     } else {
       this.pickUpPlace = null;
-      this.service = null;
+      this.item = null;
     }
+  }
+
+  /**
+   * <p>Getter for pickUpPlace.</p>
+   * @return PickUpPlace
+   **/
+  @Override
+  public final PickUpPlace getPickUpPlace() {
+    return this.pickUpPlace;
   }
 
   /**
    * <p>Setter for pickUpPlace.</p>
    * @param pPickUpPlace reference
    **/
+  @Override
   public final void setPickUpPlace(final PickUpPlace pPickUpPlace) {
     this.pickUpPlace = pPickUpPlace;
     if (this.itsId == null) {
@@ -84,15 +92,25 @@ public class ServicePlace extends AEditableHasVersion
   }
 
   /**
-   * <p>Setter for service.</p>
+   * <p>Getter for item.</p>
+   * @return ServiceToSale
+   **/
+  @Override
+  public final ServiceToSale getItem() {
+    return this.item;
+  }
+
+  /**
+   * <p>Setter for item.</p>
    * @param pService reference
    **/
-  public final void setService(final ServiceToSale pService) {
-    this.service = pService;
+  @Override
+  public final void setItem(final ServiceToSale pService) {
+    this.item = pService;
     if (this.itsId == null) {
       this.itsId = new ServicePlaceId();
     }
-    this.itsId.setService(this.service);
+    this.itsId.setItem(this.item);
   }
 
   //SGS:

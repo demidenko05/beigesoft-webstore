@@ -43,8 +43,8 @@ import org.beigesoft.webstore.persistable.SpecificsOfItem;
 import org.beigesoft.webstore.persistable.ChooseableSpecifics;
 import org.beigesoft.webstore.persistable.SpecificsOfItemGroup;
 import org.beigesoft.webstore.persistable.HtmlTemplate;
-import org.beigesoft.webstore.persistable.GoodsPrice;
-import org.beigesoft.webstore.persistable.GoodsAvailable;
+import org.beigesoft.webstore.persistable.PriceGoods;
+import org.beigesoft.webstore.persistable.GoodsPlace;
 //import org.beigesoft.webstore.persistable.GoodsRating;
 import org.beigesoft.webstore.persistable.GoodsInListLuv;
 import org.beigesoft.webstore.persistable.TradingSettings;
@@ -57,7 +57,7 @@ import org.beigesoft.webstore.persistable.I18nSpecificInList;
 
 /**
  * <p>Service that refresh webstore item in ItemInList according current
- * GoodsAvailiable, GoodsSpecifics, GoodsPrice, GoodsRating, etc.
+ * GoodsAvailiable, GoodsSpecifics, PriceGoods, GoodsRating, etc.
  * This is non-public processor.</p>
  *
  * @param <RS> platform dependent record set type
@@ -103,12 +103,12 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
     }
     updateForGoodsSpecificsList(pReqVars, outdatedGoodsSpecifics, settingsAdd, goodsInListLuv, tradingSettings, I18nInvItem.class, EShopItemType.GOODS);
     pRequestData.setAttribute("totalUpdatedGdSp", outdatedGoodsSpecifics.size());
-    List<GoodsPrice> outdatedGoodsPrice = retrieveOutdatedGoodsPrice(pReqVars, goodsInListLuv);
+    List<PriceGoods> outdatedGoodsPrice = retrieveOutdatedGoodsPrice(pReqVars, goodsInListLuv);
     updateForGoodsPriceList(pReqVars, outdatedGoodsPrice, settingsAdd, goodsInListLuv);
     pRequestData.setAttribute("totalUpdatedGdPr", outdatedGoodsPrice.size());
-    List<GoodsAvailable> outdatedGoodsAvailable = retrieveOutdatedGoodsAvailable(pReqVars, goodsInListLuv);
-    updateForGoodsAvailableList(pReqVars, outdatedGoodsAvailable, settingsAdd, goodsInListLuv);
-    pRequestData.setAttribute("totalUpdatedGdAv", outdatedGoodsAvailable.size());
+    List<GoodsPlace> outdatedGoodsPlace = retrieveOutdatedGoodsPlace(pReqVars, goodsInListLuv);
+    updateForGoodsPlaceList(pReqVars, outdatedGoodsPlace, settingsAdd, goodsInListLuv);
+    pRequestData.setAttribute("totalUpdatedGdAv", outdatedGoodsPlace.size());
     pReqVars.remove("langPreferences");
   }
 
@@ -144,28 +144,28 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
   }
 
   /**
-   * <p>Retrieve outdated GoodsAvailable.</p>
+   * <p>Retrieve outdated GoodsPlace.</p>
    * @param pReqVars additional param
    * @param pGoodsInListLuv GoodsInListLuv
-   * @return Outdated GoodsAvailable list
+   * @return Outdated GoodsPlace list
    * @throws Exception - an exception
    **/
-  public final List<GoodsAvailable> retrieveOutdatedGoodsAvailable(
+  public final List<GoodsPlace> retrieveOutdatedGoodsPlace(
     final Map<String, Object> pReqVars,
       final GoodsInListLuv pGoodsInListLuv) throws Exception {
-    List<GoodsAvailable> result = null;
+    List<GoodsPlace> result = null;
     try {
       this.srvDatabase.setIsAutocommit(false);
       this.srvDatabase.setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
       this.srvDatabase.beginTransaction();
-      String tblNm = GoodsAvailable.class.getSimpleName().toUpperCase();
+      String tblNm = GoodsPlace.class.getSimpleName().toUpperCase();
       String verCond;
       if (pGoodsInListLuv.getGoodsAvailableLuv() != null) {
         verCond = " where " + tblNm + ".ITSVERSION>" + pGoodsInListLuv.getGoodsAvailableLuv().toString();
       } else {
         verCond = "";
       }
-      result = getSrvOrm().retrieveListWithConditions(pReqVars, GoodsAvailable.class, verCond + " order by " + tblNm + ".ITSVERSION");
+      result = getSrvOrm().retrieveListWithConditions(pReqVars, GoodsPlace.class, verCond + " order by " + tblNm + ".ITSVERSION");
       this.srvDatabase.commitTransaction();
     } catch (Exception ex) {
       if (!this.srvDatabase.getIsAutocommit()) {
@@ -179,18 +179,18 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
   }
 
   /**
-   * <p>Update ItemInList with outdated GoodsAvailable.</p>
+   * <p>Update ItemInList with outdated GoodsPlace.</p>
    * @param pReqVars additional param
-   * @param pOutdGdAv outdated GoodsAvailable
+   * @param pOutdGdAv outdated GoodsPlace
    * @throws Exception - an exception
    **/
-  public final void updateForGoodsAvailable(final Map<String, Object> pReqVars, final GoodsAvailable pOutdGdAv) throws Exception {
+  public final void updateForGoodsPlace(final Map<String, Object> pReqVars, final GoodsPlace pOutdGdAv) throws Exception {
     String whereStr = "where ITSTYPE=0 and ITEMID=" + pOutdGdAv
-      .getGoods().getItsId();
+      .getItem().getItsId();
     ItemInList itemInList = getSrvOrm()
       .retrieveEntityWithConditions(pReqVars, ItemInList.class, whereStr);
     if (itemInList == null) {
-      itemInList = createGoodsInList(pReqVars, pOutdGdAv.getGoods());
+      itemInList = createGoodsInList(pReqVars, pOutdGdAv.getItem());
     }
     itemInList.setAvailableQuantity(pOutdGdAv.getItsQuantity());
     if (itemInList.getIsNew()) {
@@ -201,15 +201,15 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
   }
 
   /**
-   * <p>Update ItemInList with outdated GoodsAvailable list.
+   * <p>Update ItemInList with outdated GoodsPlace list.
    * It does it with [N]-records per transaction method.</p>
    * @param pReqVars additional param
-   * @param pOutdGdAvList outdated GoodsAvailable list
+   * @param pOutdGdAvList outdated GoodsPlace list
    * @param pSettingsAdd settings Add
    * @param pGoodsInListLuv goodsInListLuv
    * @throws Exception - an exception
    **/
-  public final void updateForGoodsAvailableList(final Map<String, Object> pReqVars, final List<GoodsAvailable> pOutdGdAvList,
+  public final void updateForGoodsPlaceList(final Map<String, Object> pReqVars, final List<GoodsPlace> pOutdGdAvList,
     final SettingsAdd pSettingsAdd, final GoodsInListLuv pGoodsInListLuv) throws Exception {
     if (pOutdGdAvList.size() == 0) {
       //Beige ORM may return empty list
@@ -226,8 +226,8 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
         this.srvDatabase.beginTransaction();
         int stepLen = Math.min(pOutdGdAvList.size(), currentStep * pSettingsAdd.getRecordsPerTransaction());
         for (int i = (currentStep - 1) * pSettingsAdd.getRecordsPerTransaction(); i < stepLen; i++) {
-          GoodsAvailable goodsSpecific = pOutdGdAvList.get(i);
-          updateForGoodsAvailable(pReqVars, goodsSpecific);
+          GoodsPlace goodsSpecific = pOutdGdAvList.get(i);
+          updateForGoodsPlace(pReqVars, goodsSpecific);
           lastUpdatedVersion = goodsSpecific.getItsVersion();
         }
         pGoodsInListLuv.setGoodsAvailableLuv(lastUpdatedVersion);
@@ -245,21 +245,21 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
   }
 
   /**
-   * <p>Retrieve outdated GoodsPrice.</p>
+   * <p>Retrieve outdated PriceGoods.</p>
    * @param pReqVars additional param
    * @param pGoodsInListLuv GoodsInListLuv
-   * @return Outdated GoodsPrice list
+   * @return Outdated PriceGoods list
    * @throws Exception - an exception
    **/
-  public final List<GoodsPrice> retrieveOutdatedGoodsPrice(
+  public final List<PriceGoods> retrieveOutdatedGoodsPrice(
     final Map<String, Object> pReqVars,
       final GoodsInListLuv pGoodsInListLuv) throws Exception {
-    List<GoodsPrice> result = null;
+    List<PriceGoods> result = null;
     try {
       this.srvDatabase.setIsAutocommit(false);
       this.srvDatabase.setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
       this.srvDatabase.beginTransaction();
-      String tblNm = GoodsPrice.class.getSimpleName().toUpperCase();
+      String tblNm = PriceGoods.class.getSimpleName().toUpperCase();
       String verCond;
       if (pGoodsInListLuv.getGoodsPriceLuv() != null) {
         verCond = " where " + tblNm + ".ITSVERSION>" + pGoodsInListLuv.getGoodsPriceLuv().toString();
@@ -267,7 +267,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
         verCond = "";
       }
       result = getSrvOrm().retrieveListWithConditions(pReqVars,
-        GoodsPrice.class, verCond + " order by " + tblNm + ".ITSVERSION");
+        PriceGoods.class, verCond + " order by " + tblNm + ".ITSVERSION");
       this.srvDatabase.commitTransaction();
     } catch (Exception ex) {
       if (!this.srvDatabase.getIsAutocommit()) {
@@ -281,16 +281,16 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
   }
 
   /**
-   * <p>Update ItemInList with outdated GoodsPrice.</p>
+   * <p>Update ItemInList with outdated PriceGoods.</p>
    * @param pReqVars additional param
-   * @param pOutdGdPr outdated GoodsPrice
+   * @param pOutdGdPr outdated PriceGoods
    * @throws Exception - an exception
    **/
-  public final void updateForGoodsPrice(final Map<String, Object> pReqVars, final GoodsPrice pOutdGdPr) throws Exception {
-    String whereStr = "where ITSTYPE=0 and ITEMID=" + pOutdGdPr.getGoods().getItsId();
+  public final void updateForGoodsPrice(final Map<String, Object> pReqVars, final PriceGoods pOutdGdPr) throws Exception {
+    String whereStr = "where ITSTYPE=0 and ITEMID=" + pOutdGdPr.getItem().getItsId();
     ItemInList itemInList = getSrvOrm().retrieveEntityWithConditions(pReqVars, ItemInList.class, whereStr);
     if (itemInList == null) {
-      itemInList = createGoodsInList(pReqVars, pOutdGdPr.getGoods());
+      itemInList = createGoodsInList(pReqVars, pOutdGdPr.getItem());
     }
     itemInList.setItsPrice(pOutdGdPr.getItsPrice());
     itemInList.setPreviousPrice(pOutdGdPr.getPreviousPrice());
@@ -302,15 +302,15 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
   }
 
   /**
-   * <p>Update ItemInList with outdated GoodsPrice list.
+   * <p>Update ItemInList with outdated PriceGoods list.
    * It does it with [N]-records per transaction method.</p>
    * @param pReqVars additional param
-   * @param pOutdGdPrList outdated GoodsPrice list
+   * @param pOutdGdPrList outdated PriceGoods list
    * @param pSettingsAdd settings Add
    * @param pGoodsInListLuv goodsInListLuv
    * @throws Exception - an exception
    **/
-  public final void updateForGoodsPriceList(final Map<String, Object> pReqVars, final List<GoodsPrice> pOutdGdPrList,
+  public final void updateForGoodsPriceList(final Map<String, Object> pReqVars, final List<PriceGoods> pOutdGdPrList,
     final SettingsAdd pSettingsAdd, final GoodsInListLuv pGoodsInListLuv) throws Exception {
     if (pOutdGdPrList.size() == 0) {
       //Beige ORM may return empty list
@@ -326,7 +326,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
         this.srvDatabase.beginTransaction();
         int stepLen = Math.min(pOutdGdPrList.size(), currentStep * pSettingsAdd.getRecordsPerTransaction());
         for (int i = (currentStep - 1) * pSettingsAdd.getRecordsPerTransaction(); i < stepLen; i++) {
-          GoodsPrice goodsSpecific = pOutdGdPrList.get(i);
+          PriceGoods goodsSpecific = pOutdGdPrList.get(i);
           updateForGoodsPrice(pReqVars, goodsSpecific);
           lastUpdatedVersion = goodsSpecific.getItsVersion();
         }
