@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 
 import org.beigesoft.model.AEditableHasVersion;
 import org.beigesoft.model.IHasId;
-import org.beigesoft.model.IHasIdLongVersion;
+import org.beigesoft.model.IHasIdLongVersionName;
 import org.beigesoft.accounting.persistable.UnitOfMeasure;
 import org.beigesoft.webstore.persistable.PriceCategory;
 
@@ -31,7 +31,7 @@ import org.beigesoft.webstore.persistable.PriceCategory;
  * @author Yury Demidenko
  */
 public abstract class
-  AItemPrice<T extends IHasIdLongVersion, ID extends AItemPriceId<T>>
+  AItemPrice<T extends IHasIdLongVersionName, ID extends AItemPriceId<T>>
     extends AEditableHasVersion implements IHasId<ID> {
 
   /**

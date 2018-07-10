@@ -23,9 +23,16 @@ import org.beigesoft.model.IRequestData;
 import org.beigesoft.log.ILogger;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
+import org.beigesoft.accounting.persistable.InvItem;
+import org.beigesoft.accounting.persistable.ServiceToSale;
 import org.beigesoft.webstore.model.EShopItemType;
 import org.beigesoft.webstore.model.ESpecificsItemType;
+import org.beigesoft.webstore.persistable.base.AItemSpecifics;
+import org.beigesoft.webstore.persistable.base.AItemPrice;
 import org.beigesoft.webstore.persistable.GoodsSpecifics;
+import org.beigesoft.webstore.persistable.ServiceSpecifics;
+import org.beigesoft.webstore.persistable.ServicePlace;
+import org.beigesoft.webstore.persistable.ServicePrice;
 import org.beigesoft.webstore.persistable.PriceGoods;
 import org.beigesoft.webstore.persistable.GoodsPlace;
 import org.beigesoft.webstore.persistable.CartItem;
@@ -64,6 +71,11 @@ public class PrcItemPage<RS> implements IProcessor {
   private String querySpecificsGoodsDetailI18n;
 
   /**
+   * <p>I18N query service specifics for service.</p>
+   **/
+  private String querySpecificsServiceDetailI18n;
+
+  /**
    * <p>Process entity request.</p>
    * @param pReqVars additional param
    * @param pRequestData Request Data
@@ -74,7 +86,9 @@ public class PrcItemPage<RS> implements IProcessor {
     final IRequestData pRequestData) throws Exception {
     String itemTypeStr = pRequestData.getParameter("itemType");
     if (EShopItemType.GOODS.toString().equals(itemTypeStr)) {
-      processInvItem(pReqVars, pRequestData);
+      processGoods(pReqVars, pRequestData);
+    } else if (EShopItemType.SERVICE.toString().equals(itemTypeStr)) {
+      processService(pReqVars, pRequestData);
     } else {
       throw new Exception(
         "Detail page not yet implemented for item type: " + itemTypeStr);
@@ -87,13 +101,14 @@ public class PrcItemPage<RS> implements IProcessor {
    * @param pRequestData Request Data
    * @throws Exception - an exception
    **/
-  public final void processInvItem(final Map<String, Object> pReqVars,
+  public final void processGoods(final Map<String, Object> pReqVars,
     final IRequestData pRequestData) throws Exception {
     Long itemId = Long.valueOf(pRequestData.getParameter("itemId"));
     List<GoodsSpecifics> itemSpecLst;
     List<GoodsPlace> itemPlaceLst;
     PriceGoods itemPrice;
-    itemSpecLst = retrieveGoodsSpecificss(pReqVars, itemId);
+    itemSpecLst = retrieveItemSpecificsList(pReqVars, itemId,
+      GoodsSpecifics.class, InvItem.class.getSimpleName());
     //extract main image if exist:
     int miIdx = -1;
     for (int i = 0; i < itemSpecLst.size(); i++) {
@@ -107,7 +122,7 @@ public class PrcItemPage<RS> implements IProcessor {
     if (miIdx != -1) {
       itemSpecLst.remove(miIdx);
     }
-    itemPrice = retrieveGoodsPrice(pReqVars, itemId);
+    itemPrice = retrieveItemPrice(pReqVars, itemId, PriceGoods.class);
     itemPlaceLst = getSrvOrm().retrieveListWithConditions(pReqVars,
         GoodsPlace.class, " where ITEM=" + itemId);
     if (pRequestData.getAttribute("shoppingCart") == null) {
@@ -137,22 +152,81 @@ public class PrcItemPage<RS> implements IProcessor {
   }
 
   /**
-   * <p>Retrieve goods price.</p>
+   * <p>Process a service.</p>
    * @param pReqVars additional param
-   * @param pItemId goods ID
-   * @return Goods price, null in case of price mistakes
+   * @param pRequestData Request Data
    * @throws Exception - an exception
    **/
-  public final PriceGoods retrieveGoodsPrice(
-    final Map<String, Object> pReqVars, final Long pItemId) throws Exception {
+  public final void processService(final Map<String, Object> pReqVars,
+    final IRequestData pRequestData) throws Exception {
+    Long itemId = Long.valueOf(pRequestData.getParameter("itemId"));
+    List<ServiceSpecifics> itemSpecLst;
+    List<ServicePlace> itemPlaceLst;
+    ServicePrice itemPrice;
+    itemSpecLst = retrieveItemSpecificsList(pReqVars, itemId,
+      ServiceSpecifics.class, ServiceToSale.class.getSimpleName());
+    //extract main image if exist:
+    int miIdx = -1;
+    for (int i = 0; i < itemSpecLst.size(); i++) {
+      if (itemSpecLst.get(i).getSpecifics().getItsType()
+        .equals(ESpecificsItemType.IMAGE)) {
+        pRequestData.setAttribute("itemImage", itemSpecLst.get(i));
+        miIdx = i;
+        break;
+      }
+    }
+    if (miIdx != -1) {
+      itemSpecLst.remove(miIdx);
+    }
+    itemPrice = retrieveItemPrice(pReqVars, itemId, ServicePrice.class);
+    itemPlaceLst = getSrvOrm().retrieveListWithConditions(pReqVars,
+        ServicePlace.class, " where ITEM=" + itemId);
+    if (pRequestData.getAttribute("shoppingCart") == null) {
+      ShoppingCart shoppingCart = this.srvShoppingCart
+        .getShoppingCart(pReqVars, pRequestData, false);
+      if (shoppingCart != null) {
+        pRequestData.setAttribute("shoppingCart", shoppingCart);
+      }
+    }
+    if (pRequestData.getAttribute("shoppingCart") != null) {
+      ShoppingCart shoppingCart = (ShoppingCart) pRequestData
+        .getAttribute("shoppingCart");
+      if (shoppingCart.getItsItems() != null) {
+        String itemTypeStr = pRequestData.getParameter("itemType");
+        for (CartItem ci : shoppingCart.getItsItems()) {
+          if (!ci.getIsDisabled() && ci.getItemId().equals(itemId)
+            && ci.getItemType().toString().equals(itemTypeStr)) {
+            pRequestData.setAttribute("cartItem", ci);
+            break;
+          }
+        }
+      }
+    }
+    pRequestData.setAttribute("itemSpecLst", itemSpecLst);
+    pRequestData.setAttribute("itemPlaceLst", itemPlaceLst);
+    pRequestData.setAttribute("itemPrice", itemPrice);
+  }
+
+  /**
+   * <p>Retrieve item price.</p>
+   * @param <T> item price type
+   * @param pReqVars additional param
+   * @param pItemId item ID
+   * @param pItemPriceCl item price class
+   * @return item price, null in case of price mistakes
+   * @throws Exception - an exception
+   **/
+  public final <T extends AItemPrice<?, ?>> T retrieveItemPrice(
+    final Map<String, Object> pReqVars, final Long pItemId,
+      final Class<T> pItemPriceCl) throws Exception {
     TradingSettings ts = (TradingSettings) pReqVars.get("tradingSettings");
     if (ts.getIsUsePriceForCustomer()) {
       throw new Exception(
         "Method price depends of customer's category not yet implemented!");
     }
     // same price for all customers - only record exist:
-    List<PriceGoods> lst = getSrvOrm().retrieveListWithConditions(pReqVars,
-          PriceGoods.class, " where ITEM=" + pItemId);
+    List<T> lst = getSrvOrm().retrieveListWithConditions(pReqVars,
+          pItemPriceCl, " where ITEM=" + pItemId);
     if (lst.size() == 1) {
       return lst.get(0);
     } else {
@@ -163,26 +237,31 @@ public class PrcItemPage<RS> implements IProcessor {
         itemName = "?";
       }
       this.logger.error(null, PrcItemPage.class,
-        "It must be only goods price for goods: ID/Name/prices count"
-          + pItemId + "/" + itemName + "/" + lst.size());
+        "It must be only price for goods/service: ID/Name/prices count/class"
+          + pItemId + "/" + itemName + "/" + lst.size() + "/" + pItemPriceCl);
       return null;
     }
   }
 
   /**
-   * <p>Retrieve GoodsSpecifics list for goods.</p>
+   * <p>Retrieve Item Specifics list for item.</p>
+   * @param <T> item type
    * @param pReqVars additional param
-   * @param pItemId goods ID
-   * @return GoodsSpecifics list
+   * @param pItemId item ID
+   * @param pItemSpecCl item specifics class
+   * @param pItemSn item simple name
+   * @return Item Specifics list
    * @throws Exception - an exception
    **/
-  public final List<GoodsSpecifics> retrieveGoodsSpecificss(
-    final Map<String, Object> pReqVars, final Long pItemId) throws Exception {
-    pReqVars.put("GoodsSpecificsspecificsdeepLevel", 3); //HTML templates full
+  public final <T extends AItemSpecifics<?, ?>> List<T>
+    retrieveItemSpecificsList(final Map<String, Object> pReqVars,
+      final Long pItemId, final Class<T> pItemSpecCl, String pItemSn) throws Exception {
+    //HTML templates full
+    pReqVars.put(pItemSpecCl.getSimpleName() + "specificsdeepLevel", 3);
     HashSet<String> goodsFldNms = new HashSet<String>();
     goodsFldNms.add("itsId");
     goodsFldNms.add("itsName");
-    pReqVars.put("InvItemneededFields", goodsFldNms);
+    pReqVars.put(pItemSn + "neededFields", goodsFldNms);
     HashSet<String> soiFldNms = new HashSet<String>();
     soiFldNms.add("itsId");
     soiFldNms.add("itsName");
@@ -204,24 +283,32 @@ public class PrcItemPage<RS> implements IProcessor {
     pReqVars.put("HtmlTemplateneededFields", htmTmFldNms);
     TradingSettings tradingSettings = (TradingSettings)
       pReqVars.get("tradingSettings");
-    List<GoodsSpecifics> result = null;
+    List<T> result = null;
     if (tradingSettings.getUseAdvancedI18n()) {
       String lang = (String) pReqVars.get("lang");
       String langDef = (String) pReqVars.get("langDef");
       if (!lang.equals(langDef)) {
-        String qd = lazyGetQuerySpecificsGoodsDetailI18n()
-          .replace(":ITEMID", pItemId.toString()).replace(":LANG", lang);
+        String qd;
+        if (pItemSpecCl == GoodsSpecifics.class) {
+          qd = lazyGetQuerySpecificsGoodsDetailI18n()
+            .replace(":ITEMID", pItemId.toString()).replace(":LANG", lang);
+        } else if (pItemSpecCl == ServiceSpecifics.class) {
+          qd = lazyGetQuerySpecificsServiceDetailI18n()
+            .replace(":ITEMID", pItemId.toString()).replace(":LANG", lang);
+        } else {
+          throw new Exception("NYI for " +  pItemSpecCl);
+        }
         result = getSrvOrm().retrieveListByQuery(pReqVars,
-          GoodsSpecifics.class, qd);
+          pItemSpecCl, qd);
       }
     }
     if (result == null) {
       result = getSrvOrm().retrieveListWithConditions(pReqVars,
-        GoodsSpecifics.class, " where GOODSSPECIFICS.ITEM=" + pItemId
-          + " order by SPECIFICS.ITSINDEX");
+        pItemSpecCl, " where " + pItemSpecCl.getSimpleName()
+          .toUpperCase() + ".ITEM=" + pItemId + " order by SPECIFICS.ITSINDEX");
     }
-    pReqVars.remove("GoodsSpecificsspecificsdeepLevel");
-    pReqVars.remove("InvItemneededFields");
+    pReqVars.remove(pItemSpecCl.getSimpleName() + "specificsdeepLevel");
+    pReqVars.remove(pItemSn + "neededFields");
     pReqVars.remove("SpecificsOfItemneededFields");
     pReqVars.remove("SpecificsOfItemGroupneededFields");
     pReqVars.remove("HtmlTemplateneededFields");
@@ -240,6 +327,20 @@ public class PrcItemPage<RS> implements IProcessor {
       this.querySpecificsGoodsDetailI18n = loadString(flName);
     }
     return this.querySpecificsGoodsDetailI18n;
+  }
+
+  /**
+   * <p>Lazy Get querySpecificsServiceDetailI18n.</p>
+   * @return String
+   * @throws Exception - an exception
+   **/
+  public final String
+    lazyGetQuerySpecificsServiceDetailI18n() throws Exception {
+    if (this.querySpecificsServiceDetailI18n == null) {
+      String flName = "/webstore/serviceSpecificsDetailI18n.sql";
+      this.querySpecificsServiceDetailI18n = loadString(flName);
+    }
+    return this.querySpecificsServiceDetailI18n;
   }
 
   /**
@@ -270,6 +371,15 @@ public class PrcItemPage<RS> implements IProcessor {
   }
 
   //Simple getters and setters:
+  /**
+   * <p>Setter for querySpecificsServiceDetailI18n.</p>
+   * @param pQuerySpecificsServiceDetailI18n reference
+   **/
+  public final void setQuerySpecificsServiceDetailI18n(
+    final String pQuerySpecificsServiceDetailI18n) {
+    this.querySpecificsServiceDetailI18n = pQuerySpecificsServiceDetailI18n;
+  }
+
   /**
    * <p>Setter for querySpecificsGoodsDetailI18n.</p>
    * @param pQuerySpecificsGoodsDetailI18n reference

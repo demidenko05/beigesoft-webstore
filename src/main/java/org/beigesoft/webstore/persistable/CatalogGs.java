@@ -81,6 +81,26 @@ public class CatalogGs extends AHasNameIdLongVersion {
    **/
   private Integer filterPriceId;
 
+  /**
+   * <p>Contains of goods.</p>
+   **/
+  private Boolean hasGoods = false;
+
+  /**
+   * <p>Contains of services.</p>
+   **/
+  private Boolean hasServices = false;
+
+  /**
+   * <p>Contains of S.E. goods.</p>
+   **/
+  private Boolean hasSeGoods = false;
+
+  /**
+   * <p>Contains of S.E. services.</p>
+   **/
+  private Boolean hasSeServices = false;
+
   //Simple getters and setters:
   /**
    * <p>Getter for description.</p>
@@ -242,5 +262,69 @@ public class CatalogGs extends AHasNameIdLongVersion {
    **/
   public final void setFilterPriceId(final Integer pFilterPriceId) {
     this.filterPriceId = pFilterPriceId;
+  }
+
+  /**
+   * <p>Getter for hasGoods.</p>
+   * @return Boolean
+   **/
+  public final Boolean getHasGoods() {
+    return this.hasGoods;
+  }
+
+  /**
+   * <p>Setter for hasGoods.</p>
+   * @param pHasGoods reference
+   **/
+  public final void setHasGoods(final Boolean pHasGoods) {
+    this.hasGoods = pHasGoods;
+  }
+
+  /**
+   * <p>Getter for hasServices.</p>
+   * @return Boolean
+   **/
+  public final Boolean getHasServices() {
+    return this.hasServices;
+  }
+
+  /**
+   * <p>Setter for hasServices.</p>
+   * @param pHasServices reference
+   **/
+  public final void setHasServices(final Boolean pHasServices) {
+    this.hasServices = pHasServices;
+  }
+
+  /**
+   * <p>Getter for hasSeGoods.</p>
+   * @return Boolean
+   **/
+  public final Boolean getHasSeGoods() {
+    return this.hasSeGoods;
+  }
+
+  /**
+   * <p>Setter for hasSeGoods.</p>
+   * @param pHasSeGoods reference
+   **/
+  public final void setHasSeGoods(final Boolean pHasSeGoods) {
+    this.hasSeGoods = pHasSeGoods;
+  }
+
+  /**
+   * <p>Getter for hasSeServices.</p>
+   * @return Boolean
+   **/
+  public final Boolean getHasSeServices() {
+    return this.hasSeServices;
+  }
+
+  /**
+   * <p>Setter for hasSeServices.</p>
+   * @param pHasSeServices reference
+   **/
+  public final void setHasSeServices(final Boolean pHasSeServices) {
+    this.hasSeServices = pHasSeServices;
   }
 }

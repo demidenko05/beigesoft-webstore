@@ -13,6 +13,10 @@ alter table SPECIFICSOFITEM add FOREIGN KEY (TEMPHTML) REFERENCES HTMLTEMPLATE(I
 alter table ITEMINLIST add column UNITOFMEASURE bigint unsigned default null;
 alter table ITEMINLIST add FOREIGN KEY (UNITOFMEASURE) REFERENCES UNITOFMEASURE(ITSID);
 alter table I18NSPECIFICINLIST add column ITSNAME varchar(255);
+alter table CATALOGGS add column HASGOODS tinyint not null default 0;
+alter table CATALOGGS add column HASSERVICES tinyint not null default 0;
+alter table CATALOGGS add column HASSEGOODS tinyint not null default 0;
+alter table CATALOGGS add column HASSESERVICES tinyint not null default 0;
 drop table GOODSSPECIFIC;
 drop table GOODSCATALOGS;
 drop table GOODSPRICE;

@@ -27,34 +27,6 @@ import org.beigesoft.webstore.model.EPaymentMethod;
 public class TradingSettings extends AHasIdLongVersion {
 
   /**
-   * <p>Not Null, default true, is it store of goods,
-   * it will reflect to menu and which data will be
-   * requested from database.</p>
-   **/
-  private Boolean isGoodsStore;
-
-  /**
-   * <p>Not Null, default false, is it store of services,
-   * it will reflect to menu and which data will be
-   * requested from database.</p>
-   **/
-  private Boolean isServiceStore;
-
-  /**
-   * <p>Not Null, default false, is it store of S.E. goods,
-   * it will reflect to menu and which data will be
-   * requested from database.</p>
-   **/
-  private Boolean isSeGoodsStore;
-
-  /**
-   * <p>Not Null, default false, is it store of S.E. services,
-   * it will reflect to menu and which data will be requested
-   * from database.</p>
-   **/
-  private Boolean isSeServiceStore;
-
-  /**
    * <p>Not null, default false, is use auction.</p>
    **/
   private Boolean isUseAuction;
@@ -160,70 +132,6 @@ public class TradingSettings extends AHasIdLongVersion {
   private EPaymentMethod defaultPaymentMethod = EPaymentMethod.ONLINE;
 
   //Simple getters and setters:
-  /**
-   * <p>Getter for isGoodsStore.</p>
-   * @return Boolean
-   **/
-  public final Boolean getIsGoodsStore() {
-    return this.isGoodsStore;
-  }
-
-  /**
-   * <p>Setter for isGoodsStore.</p>
-   * @param pIsGoodsStore reference
-   **/
-  public final void setIsGoodsStore(final Boolean pIsGoodsStore) {
-    this.isGoodsStore = pIsGoodsStore;
-  }
-
-  /**
-   * <p>Getter for isServiceStore.</p>
-   * @return Boolean
-   **/
-  public final Boolean getIsServiceStore() {
-    return this.isServiceStore;
-  }
-
-  /**
-   * <p>Setter for isServiceStore.</p>
-   * @param pIsServiceStore reference
-   **/
-  public final void setIsServiceStore(final Boolean pIsServiceStore) {
-    this.isServiceStore = pIsServiceStore;
-  }
-
-  /**
-   * <p>Getter for isSeGoodsStore.</p>
-   * @return Boolean
-   **/
-  public final Boolean getIsSeGoodsStore() {
-    return this.isSeGoodsStore;
-  }
-
-  /**
-   * <p>Setter for isSeGoodsStore.</p>
-   * @param pIsSeGoodsStore reference
-   **/
-  public final void setIsSeGoodsStore(final Boolean pIsSeGoodsStore) {
-    this.isSeGoodsStore = pIsSeGoodsStore;
-  }
-
-  /**
-   * <p>Getter for isSeServiceStore.</p>
-   * @return Boolean
-   **/
-  public final Boolean getIsSeServiceStore() {
-    return this.isSeServiceStore;
-  }
-
-  /**
-   * <p>Setter for isSeServiceStore.</p>
-   * @param pIsSeServiceStore reference
-   **/
-  public final void setIsSeServiceStore(final Boolean pIsSeServiceStore) {
-    this.isSeServiceStore = pIsSeServiceStore;
-  }
-
   /**
    * <p>Getter for isUseGoodsAdvising.</p>
    * @return Boolean

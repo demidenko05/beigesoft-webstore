@@ -176,6 +176,7 @@
   org.beigesoft.webstore.persistable.ServiceSpecifics,
   org.beigesoft.webstore.persistable.ServiceCatalog,
   org.beigesoft.webstore.persistable.ServicePlace,
+  org.beigesoft.webstore.persistable.ServicePrice,
   org.beigesoft.webstore.persistable.PriceGoods,
   org.beigesoft.webstore.persistable.GoodsPlace,
   org.beigesoft.webstore.persistable.CustomerGoodsSeen</entry>

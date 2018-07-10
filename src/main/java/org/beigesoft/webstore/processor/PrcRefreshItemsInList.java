@@ -30,6 +30,7 @@ import org.beigesoft.service.ISrvNumberToString;
 import org.beigesoft.accounting.persistable.ServiceToSale;
 import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.accounting.persistable.I18nInvItem;
+import org.beigesoft.accounting.persistable.I18nServiceToSale;
 import org.beigesoft.accounting.persistable.I18nUnitOfMeasure;
 import org.beigesoft.accounting.persistable.UnitOfMeasure;
 import org.beigesoft.webstore.model.ESpecificsItemType;
@@ -38,6 +39,8 @@ import org.beigesoft.persistable.Languages;
 import org.beigesoft.persistable.LangPreferences;
 import org.beigesoft.persistable.AI18nName;
 import org.beigesoft.webstore.persistable.base.AItemSpecifics;
+import org.beigesoft.webstore.persistable.base.AItemPlace;
+import org.beigesoft.webstore.persistable.base.AItemPrice;
 import org.beigesoft.webstore.persistable.GoodsSpecifics;
 import org.beigesoft.webstore.persistable.SpecificsOfItem;
 import org.beigesoft.webstore.persistable.ChooseableSpecifics;
@@ -45,6 +48,9 @@ import org.beigesoft.webstore.persistable.SpecificsOfItemGroup;
 import org.beigesoft.webstore.persistable.HtmlTemplate;
 import org.beigesoft.webstore.persistable.PriceGoods;
 import org.beigesoft.webstore.persistable.GoodsPlace;
+import org.beigesoft.webstore.persistable.ServicePlace;
+import org.beigesoft.webstore.persistable.ServicePrice;
+import org.beigesoft.webstore.persistable.ServiceSpecifics;
 //import org.beigesoft.webstore.persistable.GoodsRating;
 import org.beigesoft.webstore.persistable.GoodsInListLuv;
 import org.beigesoft.webstore.persistable.TradingSettings;
@@ -94,21 +100,61 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
     TradingSettings tradingSettings = (TradingSettings) pReqVars.get("tradingSettings");
     GoodsInListLuv goodsInListLuv = (GoodsInListLuv) pReqVars.get("goodsInListLuv");
     pReqVars.remove("goodsInListLuv");
-    String refreshAllGs = pRequestData.getParameter("refreshAllGs");
-    List<GoodsSpecifics> outdatedGoodsSpecifics;
-    if (refreshAllGs != null) {
-      outdatedGoodsSpecifics = retrieveItemSpecificsLst(pReqVars, "", GoodsSpecifics.class);
+    String refreshAll = pRequestData.getParameter("refreshAll");
+    List<GoodsSpecifics> goodsSpecificsLst;
+    if (refreshAll != null) {
+      goodsSpecificsLst = retrieveItemSpecificsLst(pReqVars, null, GoodsSpecifics.class);
     } else {
-      outdatedGoodsSpecifics = retrieveOutdatedGoodsSpecifics(pReqVars, goodsInListLuv);
+      goodsSpecificsLst = retrieveItemSpecificsLst(pReqVars, goodsInListLuv.getGoodsSpecificLuv(), GoodsSpecifics.class);
     }
-    updateForGoodsSpecificsList(pReqVars, outdatedGoodsSpecifics, settingsAdd, goodsInListLuv, tradingSettings, I18nInvItem.class, EShopItemType.GOODS);
-    pRequestData.setAttribute("totalUpdatedGdSp", outdatedGoodsSpecifics.size());
-    List<PriceGoods> outdatedGoodsPrice = retrieveOutdatedGoodsPrice(pReqVars, goodsInListLuv);
-    updateForGoodsPriceList(pReqVars, outdatedGoodsPrice, settingsAdd, goodsInListLuv);
-    pRequestData.setAttribute("totalUpdatedGdPr", outdatedGoodsPrice.size());
-    List<GoodsPlace> outdatedGoodsPlace = retrieveOutdatedGoodsPlace(pReqVars, goodsInListLuv);
-    updateForGoodsPlaceList(pReqVars, outdatedGoodsPlace, settingsAdd, goodsInListLuv);
-    pRequestData.setAttribute("totalUpdatedGdAv", outdatedGoodsPlace.size());
+    updateForItemSpecificsList(pReqVars, goodsSpecificsLst, settingsAdd, goodsInListLuv, tradingSettings, I18nInvItem.class, EShopItemType.GOODS);
+    pRequestData.setAttribute("totalUpdatedGdSp", goodsSpecificsLst.size());
+    goodsSpecificsLst = null;
+    List<PriceGoods> goodsPriceLst;
+    if (refreshAll != null) {
+      goodsPriceLst = retrieveItemPriceLst(pReqVars, null, PriceGoods.class);
+    } else {
+      goodsPriceLst = retrieveItemPriceLst(pReqVars, goodsInListLuv.getGoodsPriceLuv(), PriceGoods.class);
+    }
+    updateForItemPriceList(pReqVars, goodsPriceLst, settingsAdd, goodsInListLuv, EShopItemType.GOODS);
+    pRequestData.setAttribute("totalUpdatedGdPr", goodsPriceLst.size());
+    goodsPriceLst = null;
+    List<GoodsPlace> goodsPlaceLst;
+    if (refreshAll != null) {
+      goodsPlaceLst = retrieveItemPlaceLst(pReqVars, null, GoodsPlace.class);
+    } else {
+      goodsPlaceLst = retrieveItemPlaceLst(pReqVars, goodsInListLuv.getGoodsAvailableLuv(), GoodsPlace.class);
+    }
+    updateForItemPlaceList(pReqVars, goodsPlaceLst, settingsAdd, goodsInListLuv, EShopItemType.GOODS);
+    pRequestData.setAttribute("totalUpdatedGdAv", goodsPlaceLst.size());
+    goodsPlaceLst = null;
+    List<ServiceSpecifics> serviceSpecificsLst;
+    if (refreshAll != null) {
+      serviceSpecificsLst = retrieveItemSpecificsLst(pReqVars, null, ServiceSpecifics.class);
+    } else {
+      serviceSpecificsLst = retrieveItemSpecificsLst(pReqVars, goodsInListLuv.getServiceSpecificLuv(), ServiceSpecifics.class);
+    }
+    updateForItemSpecificsList(pReqVars, serviceSpecificsLst, settingsAdd, goodsInListLuv, tradingSettings, I18nServiceToSale.class, EShopItemType.SERVICE);
+    pRequestData.setAttribute("totalUpdatedServSp", serviceSpecificsLst.size());
+    serviceSpecificsLst = null;
+    List<ServicePrice> servicePriceLst;
+    if (refreshAll != null) {
+      servicePriceLst = retrieveItemPriceLst(pReqVars, null, ServicePrice.class);
+    } else {
+      servicePriceLst = retrieveItemPriceLst(pReqVars, goodsInListLuv.getServicePriceLuv(), ServicePrice.class);
+    }
+    updateForItemPriceList(pReqVars, servicePriceLst, settingsAdd, goodsInListLuv, EShopItemType.SERVICE);
+    pRequestData.setAttribute("totalUpdatedServPr", servicePriceLst.size());
+    servicePriceLst = null;
+    List<ServicePlace> servicePlaceLst;
+    if (refreshAll != null) {
+      servicePlaceLst = retrieveItemPlaceLst(pReqVars, null, ServicePlace.class);
+    } else {
+      servicePlaceLst = retrieveItemPlaceLst(pReqVars, goodsInListLuv.getServicePlaceLuv(), ServicePlace.class);
+    }
+    updateForItemPlaceList(pReqVars, servicePlaceLst, settingsAdd, goodsInListLuv, EShopItemType.SERVICE);
+    pRequestData.setAttribute("totalUpdatedServAv", servicePlaceLst.size());
+    servicePlaceLst = null;
     pReqVars.remove("langPreferences");
   }
 
@@ -117,8 +163,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
    * @param pReqVars additional param
    * @throws Exception - an exception
    **/
-  public final void retrieveStartData(
-    final Map<String, Object> pReqVars) throws Exception {
+  public final void retrieveStartData(final Map<String, Object> pReqVars) throws Exception {
     try {
       this.srvDatabase.setIsAutocommit(false);
       this.srvDatabase.setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
@@ -144,28 +189,29 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
   }
 
   /**
-   * <p>Retrieve outdated GoodsPlace.</p>
+   * <p>Retrieve Item Places (outdated or all).</p>
+   * @param <T> item place type
    * @param pReqVars additional param
-   * @param pGoodsInListLuv GoodsInListLuv
-   * @return Outdated GoodsPlace list
+   * @param pLuv last updated version or null for all
+   * @param pItemPlaceCl Item Place Class
+   * @return Outdated Item Place list
    * @throws Exception - an exception
    **/
-  public final List<GoodsPlace> retrieveOutdatedGoodsPlace(
-    final Map<String, Object> pReqVars,
-      final GoodsInListLuv pGoodsInListLuv) throws Exception {
-    List<GoodsPlace> result = null;
+  public final <T extends AItemPlace<?, ?>> List<T> retrieveItemPlaceLst(final Map<String, Object> pReqVars,
+    final Long pLuv, final Class<T> pItemPlaceCl) throws Exception {
+    List<T> result = null;
     try {
       this.srvDatabase.setIsAutocommit(false);
       this.srvDatabase.setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
       this.srvDatabase.beginTransaction();
-      String tblNm = GoodsPlace.class.getSimpleName().toUpperCase();
+      String tblNm = pItemPlaceCl.getSimpleName().toUpperCase();
       String verCond;
-      if (pGoodsInListLuv.getGoodsAvailableLuv() != null) {
-        verCond = " where " + tblNm + ".ITSVERSION>" + pGoodsInListLuv.getGoodsAvailableLuv().toString();
+      if (pLuv != null) {
+        verCond = " where " + tblNm + ".ITSVERSION>" + pLuv.toString();
       } else {
         verCond = "";
       }
-      result = getSrvOrm().retrieveListWithConditions(pReqVars, GoodsPlace.class, verCond + " order by " + tblNm + ".ITSVERSION");
+      result = getSrvOrm().retrieveListWithConditions(pReqVars, pItemPlaceCl, verCond + " order by " + tblNm + ".ITSVERSION");
       this.srvDatabase.commitTransaction();
     } catch (Exception ex) {
       if (!this.srvDatabase.getIsAutocommit()) {
@@ -179,121 +225,22 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
   }
 
   /**
-   * <p>Update ItemInList with outdated GoodsPlace.</p>
+   * <p>Update ItemInList with Item Place.</p>
+   * @param <T> item place type
+   * @param <I> item type
    * @param pReqVars additional param
-   * @param pOutdGdAv outdated GoodsPlace
+   * @param pItemPlace Item Place
+   * @param pItemType EShopItemType
    * @throws Exception - an exception
    **/
-  public final void updateForGoodsPlace(final Map<String, Object> pReqVars, final GoodsPlace pOutdGdAv) throws Exception {
-    String whereStr = "where ITSTYPE=0 and ITEMID=" + pOutdGdAv
-      .getItem().getItsId();
-    ItemInList itemInList = getSrvOrm()
-      .retrieveEntityWithConditions(pReqVars, ItemInList.class, whereStr);
-    if (itemInList == null) {
-      itemInList = createGoodsInList(pReqVars, pOutdGdAv.getItem());
-    }
-    itemInList.setAvailableQuantity(pOutdGdAv.getItsQuantity());
-    if (itemInList.getIsNew()) {
-      getSrvOrm().insertEntity(pReqVars, itemInList);
-    } else {
-      getSrvOrm().updateEntity(pReqVars, itemInList);
-    }
-  }
-
-  /**
-   * <p>Update ItemInList with outdated GoodsPlace list.
-   * It does it with [N]-records per transaction method.</p>
-   * @param pReqVars additional param
-   * @param pOutdGdAvList outdated GoodsPlace list
-   * @param pSettingsAdd settings Add
-   * @param pGoodsInListLuv goodsInListLuv
-   * @throws Exception - an exception
-   **/
-  public final void updateForGoodsPlaceList(final Map<String, Object> pReqVars, final List<GoodsPlace> pOutdGdAvList,
-    final SettingsAdd pSettingsAdd, final GoodsInListLuv pGoodsInListLuv) throws Exception {
-    if (pOutdGdAvList.size() == 0) {
-      //Beige ORM may return empty list
-      return;
-    }
-    int steps = pOutdGdAvList.size() / pSettingsAdd.getRecordsPerTransaction();
-    int currentStep = 1;
-    Long lastUpdatedVersion = null;
-    do {
-      try {
-        this.srvDatabase.setIsAutocommit(false);
-        this.srvDatabase.
-          setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
-        this.srvDatabase.beginTransaction();
-        int stepLen = Math.min(pOutdGdAvList.size(), currentStep * pSettingsAdd.getRecordsPerTransaction());
-        for (int i = (currentStep - 1) * pSettingsAdd.getRecordsPerTransaction(); i < stepLen; i++) {
-          GoodsPlace goodsSpecific = pOutdGdAvList.get(i);
-          updateForGoodsPlace(pReqVars, goodsSpecific);
-          lastUpdatedVersion = goodsSpecific.getItsVersion();
-        }
-        pGoodsInListLuv.setGoodsAvailableLuv(lastUpdatedVersion);
-        getSrvOrm().updateEntity(pReqVars, pGoodsInListLuv);
-        this.srvDatabase.commitTransaction();
-      } catch (Exception ex) {
-        if (!this.srvDatabase.getIsAutocommit()) {
-          this.srvDatabase.rollBackTransaction();
-        }
-        throw ex;
-      } finally {
-        this.srvDatabase.releaseResources();
-      }
-    } while (currentStep++ < steps);
-  }
-
-  /**
-   * <p>Retrieve outdated PriceGoods.</p>
-   * @param pReqVars additional param
-   * @param pGoodsInListLuv GoodsInListLuv
-   * @return Outdated PriceGoods list
-   * @throws Exception - an exception
-   **/
-  public final List<PriceGoods> retrieveOutdatedGoodsPrice(
-    final Map<String, Object> pReqVars,
-      final GoodsInListLuv pGoodsInListLuv) throws Exception {
-    List<PriceGoods> result = null;
-    try {
-      this.srvDatabase.setIsAutocommit(false);
-      this.srvDatabase.setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
-      this.srvDatabase.beginTransaction();
-      String tblNm = PriceGoods.class.getSimpleName().toUpperCase();
-      String verCond;
-      if (pGoodsInListLuv.getGoodsPriceLuv() != null) {
-        verCond = " where " + tblNm + ".ITSVERSION>" + pGoodsInListLuv.getGoodsPriceLuv().toString();
-      } else {
-        verCond = "";
-      }
-      result = getSrvOrm().retrieveListWithConditions(pReqVars,
-        PriceGoods.class, verCond + " order by " + tblNm + ".ITSVERSION");
-      this.srvDatabase.commitTransaction();
-    } catch (Exception ex) {
-      if (!this.srvDatabase.getIsAutocommit()) {
-        this.srvDatabase.rollBackTransaction();
-      }
-      throw ex;
-    } finally {
-      this.srvDatabase.releaseResources();
-    }
-    return result;
-  }
-
-  /**
-   * <p>Update ItemInList with outdated PriceGoods.</p>
-   * @param pReqVars additional param
-   * @param pOutdGdPr outdated PriceGoods
-   * @throws Exception - an exception
-   **/
-  public final void updateForGoodsPrice(final Map<String, Object> pReqVars, final PriceGoods pOutdGdPr) throws Exception {
-    String whereStr = "where ITSTYPE=0 and ITEMID=" + pOutdGdPr.getItem().getItsId();
+  public final <T extends AItemPlace<I, ?>, I extends IHasIdLongVersionName> void updateForItemPlace(
+    final Map<String, Object> pReqVars, final T pItemPlace, final EShopItemType pItemType) throws Exception {
+    String whereStr = "where ITSTYPE=" + pItemType.ordinal() + " and ITEMID=" + pItemPlace.getItem().getItsId();
     ItemInList itemInList = getSrvOrm().retrieveEntityWithConditions(pReqVars, ItemInList.class, whereStr);
     if (itemInList == null) {
-      itemInList = createGoodsInList(pReqVars, pOutdGdPr.getItem());
+      itemInList = createItemInList(pReqVars, pItemPlace.getItem());
     }
-    itemInList.setItsPrice(pOutdGdPr.getItsPrice());
-    itemInList.setPreviousPrice(pOutdGdPr.getPreviousPrice());
+    itemInList.setAvailableQuantity(pItemPlace.getItsQuantity());
     if (itemInList.getIsNew()) {
       getSrvOrm().insertEntity(pReqVars, itemInList);
     } else {
@@ -302,21 +249,25 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
   }
 
   /**
-   * <p>Update ItemInList with outdated PriceGoods list.
+   * <p>Update ItemInList withitem place list.
    * It does it with [N]-records per transaction method.</p>
+   * @param <T> item place type
+   * @param <I> item type
    * @param pReqVars additional param
-   * @param pOutdGdPrList outdated PriceGoods list
+   * @param pItemPlaceLst item place list
    * @param pSettingsAdd settings Add
    * @param pGoodsInListLuv goodsInListLuv
+   * @param pItemType EShopItemType
    * @throws Exception - an exception
    **/
-  public final void updateForGoodsPriceList(final Map<String, Object> pReqVars, final List<PriceGoods> pOutdGdPrList,
-    final SettingsAdd pSettingsAdd, final GoodsInListLuv pGoodsInListLuv) throws Exception {
-    if (pOutdGdPrList.size() == 0) {
+  public final <T extends AItemPlace<I, ?>, I extends IHasIdLongVersionName> void updateForItemPlaceList(
+    final Map<String, Object> pReqVars, final List<T> pItemPlaceLst,
+      final SettingsAdd pSettingsAdd, final GoodsInListLuv pGoodsInListLuv, final EShopItemType pItemType) throws Exception {
+    if (pItemPlaceLst.size() == 0) {
       //Beige ORM may return empty list
       return;
     }
-    int steps = pOutdGdPrList.size() / pSettingsAdd.getRecordsPerTransaction();
+    int steps = pItemPlaceLst.size() / pSettingsAdd.getRecordsPerTransaction();
     int currentStep = 1;
     Long lastUpdatedVersion = null;
     do {
@@ -324,13 +275,19 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
         this.srvDatabase.setIsAutocommit(false);
         this.srvDatabase.setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
         this.srvDatabase.beginTransaction();
-        int stepLen = Math.min(pOutdGdPrList.size(), currentStep * pSettingsAdd.getRecordsPerTransaction());
+        int stepLen = Math.min(pItemPlaceLst.size(), currentStep * pSettingsAdd.getRecordsPerTransaction());
         for (int i = (currentStep - 1) * pSettingsAdd.getRecordsPerTransaction(); i < stepLen; i++) {
-          PriceGoods goodsSpecific = pOutdGdPrList.get(i);
-          updateForGoodsPrice(pReqVars, goodsSpecific);
-          lastUpdatedVersion = goodsSpecific.getItsVersion();
+          T itemPlace = pItemPlaceLst.get(i);
+          updateForItemPlace(pReqVars, itemPlace,  pItemType);
+          lastUpdatedVersion = itemPlace.getItsVersion();
         }
-        pGoodsInListLuv.setGoodsPriceLuv(lastUpdatedVersion);
+        if (pItemType == EShopItemType.GOODS) {
+          pGoodsInListLuv.setGoodsAvailableLuv(lastUpdatedVersion);
+        } else if (pItemType == EShopItemType.SERVICE) {
+          pGoodsInListLuv.setServicePlaceLuv(lastUpdatedVersion);
+        } else {
+          throw new Exception("NEI for " + pItemType);
+        }
         getSrvOrm().updateEntity(pReqVars, pGoodsInListLuv);
         this.srvDatabase.commitTransaction();
       } catch (Exception ex) {
@@ -345,34 +302,141 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
   }
 
   /**
-   * <p>Retrieve outdated GoodsSpecifics.</p>
+   * <p>Retrieve item price list (outdated or all).</p>
+   * @param <T> item price type
    * @param pReqVars additional param
-   * @param pGoodsInListLuv GoodsInListLuv
-   * @return Outdated GoodsSpecifics list
+   * @param pLuv last updated version or null for all
+   * @param pItemPriceCl Item Price Class
+   * @return Outdated item price list
    * @throws Exception - an exception
    **/
-  public final List<GoodsSpecifics> retrieveOutdatedGoodsSpecifics(final Map<String, Object> pReqVars,
-    final GoodsInListLuv pGoodsInListLuv) throws Exception {
-    String verCondGs = " where GOODSSPECIFICS.ITEM in "
-    + " (select distinct  ITEM from GOODSSPECIFICS join SPECIFICSOFITEM on GOODSSPECIFICS.SPECIFICS=SPECIFICSOFITEM.ITSID where GOODSSPECIFICS.ITSVERSION>"
-    + pGoodsInListLuv.getGoodsSpecificLuv().toString() + ")";
-    return retrieveItemSpecificsLst(pReqVars, verCondGs, GoodsSpecifics.class);
+  public final <T extends AItemPrice<?, ?>> List<T> retrieveItemPriceLst(
+    final Map<String, Object> pReqVars, final Long pLuv, final Class<T> pItemPriceCl) throws Exception {
+    List<T> result = null;
+    try {
+      this.srvDatabase.setIsAutocommit(false);
+      this.srvDatabase.setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
+      this.srvDatabase.beginTransaction();
+      String tblNm = pItemPriceCl.getSimpleName().toUpperCase();
+      String verCond;
+      if (pLuv != null) {
+        verCond = " where " + tblNm + ".ITSVERSION>" + pLuv.toString();
+      } else {
+        verCond = "";
+      }
+      result = getSrvOrm().retrieveListWithConditions(pReqVars, pItemPriceCl, verCond + " order by " + tblNm + ".ITSVERSION");
+      this.srvDatabase.commitTransaction();
+    } catch (Exception ex) {
+      if (!this.srvDatabase.getIsAutocommit()) {
+        this.srvDatabase.rollBackTransaction();
+      }
+      throw ex;
+    } finally {
+      this.srvDatabase.releaseResources();
+    }
+    return result;
   }
 
   /**
-   * <p>Retrieve Item Specifics list.</p>
+   * <p>Update ItemInList for Item Price.</p>
+   * @param <T> item price type
+   * @param <I> item type
+   * @param pReqVars additional param
+   * @param pItemPrice Item Price
+   * @param pItemType EShopItemType
+   * @throws Exception - an exception
+   **/
+  public final <T extends AItemPrice<I, ?>, I extends IHasIdLongVersionName> void updateForItemPrice(
+    final Map<String, Object> pReqVars, final T pItemPrice, final EShopItemType pItemType) throws Exception {
+    String whereStr = "where ITSTYPE=" + pItemType.ordinal() + " and ITEMID=" + pItemPrice.getItem().getItsId();
+    ItemInList itemInList = getSrvOrm().retrieveEntityWithConditions(pReqVars, ItemInList.class, whereStr);
+    if (itemInList == null) {
+      itemInList = createItemInList(pReqVars, pItemPrice.getItem());
+    }
+    itemInList.setItsPrice(pItemPrice.getItsPrice());
+    itemInList.setPreviousPrice(pItemPrice.getPreviousPrice());
+    itemInList.setUnitOfMeasure(pItemPrice.getUnitOfMeasure());
+    if (itemInList.getIsNew()) {
+      getSrvOrm().insertEntity(pReqVars, itemInList);
+    } else {
+      getSrvOrm().updateEntity(pReqVars, itemInList);
+    }
+  }
+
+  /**
+   * <p>Update ItemInList with item price list.
+   * It does it with [N]-records per transaction method.</p>
+   * @param <T> item price type
+   * @param <I> item type
+   * @param pReqVars additional param
+   * @param pItemPriceList item price list
+   * @param pSettingsAdd settings Add
+   * @param pGoodsInListLuv goodsInListLuv
+   * @param pItemType EShopItemType
+   * @throws Exception - an exception
+   **/
+  public final <T extends AItemPrice<I, ?>, I extends IHasIdLongVersionName> void updateForItemPriceList(
+    final Map<String, Object> pReqVars, final List<T> pItemPriceList,
+      final SettingsAdd pSettingsAdd, final GoodsInListLuv pGoodsInListLuv, final EShopItemType pItemType) throws Exception {
+    if (pItemPriceList.size() == 0) {
+      //Beige ORM may return empty list
+      return;
+    }
+    int steps = pItemPriceList.size() / pSettingsAdd.getRecordsPerTransaction();
+    int currentStep = 1;
+    Long lastUpdatedVersion = null;
+    do {
+      try {
+        this.srvDatabase.setIsAutocommit(false);
+        this.srvDatabase.setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
+        this.srvDatabase.beginTransaction();
+        int stepLen = Math.min(pItemPriceList.size(), currentStep * pSettingsAdd.getRecordsPerTransaction());
+        for (int i = (currentStep - 1) * pSettingsAdd.getRecordsPerTransaction(); i < stepLen; i++) {
+          T itemPrice = pItemPriceList.get(i);
+          updateForItemPrice(pReqVars, itemPrice, pItemType);
+          lastUpdatedVersion = itemPrice.getItsVersion();
+        }
+        if (pItemType == EShopItemType.GOODS) {
+          pGoodsInListLuv.setGoodsPriceLuv(lastUpdatedVersion);
+        } else if (pItemType == EShopItemType.SERVICE) {
+          pGoodsInListLuv.setServicePriceLuv(lastUpdatedVersion);
+        } else {
+          throw new Exception("NEI for " + pItemType);
+        }
+        getSrvOrm().updateEntity(pReqVars, pGoodsInListLuv);
+        this.srvDatabase.commitTransaction();
+      } catch (Exception ex) {
+        if (!this.srvDatabase.getIsAutocommit()) {
+          this.srvDatabase.rollBackTransaction();
+        }
+        throw ex;
+      } finally {
+        this.srvDatabase.releaseResources();
+      }
+    } while (currentStep++ < steps);
+  }
+
+  /**
+   * <p>Retrieve Item Specifics list outdated or all.</p>
    * @param <T> Item Specifics type
    * @param <I> Item type
    * @param pReqVars additional param
-   * @param pWhere empty string "" or WHERE clause, e.g. " where ..."
+   * @param pLuv last updated version - null all
    * @param pItemSpecClass ItemSpec Class
    * @return Item Specifics list
    * @throws Exception - an exception
    **/
   public final <T extends AItemSpecifics<I, ?>, I extends IHasIdLongVersionName> List<T> retrieveItemSpecificsLst(
-    final Map<String, Object> pReqVars,
-      final String pWhere, final Class<T> pItemSpecClass) throws Exception {
+    final Map<String, Object> pReqVars, final Long pLuv, final Class<T> pItemSpecClass) throws Exception {
     List<T> result = null;
+    String verCond;
+    if (pLuv != null) {
+      String tblNm = pItemSpecClass.getSimpleName().toUpperCase();
+      verCond = " where " + tblNm + ".ITEM in " + " (select distinct  ITEM from " + tblNm + " join SPECIFICSOFITEM on "
+        + tblNm + ".SPECIFICS=SPECIFICSOFITEM.ITSID where " + tblNm + ".ITSVERSION>" + pLuv.toString() + ")";
+    } else {
+      verCond = "";
+    }
     try {
       this.srvDatabase.setIsAutocommit(false);
       this.srvDatabase.setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
@@ -398,7 +462,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
       soigFldNms.add("templateEnd");
       soigFldNms.add("templateDetail");
       pReqVars.put("SpecificsOfItemGroupneededFields", soigFldNms);
-      result = getSrvOrm().retrieveListWithConditions(pReqVars, pItemSpecClass, pWhere + " order by ITEM.ITSID, SPECIFICS.ITSINDEX");
+      result = getSrvOrm().retrieveListWithConditions(pReqVars, pItemSpecClass, verCond + " order by ITEM.ITSID, SPECIFICS.ITSINDEX");
       pReqVars.remove(pItemSpecClass.getSimpleName() + "specificsdeepLevel");
       pReqVars.remove("SpecificsOfItemtempHtmldeepLevel");
       pReqVars.remove("InvItemneededFields");
@@ -576,7 +640,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
   }
 
   /**
-   * <p>Update ItemInList with outdated GoodsSpecifics list.
+   * <p>Update ItemInList with outdated item specifics list.
    * It does it with [N]-records per transaction method.</p>
    * @param <I> item type
    * @param <T> item specifics type
@@ -589,7 +653,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
    * @param pItemType EShopItemType
    * @throws Exception - an exception
    **/
-  public final <I extends AI18nName<?, ?>, T extends AItemSpecifics<?, ?>> void updateForGoodsSpecificsList(
+  public final <I extends AI18nName<?, ?>, T extends AItemSpecifics<?, ?>> void updateForItemSpecificsList(
     final Map<String, Object> pReqVars, final List<T> pOutdGdSpList,
       final SettingsAdd pSettingsAdd, final GoodsInListLuv pGoodsInListLuv,
         final TradingSettings pTradingSettings, final Class<I> pI18nItemClass, final EShopItemType pItemType) throws Exception {
@@ -751,7 +815,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
           IHasIdLongVersionName item = itemsForSpecifics.get(i);
           ItemInList itemInList = findItemInListFor(itemsInList, item.getItsId(), pItemType);
           if (itemInList == null) {
-            itemInList = createItemInList(pReqVars, item.getItsId(), item.getItsName(), pItemType);
+            itemInList = createItemInList(pReqVars, item);
           }
           int j = findFirstIdxFor(pOutdGdSpList, item);
           SpecificsOfItemGroup specificsOfItemGroupWas = null;
@@ -881,7 +945,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
         } else if (pItemType.equals(EShopItemType.SERVICE)) {
           pGoodsInListLuv.setServiceSpecificLuv(lastUpdatedVersion);
         } else {
-          throw new Exception("NYI");
+          throw new Exception("NYI for " + pItemType);
         }
         getSrvOrm().updateEntity(pReqVars, pGoodsInListLuv);
         this.srvDatabase.commitTransaction();
@@ -1046,44 +1110,27 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
   }
 
   /**
-   * <p>Create ItemInList for goods.</p>
+   * <p>Create ItemInList for item.</p>
+   * @param <I> item type
    * @param pReqVars additional param
-   * @param pGoods Goods
+   * @param pItem Item
    * @return ItemInList
    * @throws Exception - an exception
    **/
-  protected final ItemInList createGoodsInList(final Map<String, Object> pReqVars, final InvItem pGoods) throws Exception {
-    return createItemInList(pReqVars, pGoods.getItsId(), pGoods.getItsName(), EShopItemType.GOODS);
-  }
-
-  /**
-   * <p>Create ItemInList for service.</p>
-   * @param pReqVars additional param
-   * @param pService service
-   * @return ItemInList
-   * @throws Exception - an exception
-   **/
-  protected final ItemInList createServiceInList(final Map<String, Object> pReqVars, final ServiceToSale pService) throws Exception {
-    return createItemInList(pReqVars, pService.getItsId(), pService.getItsName(), EShopItemType.SERVICE);
-  }
-
-  /**
-   * <p>Create ItemInList for item ID, name and type.</p>
-   * @param pReqVars additional param
-   * @param pItemId Item Id
-   * @param pItemName Item name
-   * @param pItemType Item type
-   * @return ItemInList
-   * @throws Exception - an exception
-   **/
-  protected final ItemInList createItemInList(
-    final Map<String, Object> pReqVars, final Long pItemId,
-      final String pItemName, final EShopItemType pItemType) throws Exception {
+  protected final <I extends IHasIdLongVersionName> ItemInList createItemInList(final Map<String, Object> pReqVars, final I pItem) throws Exception {
     ItemInList itemInList = new ItemInList();
     itemInList.setIsNew(true);
-    itemInList.setItsType(pItemType);
-    itemInList.setItemId(pItemId);
-    itemInList.setItsName(pItemName);
+    EShopItemType itemType;
+    if (pItem.getClass() == InvItem.class) {
+      itemType = EShopItemType.GOODS;
+    } else if (pItem.getClass() == ServiceToSale.class) {
+      itemType = EShopItemType.SERVICE;
+    } else {
+      throw new Exception("NYI for " + pItem.getClass());
+    }
+    itemInList.setItsType(itemType);
+    itemInList.setItemId(pItem.getItsId());
+    itemInList.setItsName(pItem.getItsName());
     itemInList.setAvailableQuantity(BigDecimal.ZERO);
     return itemInList;
   }
