@@ -170,6 +170,14 @@
   org.beigesoft.webstore.persistable.GoodsPlace,
   org.beigesoft.webstore.persistable.ServicePlace,
   org.beigesoft.webstore.persistable.ServicePrice,
+  org.beigesoft.webstore.persistable.I18nSeGoods,
+  org.beigesoft.webstore.persistable.I18nSeService,
+  org.beigesoft.webstore.persistable.SeGoodsSpecifics,
+  org.beigesoft.webstore.persistable.SeServiceSpecifics,
+  org.beigesoft.webstore.persistable.SeGoodsPrice,
+  org.beigesoft.webstore.persistable.SeServicePrice,
+  org.beigesoft.webstore.persistable.SeGoodsPlace,
+  org.beigesoft.webstore.persistable.SeServicePlace,
   org.beigesoft.webstore.persistable.TradingSettings</entry>
 <entry key="settingsKeysForClasses">excludeFields</entry>
 <entry key="settingsKeysForFields">isEnabled, ISrvFieldWriter, ISrvEntityFieldFiller</entry>

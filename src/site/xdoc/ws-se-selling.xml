@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns="http://maven.apache.org/XDOC/2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+
+  <properties>
+    <title>Beigesoft™ WEB Store. Selling goods or services by something else seller.</title>
+   </properties>
+
+  <body>
+
+    <section name="Beigesoft™ WEB Store. Selling goods or services by something else seller.">
+      
+      <h4>Something else seller</h4>
+      <p>Web-store owner may allow to others sellers to sell their goods and services.</p>
+      <p>For several reasons S.E. sellers must have their "own" (dedicated to them) information resources:
+      <ul>
+        <li>data models like SeGoods, SeService, etc.</li>
+        <li>user group, URL prefix, servlet, request handler, services and their factories</li>
+      </ul>
+      </p>
+
+      <p>They have no access to:
+      <ul>
+        <li><i>data models:</i></li>
+        <li>CatalogGs - only web store owner can add a catalog and add goods and services to a catalog</li>
+        <li>Any accounting documents and entries</li>
+      </ul>
+      </p>
+      
+      <h4>S.E. sellers information resources:</h4>
+      <p>
+        <ul>
+          <li><b>Authorization:</b></li>
+          <li>JEE role name - seseller</li>
+          <li>url pattern - /seseller/*</li>
+          <li><b>Services:</b></li>
+          <li>WSeService - servlet that handle "/seseller/service/*" requests - main menu wsSeSeller.jsp, entity list, add....</li>
+          <li>WSeFileUploadSingle servlet that handle "/seseller/upload/*" requests - insert SeGoodSpecifics and SeGoodSpecifics with uploaded file</li>
+          <li>HndlSeSellerReq - only request handler that handle all things - I18N vars...</li>
+          <li>Main S.E.seller page - wsSeSeller.jsp</li>
+          <li><b>Data models:</b></li>
+          <li>SeGoods</li>
+          <li>SeService</li>
+          <li>I18nSeGoods</li>
+          <li>I18nSeService</li>
+          <li>SeGoodsSpecifics</li>
+          <li>SeServiceSpecifics</li>
+          <li>SeGoodsPrice</li>
+          <li>SeServicePrice</li>
+          <li>SeGoodsPlace</li>
+          <li>SeServicePlace</li>
+          <li><b>Shared data models (only list)</b></li>
+          <li>Languages</li>
+          <li>UnitOfMeasure</li>
+        </ul>
+      </p>
+      
+      <h4>Isolation S.E. sellers from each other</h4>
+      <p>Any entity service must check request's user for current entity's S.E.seller for all operations - list, update and delete.
+        Request's user name is used to find S.E. seller for inserting.
+        Web-store owner (administrator) can only list of S.E.seller's entities.
+      </p>
+
+    </section>
+
+  </body>
+
+</document>

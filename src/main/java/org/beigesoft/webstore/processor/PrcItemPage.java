@@ -255,7 +255,8 @@ public class PrcItemPage<RS> implements IProcessor {
    **/
   public final <T extends AItemSpecifics<?, ?>> List<T>
     retrieveItemSpecificsList(final Map<String, Object> pReqVars,
-      final Long pItemId, final Class<T> pItemSpecCl, String pItemSn) throws Exception {
+      final Long pItemId, final Class<T> pItemSpecCl,
+        final String pItemSn) throws Exception {
     //HTML templates full
     pReqVars.put(pItemSpecCl.getSimpleName() + "specificsdeepLevel", 3);
     HashSet<String> goodsFldNms = new HashSet<String>();

@@ -1,7 +1,7 @@
 package org.beigesoft.webstore.persistable;
 
 /*
- * Copyright (c) 2017 Beigesoft ™
+ * Copyright (c) 2017 Beigesoft™
  *
  * Licensed under the GNU General Public License (GPL), Version 2.0
  * (the "License");
@@ -14,12 +14,13 @@ package org.beigesoft.webstore.persistable;
 
 import org.beigesoft.model.AEditableHasVersion;
 import org.beigesoft.model.IHasId;
+import org.beigesoft.persistable.UserTomcat;
 import org.beigesoft.accounting.persistable.DebtorCreditor;
 
 /**
- * <pre>
+ * <p>
  * Model of SeSeller.
- * </pre>
+ * </p>
  *
  * @author Yury Demidenko
  */
@@ -32,14 +33,9 @@ public class SeSeller extends AEditableHasVersion
   private DebtorCreditor seller;
 
   /**
-   * <p>Email, not null.</p>
+   * <p>User from JEE JDBC based authentication, not null.</p>
    **/
-  private String itsEmail;
-
-  /**
-   * <p>Password, not null.</p>
-   **/
-  private String itsPassword;
+  private UserTomcat userAuth;
 
   /**
    * <p>Usually it's simple getter that return model ID.</p>
@@ -77,34 +73,18 @@ public class SeSeller extends AEditableHasVersion
   }
 
   /**
-   * <p>Getter for itsEmail.</p>
-   * @return String
+   * <p>Getter for userAuth.</p>
+   * @return UserTomcat
    **/
-  public final String getItsEmail() {
-    return this.itsEmail;
+  public final UserTomcat getUserAuth() {
+    return this.userAuth;
   }
 
   /**
-   * <p>Setter for itsEmail.</p>
-   * @param pItsEmail reference
+   * <p>Setter for userAuth.</p>
+   * @param pUserTomcat reference
    **/
-  public final void setItsEmail(final String pItsEmail) {
-    this.itsEmail = pItsEmail;
-  }
-
-  /**
-   * <p>Getter for itsPassword.</p>
-   * @return String
-   **/
-  public final String getItsPassword() {
-    return this.itsPassword;
-  }
-
-  /**
-   * <p>Setter for itsPassword.</p>
-   * @param pItsPassword reference
-   **/
-  public final void setItsPassword(final String pItsPassword) {
-    this.itsPassword = pItsPassword;
+  public final void setUserAuth(final UserTomcat pUserTomcat) {
+    this.userAuth = pUserTomcat;
   }
 }

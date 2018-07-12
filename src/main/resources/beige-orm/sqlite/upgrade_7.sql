@@ -19,5 +19,6 @@ drop table GOODSSPECIFIC;
 drop table GOODSCATALOGS;
 drop table GOODSPRICE;
 drop table GOODSAVAILABLE;
+drop table SESELLER;
 update GOODSINLISTLUV set GOODSAVAILABLELUV=null;
 update DATABASEINFO set DATABASEVERSION=7, DESCRIPTION='Beige Accounting OIO DB version 7';
