@@ -69,4 +69,5 @@
 <entry key="prepaymentFrom">true</entry>
 <entry key="catalogOnStart">true</entry>
 <entry key="tempHtml">true</entry>
+<entry key="foreignCurrency">true</entry>
 </properties>
