@@ -60,7 +60,6 @@ alter table PURCHASEINVOICETAXLINE add column TAXABLEINVBASFC decimal(19,4) defa
 alter table PAYMENTTO add column FOREIGNTOTAL decimal(19,4) default 0;
 alter table PREPAYMENTTO add column FOREIGNTOTAL decimal(19,4) default 0;
 alter table ACCSETTINGS add column SALTAXISINVOICEBASE tinyint not null default 0;
-alter table ACCSETTINGS add column SALTAXRIPDECPL tinyint not null default 0;
 alter table ACCSETTINGS add column SALTAXROUNDMODE tinyint not null default 4;
 drop table GOODSSPECIFIC;
 drop table GOODSCATALOGS;
