@@ -56,6 +56,7 @@ alter table PURCHASEINVOICETAXLINE add column TAXABLEINVBASFC real default 0;
 alter table PAYMENTTO add column FOREIGNTOTAL real default 0;
 alter table PREPAYMENTTO add column FOREIGNTOTAL real default 0;drop table GOODSSPECIFIC;
 alter table ACCSETTINGS add column SALTAXISINVOICEBASE integer not null default 0;
+alter table ACCSETTINGS add column SALTAXUSEAGGREGITBAS integer not null default 0;
 alter table ACCSETTINGS add column SALTAXROUNDMODE integer not null default 4;
 drop table GOODSCATALOGS;
 drop table GOODSPRICE;
