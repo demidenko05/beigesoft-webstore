@@ -77,4 +77,5 @@
 <entry key="sourceIndex">false</entry>
 <entry key="charsetName">false</entry>
 <entry key="resultRecordType">true</entry>
+<entry key="resultAction">true</entry>
 </properties>
