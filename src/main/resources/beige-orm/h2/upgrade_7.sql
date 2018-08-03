@@ -62,6 +62,7 @@ alter table PREPAYMENTTO add column FOREIGNTOTAL decimal(19,4) default 0;
 alter table ACCSETTINGS add column SALTAXISINVOICEBASE tinyint not null default 0;
 alter table ACCSETTINGS add column SALTAXUSEAGGREGITBAS tinyint not null default 0;
 alter table ACCSETTINGS add column SALTAXROUNDMODE tinyint not null default 4;
+alter table PRICECATEGORY add column ISRETAILONLY integer not null default 0;
 drop table GOODSSPECIFIC;
 drop table GOODSCATALOGS;
 drop table GOODSPRICE;

@@ -38,6 +38,11 @@ public class PriceCategory extends AHasNameIdLongVersion {
    **/
   private String description;
 
+  /**
+   * <p>Only for ordinal shops - non-web.</p>
+   **/
+  private Boolean isRetailOnly = false;
+
   //Simple getters and setters:
   /**
    * <p>Getter for priceCategoryOfItems.</p>
@@ -87,5 +92,22 @@ public class PriceCategory extends AHasNameIdLongVersion {
    **/
   public final void setDescription(final String pDescription) {
     this.description = pDescription;
+  }
+
+
+  /**
+   * <p>Getter for isRetailOnly.</p>
+   * @return Boolean
+   **/
+  public final Boolean getIsRetailOnly() {
+    return this.isRetailOnly;
+  }
+
+  /**
+   * <p>Setter for isRetailOnly.</p>
+   * @param pIsRetailOnly reference
+   **/
+  public final void setIsRetailOnly(final Boolean pIsRetailOnly) {
+    this.isRetailOnly = pIsRetailOnly;
   }
 }
