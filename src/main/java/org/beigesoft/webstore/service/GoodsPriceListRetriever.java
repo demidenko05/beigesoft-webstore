@@ -72,12 +72,12 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
    * pReqVars must has:
    * <pre>
    *  priceCategoryId - Long
-   * <pre>
+   * </pre>
    * pReqVars might has:
    * <pre>
    *  optimisticQuantity - BigDecimal
    *  unavailablePrice - BigDecimal
-   * <pre>
+   * </pre>
    * </p>
    * @param pReqVars request parameters,
    * @return data table
@@ -143,6 +143,13 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
     }
     Collections.sort(usedTaxes, new CmprHasIdLong<Tax>());
     Collections.sort(usedTaxCats, new CmprHasIdLong<InvItemTaxCategory>());
+    boolean isOnlyTax = true;
+    for (InvItemTaxCategory txc : usedTaxCats) {
+      if (txc.getTaxes().size() > 1) {
+        isOnlyTax = false;
+        break;
+      }
+    }
     String queryRests = "select INVITEM,  sum(THEREST) as THEREST,"
   + " min(WAREHOUSESITE) as WAREHOUSESITE from WAREHOUSEREST group by INVITEM;";
     List<WarehouseRestLineSm> whRests = new ArrayList<WarehouseRestLineSm>();
@@ -165,15 +172,14 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
       }
     }
     AccSettings as = getSrvAccSettings().lazyGetAccSettings(pReqVars);
-    BigDecimal bd1_2 = new BigDecimal("1.2");
-    BigDecimal bd1 = new BigDecimal("1");
+    BigDecimal bd1d2 = new BigDecimal("1.2");
     BigDecimal bd100 = new BigDecimal("100");
     for (PriceGoods pg : gpl) {
       List<Object> row = new ArrayList<Object>();
       result.add(row);
       row.add(pg.getItem());
       row.add(pg.getItsPrice());
-      row.add(pg.getItsPrice().divide(bd1_2, as.getPricePrecision(),
+      row.add(pg.getItsPrice().divide(bd1d2, as.getPricePrecision(),
         as.getRoundingMode()));
       BigDecimal quantity;
       Boolean isAvailable;
@@ -201,33 +207,72 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
       row.add(quantity);
       row.add(isAvailable);
       row.add(ws);
-      TaxWr onlyTax = new TaxWr();
-      TaxCategoryWr taxCat = new TaxCategoryWr();
       if (pg.getItem().getTaxCategory() != null) {
         for (InvItemTaxCategory txc : usedTaxCats) {
           if (txc.getItsId().equals(pg.getItem()
             .getTaxCategory().getItsId())) {
-            taxCat.setTaxCategory(txc);
-            taxCat.setIsUsed(true);
+            //tax category with tax lines:
+            pg.getItem().setTaxCategory(txc);
             break;
           }
         }
-        if (taxCat.getTaxCategory() != null) {
-          if (taxCat.getTaxCategory().getTaxes().size() == 1) {
-            onlyTax.setTax(taxCat.getTaxCategory().getTaxes().get(0).getTax());
-            onlyTax.setIsUsed(true);
-            onlyTax.setRate(bd1.add(onlyTax.getTax().getItsPercentage()
-              .divide(bd100, as.getPricePrecision(), as.getSalTaxRoundMode())));
-          } else {
-            
-          }
+      }
+      if (isOnlyTax) {
+        TaxWr onlyTax = new TaxWr();
+        if (pg.getItem().getTaxCategory() != null) {
+          onlyTax.setTax(pg.getItem().getTaxCategory().getTaxes()
+            .get(0).getTax());
+          onlyTax.setIsUsed(true);
+          onlyTax.setRate(BigDecimal.ONE.add(onlyTax.getTax().getItsPercentage()
+            .divide(bd100, as.getPricePrecision(), as.getSalTaxRoundMode())));
         }
-      }
-      row.add(onlyTax);
-      row.add(taxCat);
-      for (Tax tx : usedTaxes) {
-      }
-      for (InvItemTaxCategory txc : usedTaxCats) {
+        row.add(onlyTax);
+      } else { //multiply taxes case:
+        TaxCategoryWr taxCat = new TaxCategoryWr();
+        if (pg.getItem().getTaxCategory() != null) {
+          taxCat.setTaxCategory(pg.getItem().getTaxCategory());
+          taxCat.setIsUsed(true);
+          for (InvItemTaxCategoryLine tl : taxCat.getTaxCategory().getTaxes()) {
+            taxCat.setAggrPercent(taxCat.getAggrPercent()
+              .add(tl.getItsPercentage()));
+          }
+          taxCat.setAggrRate(BigDecimal.ONE.add(taxCat.getAggrPercent()
+            .divide(bd100, as.getPricePrecision(), as.getSalTaxRoundMode())));
+        }
+        row.add(taxCat);
+        for (Tax tx : usedTaxes) {
+          TaxWr txWr = new TaxWr();
+          if (pg.getItem().getTaxCategory() != null) {
+            for (InvItemTaxCategoryLine tl : pg.getItem()
+              .getTaxCategory().getTaxes()) {
+              if (tl.getTax().getItsId().equals(tx.getItsId())) {
+                txWr.setTax(tl.getTax());
+                txWr.setIsUsed(true);
+                txWr.setRate(BigDecimal.ONE.add(txWr.getTax().getItsPercentage()
+                  .divide(bd100, as.getPricePrecision(),
+                    as.getSalTaxRoundMode())));
+                break;
+              }
+            }
+          }
+          row.add(txWr);
+        }
+        for (InvItemTaxCategory txc : usedTaxCats) {
+          TaxCategoryWr txCtWr = new TaxCategoryWr();
+          if (pg.getItem().getTaxCategory() != null && txc.getItsId()
+            .equals(pg.getItem().getTaxCategory().getItsId())) {
+            txCtWr.setTaxCategory(txc);
+            txCtWr.setIsUsed(true);
+            for (InvItemTaxCategoryLine tl : txCtWr
+              .getTaxCategory().getTaxes()) {
+              txCtWr.setAggrPercent(txCtWr.getAggrPercent()
+                .add(tl.getItsPercentage()));
+            }
+            txCtWr.setAggrRate(BigDecimal.ONE.add(txCtWr.getAggrPercent()
+              .divide(bd100, as.getPricePrecision(), as.getSalTaxRoundMode())));
+          }
+          row.add(txCtWr);
+        }
       }
     }
     return result;
@@ -341,12 +386,6 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
     nodeWarehouseSiteWarehouseId.setItsName(getSrvI18n().getMsg("itsId", lang));
     nodeWarehouseSiteWarehouseId
       .setItsValue(idx.toString() + ";warehouse,itsId");
-    idx++;
-    addTaxWr(result, idx.toString(),
-      getSrvI18n().getMsg("OnlyTax", lang), lang);
-    idx++;
-    addTaxCatWr(result, idx.toString(),
-      getSrvI18n().getMsg("taxCategory", lang), lang);
     Set<String> ndFlIdNm = new HashSet<String>();
     ndFlIdNm.add("itsId");
     ndFlIdNm.add("itsName");
@@ -361,20 +400,42 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
     for (InvItemTaxCategoryLine tcl : allTaxCatsLns) {
       if (!usedTaxes.contains(tcl.getTax())) {
         usedTaxes.add(tcl.getTax());
+        tcl.getTax().setItsPercentage(tcl.getItsPercentage());
       }
-      if (!usedTaxCats.contains(tcl.getItsOwner())) {
+      int tci = usedTaxCats.indexOf(tcl.getItsOwner());
+      if (tci == -1) {
         usedTaxCats.add(tcl.getItsOwner());
+        tcl.getItsOwner().setTaxes(new ArrayList<InvItemTaxCategoryLine>());
+        tcl.getItsOwner().getTaxes().add(tcl);
+      } else {
+        usedTaxCats.get(tci).getTaxes().add(tcl);
       }
     }
-    Collections.sort(usedTaxes, new CmprHasIdLong<Tax>());
-    for (Tax tx : usedTaxes) {
-      addTaxWr(result, idx.toString(), tx.getItsName(), lang);
-      idx++;
-    }
-    Collections.sort(usedTaxCats, new CmprHasIdLong<InvItemTaxCategory>());
+    boolean isOnlyTax = true;
     for (InvItemTaxCategory txc : usedTaxCats) {
-      addTaxCatWr(result, idx.toString(), txc.getItsName(), lang);
+      if (txc.getTaxes().size() > 1) {
+        isOnlyTax = false;
+        break;
+      }
+    }
+    if (isOnlyTax) {
       idx++;
+      addTaxWr(result, idx.toString(),
+        getSrvI18n().getMsg("OnlyTax", lang), lang);
+    } else {
+      idx++;
+      addTaxCatWr(result, idx.toString(),
+        getSrvI18n().getMsg("taxCategory", lang), lang);
+      Collections.sort(usedTaxes, new CmprHasIdLong<Tax>());
+      for (Tax tx : usedTaxes) {
+        addTaxWr(result, idx.toString(), tx.getItsName(), lang);
+        idx++;
+      }
+      Collections.sort(usedTaxCats, new CmprHasIdLong<InvItemTaxCategory>());
+      for (InvItemTaxCategory txc : usedTaxCats) {
+        addTaxCatWr(result, idx.toString(), txc.getItsName(), lang);
+        idx++;
+      }
     }
     return result;
   }
@@ -470,7 +531,7 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
    * @return Warehouse rest line or null if not found
    **/
   public final WarehouseRestLineSm findRest(final Long pItemId,
-    final List<WarehouseRestLineSm> pRestList) throws Exception {
+    final List<WarehouseRestLineSm> pRestList) {
     for (WarehouseRestLineSm wr : pRestList) {
       if (wr.getInvItemId().equals(pItemId)) {
         return wr;

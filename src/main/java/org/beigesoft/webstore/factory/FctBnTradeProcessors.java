@@ -20,10 +20,15 @@ import org.beigesoft.handler.IHandlerRequestDch;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
+import org.beigesoft.service.ISrvI18n;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.service.ISrvEntitiesPage;
 import org.beigesoft.service.ISrvNumberToString;
 import org.beigesoft.service.PrcRefreshHndlI18n;
+import org.beigesoft.service.ICsvDataRetriever;
+import org.beigesoft.accounting.service.ISrvAccSettings;
+import org.beigesoft.processor.PrcCsvSampleDataRow;
+import org.beigesoft.webstore.service.GoodsPriceListRetriever;
 import org.beigesoft.webstore.processor.PrcAssignItemsToCatalog;
 import org.beigesoft.webstore.processor.PrcRefreshItemsInList;
 import org.beigesoft.webstore.processor.PrcRefreshCatalog;
@@ -74,6 +79,21 @@ public class FctBnTradeProcessors<RS>
   private ISrvNumberToString srvNumberToString;
 
   /**
+   * <p>I18N service.</p>
+   **/
+  private ISrvI18n srvI18n;
+
+  /**
+   * <p>Business service for accounting settings.</p>
+   **/
+  private ISrvAccSettings srvAccSettings;
+
+  /**
+   * <p>Retrievers map.</p>
+   **/
+  private Map<String, ICsvDataRetriever> retrievers; //TODO main factory
+
+  /**
    * <p>Converters map "converter name"-"object' s converter".</p>
    **/
   private final Map<String, IProcessor>
@@ -108,6 +128,9 @@ public class FctBnTradeProcessors<RS>
           } else if (pBeanName.equals(PrcRefreshCatalog
             .class.getSimpleName())) {
             proc = lazyGetPrcRefreshCatalog(pAddParam);
+          } else if (pBeanName.equals(PrcCsvSampleDataRow //TODO main factory
+            .class.getSimpleName())) {
+            proc = lazyGetPrcCsvSampleDataRow(pAddParam);
           } else if (pBeanName.equals(PrcAssignItemsToCatalog
             .class.getSimpleName())) {
             proc = lazyGetPrcAssignItemsToCatalog(pAddParam);
@@ -199,6 +222,49 @@ public class FctBnTradeProcessors<RS>
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvDatabase(getSrvDatabase());
       proc.setSrvNumberToString(getSrvNumberToString());
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnTradeProcessors.class,
+        beanName + " has been created.");
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Lazy initialize retrievers.</p>
+   * @param pAddParam additional param
+   * @throws Exception - an exception
+   */
+  protected final void lazyInitRetrievers(
+      final Map<String, Object> pAddParam) throws Exception {
+    if (this.retrievers == null) {
+      this.retrievers = new HashMap<String, ICsvDataRetriever>();
+      GoodsPriceListRetriever<RS> gpr = new GoodsPriceListRetriever<RS>();
+      gpr.setSrvI18n(getSrvI18n());
+      gpr.setSrvAccSettings(getSrvAccSettings());
+      gpr.setSrvOrm(getSrvOrm());
+      gpr.setSrvDatabase(getSrvDatabase());
+      this.retrievers.put("GoodsPriceListRetriever", gpr);
+    }
+  }
+
+  /**
+   * <p>Lazy get PrcCsvSampleDataRow.</p>
+   * @param pAddParam additional param
+   * @return requested PrcCsvSampleDataRow
+   * @throws Exception - an exception
+   */
+  protected final PrcCsvSampleDataRow
+    lazyGetPrcCsvSampleDataRow(
+      final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcCsvSampleDataRow.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrcCsvSampleDataRow proc = (PrcCsvSampleDataRow)
+      this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrcCsvSampleDataRow();
+      lazyInitRetrievers(pAddParam);
+      proc.setRetrievers(this.retrievers);
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);
       this.logger.info(null, FctBnTradeProcessors.class,
@@ -347,5 +413,54 @@ public class FctBnTradeProcessors<RS>
   public final void setSrvNumberToString(
     final ISrvNumberToString pSrvNumberToString) {
     this.srvNumberToString = pSrvNumberToString;
+  }
+
+  /**
+   * <p>Getter for retrievers.</p>
+   * @return Map<String, ICsvDataRetriever>
+   **/
+  public final Map<String, ICsvDataRetriever> getRetrievers() {
+    return this.retrievers;
+  }
+
+  /**
+   * <p>Setter for retrievers.</p>
+   * @param pRetrievers reference
+   **/
+  public final void setRetrievers(
+    final Map<String, ICsvDataRetriever> pRetrievers) {
+    this.retrievers = pRetrievers;
+  }
+
+  /**
+   * <p>Getter for srvI18n.</p>
+   * @return ISrvI18n
+   **/
+  public final ISrvI18n getSrvI18n() {
+    return this.srvI18n;
+  }
+
+  /**
+   * <p>Setter for srvI18n.</p>
+   * @param pSrvI18n reference
+   **/
+  public final void setSrvI18n(final ISrvI18n pSrvI18n) {
+    this.srvI18n = pSrvI18n;
+  }
+
+  /**
+   * <p>Getter for srvAccSettings.</p>
+   * @return ISrvAccSettings
+   **/
+  public final ISrvAccSettings getSrvAccSettings() {
+    return this.srvAccSettings;
+  }
+
+  /**
+   * <p>Setter for srvAccSettings.</p>
+   * @param pSrvAccSettings reference
+   **/
+  public final void setSrvAccSettings(final ISrvAccSettings pSrvAccSettings) {
+    this.srvAccSettings = pSrvAccSettings;
   }
 }
