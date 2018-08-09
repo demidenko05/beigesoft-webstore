@@ -26,7 +26,6 @@ import org.beigesoft.service.ISrvEntitiesPage;
 import org.beigesoft.service.ISrvNumberToString;
 import org.beigesoft.service.PrcRefreshHndlI18n;
 import org.beigesoft.service.ICsvDataRetriever;
-import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.processor.PrcCsvSampleDataRow;
 import org.beigesoft.webstore.service.GoodsPriceListRetriever;
 import org.beigesoft.webstore.processor.PrcAssignItemsToCatalog;
@@ -84,11 +83,6 @@ public class FctBnTradeProcessors<RS>
   private ISrvI18n srvI18n;
 
   /**
-   * <p>Business service for accounting settings.</p>
-   **/
-  private ISrvAccSettings srvAccSettings;
-
-  /**
    * <p>Retrievers map.</p>
    **/
   private Map<String, ICsvDataRetriever> retrievers; //TODO main factory
@@ -114,28 +108,21 @@ public class FctBnTradeProcessors<RS>
     IProcessor proc =
       this.processorsMap.get(pBeanName);
     if (proc == null) {
-      // locking:
-      synchronized (this.processorsMap) {
-        // make sure again whether it's null after locking:
-        proc = this.processorsMap.get(pBeanName);
-        if (proc == null) {
-          if (pBeanName.equals(PrcRefreshItemsInList
-            .class.getSimpleName())) {
-            proc = lazyGetPrcRefreshItemsInList(pAddParam);
-          } else if (pBeanName.equals(PrcRefreshHndlI18n
-            .class.getSimpleName())) {
-            proc = lazyGetPrcRefreshHndlI18n(pAddParam);
-          } else if (pBeanName.equals(PrcRefreshCatalog
-            .class.getSimpleName())) {
-            proc = lazyGetPrcRefreshCatalog(pAddParam);
-          } else if (pBeanName.equals(PrcCsvSampleDataRow //TODO main factory
-            .class.getSimpleName())) {
-            proc = lazyGetPrcCsvSampleDataRow(pAddParam);
-          } else if (pBeanName.equals(PrcAssignItemsToCatalog
-            .class.getSimpleName())) {
-            proc = lazyGetPrcAssignItemsToCatalog(pAddParam);
-          }
-        }
+      if (pBeanName.equals(PrcRefreshItemsInList
+        .class.getSimpleName())) {
+        proc = lazyGetPrcRefreshItemsInList(pAddParam);
+      } else if (pBeanName.equals(PrcRefreshHndlI18n
+        .class.getSimpleName())) {
+        proc = lazyGetPrcRefreshHndlI18n(pAddParam);
+      } else if (pBeanName.equals(PrcRefreshCatalog
+        .class.getSimpleName())) {
+        proc = lazyGetPrcRefreshCatalog(pAddParam);
+      } else if (pBeanName.equals(PrcCsvSampleDataRow //TODO main factory
+        .class.getSimpleName())) {
+        proc = lazyGetPrcCsvSampleDataRow(pAddParam);
+      } else if (pBeanName.equals(PrcAssignItemsToCatalog
+        .class.getSimpleName())) {
+        proc = lazyGetPrcAssignItemsToCatalog(pAddParam);
       }
     }
     if (proc == null) {
@@ -241,7 +228,6 @@ public class FctBnTradeProcessors<RS>
       this.retrievers = new HashMap<String, ICsvDataRetriever>();
       GoodsPriceListRetriever<RS> gpr = new GoodsPriceListRetriever<RS>();
       gpr.setSrvI18n(getSrvI18n());
-      gpr.setSrvAccSettings(getSrvAccSettings());
       gpr.setSrvOrm(getSrvOrm());
       gpr.setSrvDatabase(getSrvDatabase());
       this.retrievers.put("GoodsPriceListRetriever", gpr);
@@ -446,21 +432,5 @@ public class FctBnTradeProcessors<RS>
    **/
   public final void setSrvI18n(final ISrvI18n pSrvI18n) {
     this.srvI18n = pSrvI18n;
-  }
-
-  /**
-   * <p>Getter for srvAccSettings.</p>
-   * @return ISrvAccSettings
-   **/
-  public final ISrvAccSettings getSrvAccSettings() {
-    return this.srvAccSettings;
-  }
-
-  /**
-   * <p>Setter for srvAccSettings.</p>
-   * @param pSrvAccSettings reference
-   **/
-  public final void setSrvAccSettings(final ISrvAccSettings pSrvAccSettings) {
-    this.srvAccSettings = pSrvAccSettings;
   }
 }

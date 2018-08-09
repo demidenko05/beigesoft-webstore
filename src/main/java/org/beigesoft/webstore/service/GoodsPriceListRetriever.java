@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Collections;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.comparator.CmprHasIdLong;
@@ -28,8 +29,6 @@ import org.beigesoft.service.ICsvDataRetriever;
 import org.beigesoft.service.ISrvI18n;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
-import org.beigesoft.accounting.persistable.AccSettings;
-import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.accounting.model.WarehouseRestLineSm;
 import org.beigesoft.accounting.model.TaxWr;
 import org.beigesoft.accounting.model.TaxCategoryWr;
@@ -61,11 +60,6 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
    * <p>ORM service.</p>
    **/
   private ISrvOrm<RS> srvOrm;
-
-  /**
-   * <p>Business service for accounting settings.</p>
-   **/
-  private ISrvAccSettings srvAccSettings;
 
   /**
    * <p>Retrieves CSV data.
@@ -128,11 +122,24 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
     List<Tax> usedTaxes = new ArrayList<Tax>();
     List<InvItemTaxCategory> usedTaxCats = new ArrayList<InvItemTaxCategory>();
     for (InvItemTaxCategoryLine tcl : allTaxCatsLns) {
-      if (!usedTaxes.contains(tcl.getTax())) {
+      boolean txListed = false;
+      for (Tax tx : usedTaxes) {
+        if (tx.getItsId().equals(tcl.getTax().getItsId())) {
+          txListed = true;
+          break;
+        }
+      }
+      if (!txListed) {
         usedTaxes.add(tcl.getTax());
         tcl.getTax().setItsPercentage(tcl.getItsPercentage());
       }
-      int tci = usedTaxCats.indexOf(tcl.getItsOwner());
+      int tci = -1;
+      for (InvItemTaxCategory tc : usedTaxCats) {
+        if (tc.getItsId().equals(tcl.getItsOwner().getItsId())) {
+          tci = usedTaxCats.indexOf(tc);
+          break;
+        }
+      }
       if (tci == -1) {
         usedTaxCats.add(tcl.getItsOwner());
         tcl.getItsOwner().setTaxes(new ArrayList<InvItemTaxCategoryLine>());
@@ -171,7 +178,6 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
         recordSet.close();
       }
     }
-    AccSettings as = getSrvAccSettings().lazyGetAccSettings(pReqVars);
     BigDecimal bd1d2 = new BigDecimal("1.2");
     BigDecimal bd100 = new BigDecimal("100");
     for (PriceGoods pg : gpl) {
@@ -179,8 +185,7 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
       result.add(row);
       row.add(pg.getItem());
       row.add(pg.getItsPrice());
-      row.add(pg.getItsPrice().divide(bd1d2, as.getPricePrecision(),
-        as.getRoundingMode()));
+      row.add(pg.getItsPrice().divide(bd1d2, 4, RoundingMode.HALF_UP));
       BigDecimal quantity;
       Boolean isAvailable;
       WarehouseSite ws = null;
@@ -224,7 +229,7 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
             .get(0).getTax());
           onlyTax.setIsUsed(true);
           onlyTax.setRate(BigDecimal.ONE.add(onlyTax.getTax().getItsPercentage()
-            .divide(bd100, as.getPricePrecision(), as.getSalTaxRoundMode())));
+            .divide(bd100, 4, RoundingMode.HALF_UP)));
         }
         row.add(onlyTax);
       } else { //multiply taxes case:
@@ -237,7 +242,7 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
               .add(tl.getItsPercentage()));
           }
           taxCat.setAggrRate(BigDecimal.ONE.add(taxCat.getAggrPercent()
-            .divide(bd100, as.getPricePrecision(), as.getSalTaxRoundMode())));
+            .divide(bd100, 4, RoundingMode.HALF_UP)));
         }
         row.add(taxCat);
         for (Tax tx : usedTaxes) {
@@ -249,8 +254,7 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
                 txWr.setTax(tl.getTax());
                 txWr.setIsUsed(true);
                 txWr.setRate(BigDecimal.ONE.add(txWr.getTax().getItsPercentage()
-                  .divide(bd100, as.getPricePrecision(),
-                    as.getSalTaxRoundMode())));
+                  .divide(bd100, 4, RoundingMode.HALF_UP)));
                 break;
               }
             }
@@ -269,7 +273,7 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
                 .add(tl.getItsPercentage()));
             }
             txCtWr.setAggrRate(BigDecimal.ONE.add(txCtWr.getAggrPercent()
-              .divide(bd100, as.getPricePrecision(), as.getSalTaxRoundMode())));
+              .divide(bd100, 4, RoundingMode.HALF_UP)));
           }
           row.add(txCtWr);
         }
@@ -293,7 +297,6 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
     Node<String> nodeGoods = new Node<String>();
     result.add(nodeGoods);
     nodeGoods.setItsName(getSrvI18n().getMsg("goods", lang));
-    nodeGoods.setItsValue(idx.toString());
     nodeGoods.setItsNodes(new ArrayList<Node<String>>());
     Node<String> nodeGoodsName = new Node<String>();
     nodeGoods.getItsNodes().add(nodeGoodsName);
@@ -306,7 +309,6 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
     Node<String> nodeGoodsItsCategory = new Node<String>();
     nodeGoods.getItsNodes().add(nodeGoodsItsCategory);
     nodeGoodsItsCategory.setItsName(getSrvI18n().getMsg("itsCategory", lang));
-    nodeGoodsItsCategory.setItsValue(idx.toString() + ";itsCategory");
     nodeGoodsItsCategory.setItsNodes(new ArrayList<Node<String>>());
     Node<String> nodeGoodsItsCategoryName = new Node<String>();
     nodeGoodsItsCategory.getItsNodes().add(nodeGoodsItsCategoryName);
@@ -321,7 +323,6 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
     nodeGoods.getItsNodes().add(nodeGoodsDefUnitOfMeasure);
     nodeGoodsDefUnitOfMeasure.setItsName(getSrvI18n()
       .getMsg("defUnitOfMeasure", lang));
-    nodeGoodsDefUnitOfMeasure.setItsValue(idx.toString() + ";defUnitOfMeasure");
     nodeGoodsDefUnitOfMeasure.setItsNodes(new ArrayList<Node<String>>());
     Node<String> nodeGoodsDefUnitOfMeasureName = new Node<String>();
     nodeGoodsDefUnitOfMeasure.getItsNodes().add(nodeGoodsDefUnitOfMeasureName);
@@ -358,7 +359,6 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
     Node<String> nodeWarehouseSite = new Node<String>();
     result.add(nodeWarehouseSite);
     nodeWarehouseSite.setItsName(getSrvI18n().getMsg("WarehouseSite", lang));
-    nodeWarehouseSite.setItsValue(idx.toString());
     nodeWarehouseSite.setItsNodes(new ArrayList<Node<String>>());
     Node<String> nodeWarehouseSiteName = new Node<String>();
     nodeWarehouseSite.getItsNodes().add(nodeWarehouseSiteName);
@@ -372,7 +372,6 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
     nodeWarehouseSite.getItsNodes().add(nodeWarehouseSiteWarehouse);
     nodeWarehouseSiteWarehouse
       .setItsName(getSrvI18n().getMsg("warehouse", lang));
-    nodeWarehouseSiteWarehouse.setItsValue(idx.toString() + ";warehouse");
     nodeWarehouseSiteWarehouse.setItsNodes(new ArrayList<Node<String>>());
     Node<String> nodeWarehouseSiteWarehouseName = new Node<String>();
     nodeWarehouseSiteWarehouse.getItsNodes()
@@ -398,11 +397,23 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
     List<Tax> usedTaxes = new ArrayList<Tax>();
     List<InvItemTaxCategory> usedTaxCats = new ArrayList<InvItemTaxCategory>();
     for (InvItemTaxCategoryLine tcl : allTaxCatsLns) {
-      if (!usedTaxes.contains(tcl.getTax())) {
-        usedTaxes.add(tcl.getTax());
-        tcl.getTax().setItsPercentage(tcl.getItsPercentage());
+      boolean txListed = false;
+      for (Tax tx : usedTaxes) {
+        if (tx.getItsId().equals(tcl.getTax().getItsId())) {
+          txListed = true;
+          break;
+        }
       }
-      int tci = usedTaxCats.indexOf(tcl.getItsOwner());
+      if (!txListed) {
+        usedTaxes.add(tcl.getTax());
+      }
+      int tci = -1;
+      for (InvItemTaxCategory tc : usedTaxCats) {
+        if (tc.getItsId().equals(tcl.getItsOwner().getItsId())) {
+          tci = usedTaxCats.indexOf(tc);
+          break;
+        }
+      }
       if (tci == -1) {
         usedTaxCats.add(tcl.getItsOwner());
         tcl.getItsOwner().setTaxes(new ArrayList<InvItemTaxCategoryLine>());
@@ -428,13 +439,13 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
         getSrvI18n().getMsg("taxCategory", lang), lang);
       Collections.sort(usedTaxes, new CmprHasIdLong<Tax>());
       for (Tax tx : usedTaxes) {
-        addTaxWr(result, idx.toString(), tx.getItsName(), lang);
         idx++;
+        addTaxWr(result, idx.toString(), tx.getItsName(), lang);
       }
       Collections.sort(usedTaxCats, new CmprHasIdLong<InvItemTaxCategory>());
       for (InvItemTaxCategory txc : usedTaxCats) {
-        addTaxCatWr(result, idx.toString(), txc.getItsName(), lang);
         idx++;
+        addTaxCatWr(result, idx.toString(), txc.getItsName(), lang);
       }
     }
     return result;
@@ -453,7 +464,6 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
     Node<String> nodeTaxWr = new Node<String>();
     pTree.add(nodeTaxWr);
     nodeTaxWr.setItsName(pName);
-    nodeTaxWr.setItsValue(pIndex);
     nodeTaxWr.setItsNodes(new ArrayList<Node<String>>());
     Node<String> nodeTaxWrIsUsed = new Node<String>();
     nodeTaxWr.getItsNodes().add(nodeTaxWrIsUsed);
@@ -466,7 +476,6 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
     Node<String> nodeTaxWrTax = new Node<String>();
     nodeTaxWr.getItsNodes().add(nodeTaxWrTax);
     nodeTaxWrTax.setItsName(getSrvI18n().getMsg("tax", pLang));
-    nodeTaxWrTax.setItsValue(pIndex + ";tax");
     nodeTaxWrTax.setItsNodes(new ArrayList<Node<String>>());
     Node<String> nodeTaxWrTaxName = new Node<String>();
     nodeTaxWrTax.getItsNodes().add(nodeTaxWrTaxName);
@@ -495,7 +504,6 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
     Node<String> nodeTaxCatWr = new Node<String>();
     pTree.add(nodeTaxCatWr);
     nodeTaxCatWr.setItsName(pName);
-    nodeTaxCatWr.setItsValue(pIndex);
     nodeTaxCatWr.setItsNodes(new ArrayList<Node<String>>());
     Node<String> nodeTaxCatWrIsUsed = new Node<String>();
     nodeTaxCatWr.getItsNodes().add(nodeTaxCatWrIsUsed);
@@ -512,7 +520,6 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
     Node<String> nodeTaxCatWrTaxCat = new Node<String>();
     nodeTaxCatWr.getItsNodes().add(nodeTaxCatWrTaxCat);
     nodeTaxCatWrTaxCat.setItsName(getSrvI18n().getMsg("taxCategory", pLang));
-    nodeTaxCatWrTaxCat.setItsValue(pIndex + ";taxCategory");
     nodeTaxCatWrTaxCat.setItsNodes(new ArrayList<Node<String>>());
     Node<String> nodeTaxCatWrTaxCatName = new Node<String>();
     nodeTaxCatWrTaxCat.getItsNodes().add(nodeTaxCatWrTaxCatName);
@@ -605,21 +612,5 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
    **/
   public final void setSrvI18n(final ISrvI18n pSrvI18n) {
     this.srvI18n = pSrvI18n;
-  }
-
-  /**
-   * <p>Getter for srvAccSettings.</p>
-   * @return ISrvAccSettings
-   **/
-  public final ISrvAccSettings getSrvAccSettings() {
-    return this.srvAccSettings;
-  }
-
-  /**
-   * <p>Setter for srvAccSettings.</p>
-   * @param pSrvAccSettings reference
-   **/
-  public final void setSrvAccSettings(final ISrvAccSettings pSrvAccSettings) {
-    this.srvAccSettings = pSrvAccSettings;
   }
 }
