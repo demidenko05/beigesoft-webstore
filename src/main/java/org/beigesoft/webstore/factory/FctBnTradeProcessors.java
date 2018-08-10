@@ -28,6 +28,7 @@ import org.beigesoft.service.PrcRefreshHndlI18n;
 import org.beigesoft.service.ICsvDataRetriever;
 import org.beigesoft.processor.PrcCsvSampleDataRow;
 import org.beigesoft.webstore.service.GoodsPriceListRetriever;
+import org.beigesoft.webstore.service.ServicePriceListRetriever;
 import org.beigesoft.webstore.processor.PrcAssignItemsToCatalog;
 import org.beigesoft.webstore.processor.PrcRefreshItemsInList;
 import org.beigesoft.webstore.processor.PrcRefreshCatalog;
@@ -231,6 +232,10 @@ public class FctBnTradeProcessors<RS>
       gpr.setSrvOrm(getSrvOrm());
       gpr.setSrvDatabase(getSrvDatabase());
       this.retrievers.put("GoodsPriceListRetriever", gpr);
+      ServicePriceListRetriever<RS> spr = new ServicePriceListRetriever<RS>();
+      spr.setSrvI18n(getSrvI18n());
+      spr.setSrvOrm(getSrvOrm());
+      this.retrievers.put("ServicePriceListRetriever", spr);
     }
   }
 

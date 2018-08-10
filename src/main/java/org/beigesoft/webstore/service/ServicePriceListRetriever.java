@@ -9,7 +9,7 @@ package org.beigesoft.webstore.service;
  *
  * You may obtain a copy of the License at
  *
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
+ * http://www.gnu.org/licenses/old-licenses/psl-2.0.en.html
  */
 
 import java.util.List;
@@ -21,40 +21,30 @@ import java.util.Collections;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.comparator.CmprHasIdLong;
 import org.beigesoft.model.Node;
-import org.beigesoft.model.IRecordSet;
 import org.beigesoft.service.ICsvDataRetriever;
 import org.beigesoft.service.ISrvI18n;
 import org.beigesoft.service.ISrvOrm;
-import org.beigesoft.service.ISrvDatabase;
-import org.beigesoft.accounting.model.WarehouseRestLineSm;
 import org.beigesoft.accounting.model.TaxWr;
 import org.beigesoft.accounting.model.TaxCategoryWr;
 import org.beigesoft.accounting.persistable.Tax;
 import org.beigesoft.accounting.persistable.InvItemTaxCategory;
 import org.beigesoft.accounting.persistable.InvItemTaxCategoryLine;
-import org.beigesoft.accounting.persistable.WarehouseSite;
-import org.beigesoft.webstore.persistable.PriceGoods;
+import org.beigesoft.webstore.persistable.ServicePrice;
 
 /**
- * <p>Goods Price List Retriever.</p>
+ * <p>Service Price List Retriever.</p>
  *
  * @param <RS> platform dependent record set type
  * @author Yury Demidenko
  */
-public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
+public class ServicePriceListRetriever<RS> implements ICsvDataRetriever {
 
   /**
    * <p>I18N service.</p>
    **/
   private ISrvI18n srvI18n;
-
-  /**
-   * <p>Database service.</p>
-   **/
-  private ISrvDatabase<RS> srvDatabase;
 
   /**
    * <p>ORM service.</p>
@@ -86,32 +76,21 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
     if (pReqVars.get("unavailablePrice") != null) {
       unavailablePrice = (BigDecimal) pReqVars.get("unavailablePrice");
     }
-    BigDecimal optimisticQuantity = null;
-    if (pReqVars.get("optimisticQuantity") != null) {
-      optimisticQuantity = (BigDecimal) pReqVars.get("optimisticQuantity");
-    }
     Set<String> ndFlPg = new HashSet<String>();
-    ndFlPg.add("item");
+    ndFlPg.add("service");
     ndFlPg.add("itsPrice");
     Set<String> ndFlIdNm = new HashSet<String>();
     ndFlIdNm.add("itsId");
     ndFlIdNm.add("itsName");
-    pReqVars.put("PriceGoodsitemdeepLevel", 3);
-    pReqVars.put("PriceGoodsneededFields", ndFlPg);
-    pReqVars.put("InvItemCategoryneededFields", ndFlIdNm);
-    pReqVars.put("UnitOfMeasureneededFields", ndFlIdNm);
-    List<PriceGoods> gpl = getSrvOrm().retrieveListWithConditions(pReqVars,
-      PriceGoods.class, "where PRICECATEGORY=" + priceCategoryId);
-    pReqVars.remove("PriceGoodsitemdeepLevel");
-    pReqVars.remove("PriceGoodsneededFields");
-    pReqVars.remove("InvItemCategoryneededFields");
+    pReqVars.put("ServicePriceitemdeepLevel", 3);
+    pReqVars.put("ServicePriceneededFields", ndFlPg);
+    pReqVars.put("ServiceToSaleCategoryneededFields", ndFlIdNm);
+    List<ServicePrice> psl = getSrvOrm().retrieveListWithConditions(pReqVars,
+      ServicePrice.class, "where PRICECATEGORY=" + priceCategoryId);
+    pReqVars.remove("ServicePriceitemdeepLevel");
+    pReqVars.remove("ServicePriceneededFields");
+    pReqVars.remove("ServiceToSaleCategoryneededFields");
     pReqVars.remove("UnitOfMeasureneededFields");
-    pReqVars.put("WarehouseSiteneededFields", ndFlIdNm);
-    pReqVars.put("WarehouseneededFields", ndFlIdNm);
-    List<WarehouseSite> allPlaces = getSrvOrm()
-      .retrieveList(pReqVars, WarehouseSite.class);
-    pReqVars.remove("WarehouseSiteneededFields");
-    pReqVars.remove("WarehouseneededFields");
     ndFlIdNm.add("itsPercentage");
     pReqVars.put("TaxneededFields", ndFlIdNm);
     List<InvItemTaxCategoryLine> allTaxCatsLns = getSrvOrm()
@@ -155,75 +134,40 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
         break;
       }
     }
-    String queryRests = "select INVITEM,  sum(THEREST) as THEREST,"
-  + " min(WAREHOUSESITE) as WAREHOUSESITE from WAREHOUSEREST group by INVITEM;";
-    List<WarehouseRestLineSm> whRests = new ArrayList<WarehouseRestLineSm>();
-    IRecordSet<RS> recordSet = null;
-    try {
-      recordSet = getSrvDatabase().retrieveRecords(queryRests);
-      if (recordSet.moveToFirst()) {
-        do {
-          WarehouseRestLineSm wrl = new WarehouseRestLineSm();
-          whRests.add(wrl);
-          wrl.setInvItemId(recordSet.getLong("INVITEM"));
-          wrl.setSiteId(recordSet.getLong("WAREHOUSESITE"));
-          Double theRset = recordSet.getDouble("THEREST");
-          wrl.setTheRest(BigDecimal.valueOf(theRset));
-        } while (recordSet.moveToNext());
-      }
-    } finally {
-      if (recordSet != null) {
-        recordSet.close();
-      }
-    }
     BigDecimal bd1d2 = new BigDecimal("1.2");
     BigDecimal bd100 = new BigDecimal("100");
-    for (PriceGoods pg : gpl) {
+    for (ServicePrice ps : psl) {
       List<Object> row = new ArrayList<Object>();
       result.add(row);
-      row.add(pg.getItem());
-      row.add(pg.getItsPrice());
-      row.add(pg.getItsPrice().divide(bd1d2, 2, RoundingMode.HALF_UP));
+      row.add(ps.getItem());
+      row.add(ps.getItsPrice());
+      row.add(ps.getItsPrice().divide(bd1d2, 2, RoundingMode.HALF_UP));
       BigDecimal quantity;
       Boolean isAvailable;
-      WarehouseSite ws = null;
       if (unavailablePrice != null
-        && pg.getItsPrice().compareTo(unavailablePrice) == 0) {
+        && ps.getItsPrice().compareTo(unavailablePrice) == 0) {
         quantity = BigDecimal.ZERO;
         isAvailable = Boolean.FALSE;
       } else {
-        WarehouseRestLineSm wr = findRest(pg.getItem().getItsId(), whRests);
-        if (wr != null) {
-          quantity = wr.getTheRest();
-          isAvailable = Boolean.TRUE;
-          ws = findSite(wr.getSiteId(), allPlaces);
-        } else {
-          if (optimisticQuantity == null) {
-            quantity = BigDecimal.ZERO;
-            isAvailable = Boolean.FALSE;
-          } else {
-            quantity = optimisticQuantity;
-            isAvailable = Boolean.TRUE;
-          }
-        }
+        quantity = BigDecimal.ONE;
+        isAvailable = Boolean.TRUE;
       }
       row.add(quantity);
       row.add(isAvailable);
-      row.add(ws);
-      if (pg.getItem().getTaxCategory() != null) {
+      if (ps.getItem().getTaxCategory() != null) {
         for (InvItemTaxCategory txc : usedTaxCats) {
-          if (txc.getItsId().equals(pg.getItem()
+          if (txc.getItsId().equals(ps.getItem()
             .getTaxCategory().getItsId())) {
             //tax category with tax lines:
-            pg.getItem().setTaxCategory(txc);
+            ps.getItem().setTaxCategory(txc);
             break;
           }
         }
       }
       if (isOnlyTax) {
         TaxWr onlyTax = new TaxWr();
-        if (pg.getItem().getTaxCategory() != null) {
-          onlyTax.setTax(pg.getItem().getTaxCategory().getTaxes()
+        if (ps.getItem().getTaxCategory() != null) {
+          onlyTax.setTax(ps.getItem().getTaxCategory().getTaxes()
             .get(0).getTax());
           onlyTax.setIsUsed(true);
           onlyTax.setRate(BigDecimal.ONE.add(onlyTax.getTax().getItsPercentage()
@@ -232,8 +176,8 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
         row.add(onlyTax);
       } else { //multiply taxes case:
         TaxCategoryWr taxCat = new TaxCategoryWr();
-        if (pg.getItem().getTaxCategory() != null) {
-          taxCat.setTaxCategory(pg.getItem().getTaxCategory());
+        if (ps.getItem().getTaxCategory() != null) {
+          taxCat.setTaxCategory(ps.getItem().getTaxCategory());
           taxCat.setIsUsed(true);
           for (InvItemTaxCategoryLine tl : taxCat.getTaxCategory().getTaxes()) {
             taxCat.setAggrPercent(taxCat.getAggrPercent()
@@ -245,8 +189,8 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
         row.add(taxCat);
         for (Tax tx : usedTaxes) {
           TaxWr txWr = new TaxWr();
-          if (pg.getItem().getTaxCategory() != null) {
-            for (InvItemTaxCategoryLine tl : pg.getItem()
+          if (ps.getItem().getTaxCategory() != null) {
+            for (InvItemTaxCategoryLine tl : ps.getItem()
               .getTaxCategory().getTaxes()) {
               if (tl.getTax().getItsId().equals(tx.getItsId())) {
                 txWr.setTax(tl.getTax());
@@ -261,8 +205,8 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
         }
         for (InvItemTaxCategory txc : usedTaxCats) {
           TaxCategoryWr txCtWr = new TaxCategoryWr();
-          if (pg.getItem().getTaxCategory() != null && txc.getItsId()
-            .equals(pg.getItem().getTaxCategory().getItsId())) {
+          if (ps.getItem().getTaxCategory() != null && txc.getItsId()
+            .equals(ps.getItem().getTaxCategory().getItsId())) {
             txCtWr.setTaxCategory(txc);
             txCtWr.setIsUsed(true);
             for (InvItemTaxCategoryLine tl : txCtWr
@@ -292,47 +236,31 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
     String lang = (String) pReqVars.get("lang");
     List<Node<String>> result = new ArrayList<Node<String>>();
     Integer idx = 1;
-    Node<String> nodeGoods = new Node<String>();
-    result.add(nodeGoods);
-    nodeGoods.setItsName(getSrvI18n().getMsg("goods", lang));
-    nodeGoods.setItsNodes(new ArrayList<Node<String>>());
-    Node<String> nodeGoodsName = new Node<String>();
-    nodeGoods.getItsNodes().add(nodeGoodsName);
-    nodeGoodsName.setItsName(getSrvI18n().getMsg("itsName", lang));
-    nodeGoodsName.setItsValue(idx.toString() + ";itsName");
-    Node<String> nodeGoodsId = new Node<String>();
-    nodeGoods.getItsNodes().add(nodeGoodsId);
-    nodeGoodsId.setItsName(getSrvI18n().getMsg("itsId", lang));
-    nodeGoodsId.setItsValue(idx.toString() + ";itsId");
-    Node<String> nodeGoodsItsCategory = new Node<String>();
-    nodeGoods.getItsNodes().add(nodeGoodsItsCategory);
-    nodeGoodsItsCategory.setItsName(getSrvI18n().getMsg("itsCategory", lang));
-    nodeGoodsItsCategory.setItsNodes(new ArrayList<Node<String>>());
-    Node<String> nodeGoodsItsCategoryName = new Node<String>();
-    nodeGoodsItsCategory.getItsNodes().add(nodeGoodsItsCategoryName);
-    nodeGoodsItsCategoryName.setItsName(getSrvI18n().getMsg("itsName", lang));
-    nodeGoodsItsCategoryName
+    Node<String> nodeService = new Node<String>();
+    result.add(nodeService);
+    nodeService.setItsName(getSrvI18n().getMsg("service", lang));
+    nodeService.setItsNodes(new ArrayList<Node<String>>());
+    Node<String> nodeServiceName = new Node<String>();
+    nodeService.getItsNodes().add(nodeServiceName);
+    nodeServiceName.setItsName(getSrvI18n().getMsg("itsName", lang));
+    nodeServiceName.setItsValue(idx.toString() + ";itsName");
+    Node<String> nodeServiceId = new Node<String>();
+    nodeService.getItsNodes().add(nodeServiceId);
+    nodeServiceId.setItsName(getSrvI18n().getMsg("itsId", lang));
+    nodeServiceId.setItsValue(idx.toString() + ";itsId");
+    Node<String> nodeServiceItsCategory = new Node<String>();
+    nodeService.getItsNodes().add(nodeServiceItsCategory);
+    nodeServiceItsCategory.setItsName(getSrvI18n().getMsg("itsCategory", lang));
+    nodeServiceItsCategory.setItsNodes(new ArrayList<Node<String>>());
+    Node<String> nodeServiceItsCategoryName = new Node<String>();
+    nodeServiceItsCategory.getItsNodes().add(nodeServiceItsCategoryName);
+    nodeServiceItsCategoryName.setItsName(getSrvI18n().getMsg("itsName", lang));
+    nodeServiceItsCategoryName
       .setItsValue(idx.toString() + ";itsCategory,itsName");
-    Node<String> nodeGoodsItsCategoryId = new Node<String>();
-    nodeGoodsItsCategory.getItsNodes().add(nodeGoodsItsCategoryId);
-    nodeGoodsItsCategoryId.setItsName(getSrvI18n().getMsg("itsId", lang));
-    nodeGoodsItsCategoryId.setItsValue(idx.toString() + ";itsCategory,itsId");
-    Node<String> nodeGoodsDefUnitOfMeasure = new Node<String>();
-    nodeGoods.getItsNodes().add(nodeGoodsDefUnitOfMeasure);
-    nodeGoodsDefUnitOfMeasure.setItsName(getSrvI18n()
-      .getMsg("defUnitOfMeasure", lang));
-    nodeGoodsDefUnitOfMeasure.setItsNodes(new ArrayList<Node<String>>());
-    Node<String> nodeGoodsDefUnitOfMeasureName = new Node<String>();
-    nodeGoodsDefUnitOfMeasure.getItsNodes().add(nodeGoodsDefUnitOfMeasureName);
-    nodeGoodsDefUnitOfMeasureName
-      .setItsName(getSrvI18n().getMsg("itsName", lang));
-    nodeGoodsDefUnitOfMeasureName
-      .setItsValue(idx.toString() + ";defUnitOfMeasure,itsName");
-    Node<String> nodeGoodsDefUnitOfMeasureId = new Node<String>();
-    nodeGoodsDefUnitOfMeasure.getItsNodes().add(nodeGoodsDefUnitOfMeasureId);
-    nodeGoodsDefUnitOfMeasureId.setItsName(getSrvI18n().getMsg("itsId", lang));
-    nodeGoodsDefUnitOfMeasureId
-      .setItsValue(idx.toString() + ";defUnitOfMeasure,itsId");
+    Node<String> nodeServiceItsCategoryId = new Node<String>();
+    nodeServiceItsCategory.getItsNodes().add(nodeServiceItsCategoryId);
+    nodeServiceItsCategoryId.setItsName(getSrvI18n().getMsg("itsId", lang));
+    nodeServiceItsCategoryId.setItsValue(idx.toString() + ";itsCategory,itsId");
     idx++;
     Node<String> nodePrice = new Node<String>();
     result.add(nodePrice);
@@ -353,36 +281,6 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
     result.add(nodeIsAvailable);
     nodeIsAvailable.setItsName(getSrvI18n().getMsg("isAvailable", lang));
     nodeIsAvailable.setItsValue(idx.toString());
-    idx++;
-    Node<String> nodeWarehouseSite = new Node<String>();
-    result.add(nodeWarehouseSite);
-    nodeWarehouseSite.setItsName(getSrvI18n().getMsg("WarehouseSite", lang));
-    nodeWarehouseSite.setItsNodes(new ArrayList<Node<String>>());
-    Node<String> nodeWarehouseSiteName = new Node<String>();
-    nodeWarehouseSite.getItsNodes().add(nodeWarehouseSiteName);
-    nodeWarehouseSiteName.setItsName(getSrvI18n().getMsg("itsName", lang));
-    nodeWarehouseSiteName.setItsValue(idx.toString() + ";itsName");
-    Node<String> nodeWarehouseSiteId = new Node<String>();
-    nodeWarehouseSite.getItsNodes().add(nodeWarehouseSiteId);
-    nodeWarehouseSiteId.setItsName(getSrvI18n().getMsg("itsId", lang));
-    nodeWarehouseSiteId.setItsValue(idx.toString() + ";itsId");
-    Node<String> nodeWarehouseSiteWarehouse = new Node<String>();
-    nodeWarehouseSite.getItsNodes().add(nodeWarehouseSiteWarehouse);
-    nodeWarehouseSiteWarehouse
-      .setItsName(getSrvI18n().getMsg("warehouse", lang));
-    nodeWarehouseSiteWarehouse.setItsNodes(new ArrayList<Node<String>>());
-    Node<String> nodeWarehouseSiteWarehouseName = new Node<String>();
-    nodeWarehouseSiteWarehouse.getItsNodes()
-      .add(nodeWarehouseSiteWarehouseName);
-    nodeWarehouseSiteWarehouseName
-      .setItsName(getSrvI18n().getMsg("itsName", lang));
-    nodeWarehouseSiteWarehouseName
-      .setItsValue(idx.toString() + ";warehouse,itsName");
-    Node<String> nodeWarehouseSiteWarehouseId = new Node<String>();
-    nodeWarehouseSiteWarehouse.getItsNodes().add(nodeWarehouseSiteWarehouseId);
-    nodeWarehouseSiteWarehouseId.setItsName(getSrvI18n().getMsg("itsId", lang));
-    nodeWarehouseSiteWarehouseId
-      .setItsValue(idx.toString() + ";warehouse,itsId");
     Set<String> ndFlIdNm = new HashSet<String>();
     ndFlIdNm.add("itsId");
     ndFlIdNm.add("itsName");
@@ -529,40 +427,6 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
     nodeTaxCatWrTaxCatId.setItsValue(pIndex + ";taxCategory,itsId");
   }
 
-  /**
-   * <p>Finds warehouse rest line by item ID.</p>
-   * @param pItemId Item ID
-   * @param pRestList Rest List
-   * @return Warehouse rest line or null if not found
-   **/
-  public final WarehouseRestLineSm findRest(final Long pItemId,
-    final List<WarehouseRestLineSm> pRestList) {
-    for (WarehouseRestLineSm wr : pRestList) {
-      if (wr.getInvItemId().equals(pItemId)) {
-        return wr;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * <p>Finds warehouse site by ID.</p>
-   * @param pSiteId Site ID
-   * @param pSiteList Site List
-   * @return WarehouseSite
-   * @throws Exception if not found
-   **/
-  public final WarehouseSite findSite(final Long pSiteId,
-    final List<WarehouseSite> pSiteList) throws Exception {
-    for (WarehouseSite ws : pSiteList) {
-      if (ws.getItsId().equals(pSiteId)) {
-        return ws;
-      }
-    }
-    throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
-      "Can' t find_warehouse site for ID: " + pSiteId);
-  }
-
   //Simple getters and setters:
   /**
    * <p>Geter for srvOrm.</p>
@@ -578,22 +442,6 @@ public class GoodsPriceListRetriever<RS> implements ICsvDataRetriever {
    **/
   public final void setSrvOrm(final ISrvOrm<RS> pSrvOrm) {
     this.srvOrm = pSrvOrm;
-  }
-
-  /**
-   * <p>Getter for srvDatabase.</p>
-   * @return ISrvDatabase<RS>
-   **/
-  public final ISrvDatabase<RS> getSrvDatabase() {
-    return this.srvDatabase;
-  }
-
-  /**
-   * <p>Setter for srvDatabase.</p>
-   * @param pSrvDatabase reference
-   **/
-  public final void setSrvDatabase(final ISrvDatabase<RS> pSrvDatabase) {
-    this.srvDatabase = pSrvDatabase;
   }
 
   /**
