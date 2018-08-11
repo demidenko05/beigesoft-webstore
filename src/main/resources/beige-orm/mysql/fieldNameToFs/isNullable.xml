@@ -82,4 +82,5 @@
 <entry key="className">false</entry>
 <entry key="nativeVal">false</entry>
 <entry key="foreignVal">false</entry>
+<entry key="priceCategoryOfBuyers">true</entry>
 </properties>

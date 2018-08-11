@@ -24,12 +24,13 @@ import org.beigesoft.persistable.AHasNameIdLongVersion;
 public class PriceCategory extends AHasNameIdLongVersion {
 
   /**
-   * <p>Price Category for Goods/Service.</p>
+   * <p>Price Category for Goods/Service, not null, e.g. "cheap goods".</p>
    **/
   private PriceCategoryOfItems priceCategoryOfItems;
 
   /**
-   * <p>Price Category for Customer.</p>
+   * <p>Price Category for Customer,
+   * e.g. "rich", if null then used "Price for all".</p>
    **/
   private PriceCategoryOfBuyers priceCategoryOfBuyers;
 
