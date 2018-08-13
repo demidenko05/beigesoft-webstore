@@ -1,7 +1,7 @@
 package org.beigesoft.webstore.persistable;
 
 /*
- * Copyright (c) 2017 Beigesoft ™
+ * Copyright (c) 2017 Beigesoft™
  *
  * Licensed under the GNU General Public License (GPL), Version 2.0
  * (the "License");
@@ -15,9 +15,9 @@ package org.beigesoft.webstore.persistable;
 import org.beigesoft.persistable.AHasIdLongVersion;
 
 /**
- * <pre>
+ * <p>
  * Hold additional settings.
- * </pre>
+ * </p>
  *
  * @author Yury Demidenko
  */

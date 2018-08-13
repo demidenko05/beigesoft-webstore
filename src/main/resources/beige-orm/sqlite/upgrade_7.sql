@@ -58,6 +58,15 @@ alter table PREPAYMENTTO add column FOREIGNTOTAL real default 0;drop table GOODS
 alter table ACCSETTINGS add column SALTAXISINVOICEBASE integer not null default 0;
 alter table ACCSETTINGS add column SALTAXUSEAGGREGITBAS integer not null default 0;
 alter table ACCSETTINGS add column SALTAXROUNDMODE integer not null default 4;
+alter table ACCSETTINGS add column TTFFILENAME text default 'DejaVuSerif';
+alter table ACCSETTINGS add column TTFBOLDFILENAME text default 'DejaVuSerif-Bold';
+alter table ACCSETTINGS add column PAGESIZE integer not null default 2;
+alter table ACCSETTINGS add column PAGEORIENTATION integer not null default 0;
+alter table ACCSETTINGS add column MARGINLEFT real default 30;
+alter table ACCSETTINGS add column MARGINRIGHT real default 15;
+alter table ACCSETTINGS add column MARGINTOP real default 20;
+alter table ACCSETTINGS add column MARGINBOTTOM real default 20;
+alter table ACCSETTINGS add column FONTSIZE real default 3.5;
 alter table PRICECATEGORY add column ISRETAILONLY integer not null default 0;
 drop table GOODSCATALOGS;
 drop table GOODSPRICE;
