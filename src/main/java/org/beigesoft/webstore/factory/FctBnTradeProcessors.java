@@ -27,6 +27,7 @@ import org.beigesoft.service.ISrvNumberToString;
 import org.beigesoft.service.PrcRefreshHndlI18n;
 import org.beigesoft.service.ICsvDataRetriever;
 import org.beigesoft.processor.PrcCsvSampleDataRow;
+import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.webstore.service.GoodsPriceListRetriever;
 import org.beigesoft.webstore.service.ServicePriceListRetriever;
 import org.beigesoft.webstore.processor.PrcAssignItemsToCatalog;
@@ -87,6 +88,11 @@ public class FctBnTradeProcessors<RS>
    * <p>Retrievers map.</p>
    **/
   private Map<String, ICsvDataRetriever> retrievers; //TODO main factory
+
+  /**
+   * <p>Business service for accounting settings.</p>
+   **/
+  private ISrvAccSettings srvAccSettings;
 
   /**
    * <p>Converters map "converter name"-"object' s converter".</p>
@@ -231,10 +237,12 @@ public class FctBnTradeProcessors<RS>
       gpr.setSrvI18n(getSrvI18n());
       gpr.setSrvOrm(getSrvOrm());
       gpr.setSrvDatabase(getSrvDatabase());
+      gpr.setSrvAccSettings(getSrvAccSettings());
       this.retrievers.put("GoodsPriceListRetriever", gpr);
       ServicePriceListRetriever<RS> spr = new ServicePriceListRetriever<RS>();
       spr.setSrvI18n(getSrvI18n());
       spr.setSrvOrm(getSrvOrm());
+      spr.setSrvAccSettings(getSrvAccSettings());
       this.retrievers.put("ServicePriceListRetriever", spr);
     }
   }
@@ -437,5 +445,21 @@ public class FctBnTradeProcessors<RS>
    **/
   public final void setSrvI18n(final ISrvI18n pSrvI18n) {
     this.srvI18n = pSrvI18n;
+  }
+
+  /**
+   * <p>Getter for srvAccSettings.</p>
+   * @return ISrvAccSettings
+   **/
+  public final ISrvAccSettings getSrvAccSettings() {
+    return this.srvAccSettings;
+  }
+
+  /**
+   * <p>Setter for srvAccSettings.</p>
+   * @param pSrvAccSettings reference
+   **/
+  public final void setSrvAccSettings(final ISrvAccSettings pSrvAccSettings) {
+    this.srvAccSettings = pSrvAccSettings;
   }
 }

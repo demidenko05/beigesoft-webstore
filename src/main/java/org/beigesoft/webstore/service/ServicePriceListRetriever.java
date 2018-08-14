@@ -28,6 +28,8 @@ import org.beigesoft.service.ISrvI18n;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.accounting.model.TaxWr;
 import org.beigesoft.accounting.model.TaxCategoryWr;
+import org.beigesoft.accounting.service.ISrvAccSettings;
+import org.beigesoft.accounting.persistable.AccSettings;
 import org.beigesoft.accounting.persistable.Tax;
 import org.beigesoft.accounting.persistable.InvItemTaxCategory;
 import org.beigesoft.accounting.persistable.InvItemTaxCategoryLine;
@@ -52,6 +54,11 @@ public class ServicePriceListRetriever<RS> implements ICsvDataRetriever {
   private ISrvOrm<RS> srvOrm;
 
   /**
+   * <p>Business service for accounting settings.</p>
+   **/
+  private ISrvAccSettings srvAccSettings;
+
+  /**
    * <p>Retrieves CSV data.
    * pReqVars must has:
    * <pre>
@@ -70,6 +77,7 @@ public class ServicePriceListRetriever<RS> implements ICsvDataRetriever {
   @Override
   public final List<List<Object>> retrieveData(
     final Map<String, Object> pReqVars) throws Exception {
+    AccSettings as = this.srvAccSettings.lazyGetAccSettings(pReqVars);
     List<List<Object>> result = new ArrayList<List<Object>>();
     Long priceCategoryId = (Long) pReqVars.get("priceCategoryId");
     BigDecimal unavailablePrice = null;
@@ -170,8 +178,8 @@ public class ServicePriceListRetriever<RS> implements ICsvDataRetriever {
           onlyTax.setTax(ps.getItem().getTaxCategory().getTaxes()
             .get(0).getTax());
           onlyTax.setIsUsed(true);
-          onlyTax.setRate(BigDecimal.ONE.add(onlyTax.getTax().getItsPercentage()
-            .divide(bd100, 4, RoundingMode.HALF_UP)));
+          onlyTax.setRate(onlyTax.getTax().getItsPercentage().divide(bd100,
+            as.getTaxPrecision() + 2, RoundingMode.HALF_UP));
         }
         row.add(onlyTax);
       } else { //multiply taxes case:
@@ -183,8 +191,8 @@ public class ServicePriceListRetriever<RS> implements ICsvDataRetriever {
             taxCat.setAggrPercent(taxCat.getAggrPercent()
               .add(tl.getItsPercentage()));
           }
-          taxCat.setAggrRate(BigDecimal.ONE.add(taxCat.getAggrPercent()
-            .divide(bd100, 4, RoundingMode.HALF_UP)));
+          taxCat.setAggrRate(taxCat.getAggrPercent().divide(bd100,
+            as.getTaxPrecision() + 2, RoundingMode.HALF_UP));
         }
         row.add(taxCat);
         for (Tax tx : usedTaxes) {
@@ -195,8 +203,8 @@ public class ServicePriceListRetriever<RS> implements ICsvDataRetriever {
               if (tl.getTax().getItsId().equals(tx.getItsId())) {
                 txWr.setTax(tl.getTax());
                 txWr.setIsUsed(true);
-                txWr.setRate(BigDecimal.ONE.add(txWr.getTax().getItsPercentage()
-                  .divide(bd100, 4, RoundingMode.HALF_UP)));
+                txWr.setRate(txWr.getTax().getItsPercentage().divide(bd100,
+                  as.getTaxPrecision() + 2, RoundingMode.HALF_UP));
                 break;
               }
             }
@@ -214,8 +222,8 @@ public class ServicePriceListRetriever<RS> implements ICsvDataRetriever {
               txCtWr.setAggrPercent(txCtWr.getAggrPercent()
                 .add(tl.getItsPercentage()));
             }
-            txCtWr.setAggrRate(BigDecimal.ONE.add(txCtWr.getAggrPercent()
-              .divide(bd100, 4, RoundingMode.HALF_UP)));
+            txCtWr.setAggrRate(txCtWr.getAggrPercent().divide(bd100,
+              as.getTaxPrecision() + 2, RoundingMode.HALF_UP));
           }
           row.add(txCtWr);
         }
@@ -458,5 +466,21 @@ public class ServicePriceListRetriever<RS> implements ICsvDataRetriever {
    **/
   public final void setSrvI18n(final ISrvI18n pSrvI18n) {
     this.srvI18n = pSrvI18n;
+  }
+
+  /**
+   * <p>Getter for srvAccSettings.</p>
+   * @return ISrvAccSettings
+   **/
+  public final ISrvAccSettings getSrvAccSettings() {
+    return this.srvAccSettings;
+  }
+
+  /**
+   * <p>Setter for srvAccSettings.</p>
+   * @param pSrvAccSettings reference
+   **/
+  public final void setSrvAccSettings(final ISrvAccSettings pSrvAccSettings) {
+    this.srvAccSettings = pSrvAccSettings;
   }
 }
