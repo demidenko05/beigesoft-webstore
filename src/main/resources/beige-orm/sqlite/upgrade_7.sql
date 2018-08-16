@@ -76,6 +76,8 @@ alter table PURCHASEINVOICELINE add column TAXCATEGORY integer default null refe
 alter table PURCHASEINVOICESERVICELINE add column TAXCATEGORY integer default null references INVITEMTAXCATEGORY(ITSID);
 alter table SALESINVOICELINE add column TAXCATEGORY integer default null references INVITEMTAXCATEGORY(ITSID);
 alter table SALESINVOICESERVICELINE add column TAXCATEGORY integer default null references INVITEMTAXCATEGORY(ITSID);
+alter table PURCHASERETURNLINE add column TAXCATEGORY integer default null references INVITEMTAXCATEGORY(ITSID);
+alter table SALESRETURNLINE add column TAXCATEGORY integer default null references INVITEMTAXCATEGORY(ITSID);
 alter table PRICECATEGORY add column ISRETAILONLY integer not null default 0;
 drop table GOODSCATALOGS;
 drop table GOODSPRICE;
