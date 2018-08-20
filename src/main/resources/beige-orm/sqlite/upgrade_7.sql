@@ -80,6 +80,8 @@ alter table PURCHASERETURNLINE add column TAXCATEGORY integer default null refer
 alter table SALESRETURNLINE add column TAXCATEGORY integer default null references INVITEMTAXCATEGORY(ITSID);
 alter table SERVICETOSALE add column DEFUNITOFMEASURE integer default null references UNITOFMEASURE(ITSID);
 alter table SERVICEPURCHASED add column DEFUNITOFMEASURE integer default null references UNITOFMEASURE(ITSID);
+alter table PURCHASEINVOICE add column OMITTAXES integer not null default 0;
+alter table SALESINVOICE add column OMITTAXES integer not null default 0;
 alter table PRICECATEGORY add column ISRETAILONLY integer not null default 0;
 drop table GOODSCATALOGS;
 drop table GOODSPRICE;

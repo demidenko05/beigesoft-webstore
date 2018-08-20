@@ -94,6 +94,8 @@ alter table SERVICETOSALE add column DEFUNITOFMEASURE bigint default null;
 alter table SERVICETOSALE add constraint fksertoselduom FOREIGN KEY (DEFUNITOFMEASURE) REFERENCES UNITOFMEASURE(ITSID);
 alter table SERVICEPURCHASED add column DEFUNITOFMEASURE bigint default null;
 alter table SERVICEPURCHASED add constraint fkserpurchduom FOREIGN KEY (DEFUNITOFMEASURE) REFERENCES UNITOFMEASURE(ITSID);
+alter table PURCHASEINVOICE add column OMITTAXES tinyint not null default 0;
+alter table SALESINVOICE add column OMITTAXES tinyint not null default 0;
 drop table GOODSSPECIFIC;
 drop table GOODSCATALOGS;
 drop table GOODSPRICE;
