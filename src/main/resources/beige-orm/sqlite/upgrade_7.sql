@@ -91,4 +91,5 @@ alter table CATALOGGS add column HASSERVICES integer not null default 0;
 alter table CATALOGGS add column HASSEGOODS integer not null default 0;
 alter table CATALOGGS add column HASSESERVICES integer not null default 0;
 update GOODSINLISTLUV set GOODSAVAILABLELUV=null;
+insert into ACCENTRIESSOURCESLINE (ITSID, ITSOWNER, FILENAME, ITSVERSION, SOURCETYPE, SETCODE, ISUSED, ENTRIESSOURCETYPE, ENTRIESACCOUNTINGTYPE, SOURCEIDNAME, DESCRIPTION) values (39, 1, 'PayFrTaxDbtAccPayCrCashMSm', 1462867931627, 10, 'DebtorCreditor,Tax', 0, 0, 1, 'PAYMENTFROM.ITSID', 'PaymentFrom, Debit AccReceivable.DebtorCreditor Credit SalesTaxPay.Tax for Tax amount. Cash Symmetric.');
 update DATABASEINFO set DATABASEVERSION=7, DESCRIPTION='Beige Accounting OIO DB version 7';
