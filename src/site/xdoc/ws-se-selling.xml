@@ -38,6 +38,8 @@
           <li>WSeService - servlet that handle "/seseller/service/*" requests - main menu wsSeSeller.jsp, entity list, add....</li>
           <li>WSeFileUploadSingle servlet that handle "/seseller/upload/*" requests - insert SeGoodSpecifics and SeGoodSpecifics with uploaded file</li>
           <li>HndlSeSellerReq - only request handler that handle all things - I18N vars...</li>
+          <li>HldSeSelEntityProcNms - only holder - entities name plus action to IEntityProcessor and IProcessor name holder, egg. "editEntity" and "SeGoods"</li>
+          <li>HldSeSelProcNms - only holder - entities name plus action to IProcessor name holder, egg. "list" and "SeGoods"</li>
           <li>Main S.E.seller page - wsSeSeller.jsp</li>
           <li><b>Data models:</b></li>
           <li>SeGoods</li>
