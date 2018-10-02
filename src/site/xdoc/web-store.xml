@@ -92,37 +92,24 @@
         The most settings reflects to menu (enabled features) and performance in some cases(e.g. if it used price for customer then additional query used).
       </p>
       
+      <h4>Web-store administrator.</h4>
+      <p>To isolate web-store information resources from accounting ones,
+        there are dedicated to web-store administrator resources:
+        <ul>
+          <li>WWaService - servlet that serve WA requests, URL=<b>/webadmin/service</b></li>
+          <li>HndlEntitiesReq (name hndlWaEntitiesReq) - only request handler that handle all things - I18N vars...</li>
+          <li>PrcEntitiesPage (name waPrcEntitiesPage) - to serve page with only web-store's entities.</li>
+        </ul>
+        Only users with JEE role <b>admin</b> have access to these resources.
+        To prevent changing S.E.seller entities, service <b>HldTradeEntitiesProcessorNames</b> returns <b>null</b> for any S.E. entity and modify actions.
+      </p>
+      
       <h4>Persistable model SettingsAdd</h4>
       <p>
         <ul>
           <li>AHasIdLongVersion fields (ID by hand)</li>
           <li>recordsPerTransaction - Integer not null,  Records per transactions for bulk operations</li>
           <li>minimumListSizeForOrdering - Integer, not null, default 20, minimum list size for enable ordering.</li>
-        </ul>
-      </p>
-      
-      <h4>Persistable model SeSeller</h4>
-      <p>Something-else seller i.e. any seller that sells his products on your web-store. 
-        <ul>
-          <li>seller - DebtorCreditor, PK</li>
-          <li>itsEmail - String, not null</li>
-          <li>itsPassword - String, not null</li>
-        </ul>
-      </p>
-      
-      <h4>Persistable model SeGoods</h4>
-      <p>
-        <ul>
-          <li>AHasNameIdLongVersion fields, S.E. Seller can import it with ID from his database.</li>
-          <li>seller - SeSeller, not null</li>
-        </ul>
-      </p>
-      
-      <h4>Persistable model SeService</h4>
-      <p>
-        <ul>
-          <li>AHasNameIdLongVersion fields</li>
-          <li>seller - SeSeller, not null</li>
         </ul>
       </p>
       

@@ -12,6 +12,8 @@ package org.beigesoft.webstore.factory;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -21,6 +23,22 @@ import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IEntityProcessor;
 import org.beigesoft.settings.IMngSettings;
 import org.beigesoft.service.ISrvOrm;
+import org.beigesoft.persistable.MatchForeign;
+import org.beigesoft.persistable.MatchForeignLine;
+import org.beigesoft.persistable.CsvMethod;
+import org.beigesoft.persistable.CsvColumn;
+import org.beigesoft.persistable.Languages;
+import org.beigesoft.persistable.Countries;
+import org.beigesoft.persistable.DecimalSeparator;
+import org.beigesoft.persistable.DecimalGroupSeparator;
+import org.beigesoft.persistable.EmailConnect;
+import org.beigesoft.persistable.EmailStringProperty;
+import org.beigesoft.persistable.EmailIntegerProperty;
+import org.beigesoft.persistable.EmailMsg;
+import org.beigesoft.persistable.Eattachment;
+import org.beigesoft.persistable.Erecipient;
+import org.beigesoft.accounting.persistable.InvItem;
+import org.beigesoft.accounting.persistable.I18nInvItem;
 import org.beigesoft.orm.factory.FctBnEntitiesProcessors;
 import org.beigesoft.orm.processor.PrcEntityRetrieve;
 import org.beigesoft.webstore.service.ISrvSettingsAdd;
@@ -28,6 +46,50 @@ import org.beigesoft.webstore.service.ISrvTradingSettings;
 import org.beigesoft.webstore.persistable.base.AItemSpecifics;
 import org.beigesoft.webstore.persistable.base.AItemSpecificsId;
 import org.beigesoft.webstore.persistable.base.AItemCatalogId;
+import org.beigesoft.webstore.persistable.AdviseCategoryOfGs;
+import org.beigesoft.webstore.persistable.AdvisedGoodsForGoods;
+import org.beigesoft.webstore.persistable.BuyerPriceCategory;
+import org.beigesoft.webstore.persistable.CartItem;
+import org.beigesoft.webstore.persistable.CartTaxLine;
+import org.beigesoft.webstore.persistable.CatalogGs;
+import org.beigesoft.webstore.persistable.CatalogSpecifics;
+import org.beigesoft.webstore.persistable.ChooseableSpecifics;
+import org.beigesoft.webstore.persistable.ChooseableSpecificsType;
+import org.beigesoft.webstore.persistable.CustomerGoodsSeen;
+import org.beigesoft.webstore.persistable.CustomerOrder;
+import org.beigesoft.webstore.persistable.CustomerOrderGoods;
+import org.beigesoft.webstore.persistable.CustomerOrderSeGoods;
+import org.beigesoft.webstore.persistable.CustomerOrderService;
+import org.beigesoft.webstore.persistable.CustomerOrderSeService;
+import org.beigesoft.webstore.persistable.CustomerOrderTaxLine;
+import org.beigesoft.webstore.persistable.GoodsAdviseCategories;
+import org.beigesoft.webstore.persistable.GoodsCatalog;
+import org.beigesoft.webstore.persistable.GoodsPlace;
+import org.beigesoft.webstore.persistable.GoodsRating;
+import org.beigesoft.webstore.persistable.GoodsSpecifics;
+import org.beigesoft.webstore.persistable.HtmlTemplate;
+import org.beigesoft.webstore.persistable.I18nCatalogGs;
+import org.beigesoft.webstore.persistable.I18nChooseableSpecifics;
+import org.beigesoft.webstore.persistable.I18nSpecificsOfItem;
+import org.beigesoft.webstore.persistable.I18nSpecificsOfItemGroup;
+import org.beigesoft.webstore.persistable.I18nWebStore;
+import org.beigesoft.webstore.persistable.OnlineBuyer;
+import org.beigesoft.webstore.persistable.PickUpPlace;
+import org.beigesoft.webstore.persistable.PriceCategory;
+import org.beigesoft.webstore.persistable.PriceCategoryOfBuyers;
+import org.beigesoft.webstore.persistable.PriceCategoryOfItems;
+import org.beigesoft.webstore.persistable.PriceGoods;
+import org.beigesoft.webstore.persistable.ServiceCatalog;
+import org.beigesoft.webstore.persistable.ServicePlace;
+import org.beigesoft.webstore.persistable.ServicePrice;
+import org.beigesoft.webstore.persistable.ServiceSpecifics;
+import org.beigesoft.webstore.persistable.SeSeller;
+import org.beigesoft.webstore.persistable.SettingsAdd;
+import org.beigesoft.webstore.persistable.ShoppingCart;
+import org.beigesoft.webstore.persistable.SpecificsOfItem;
+import org.beigesoft.webstore.persistable.SpecificsOfItemGroup;
+import org.beigesoft.webstore.persistable.SubcatalogsCatalogsGs;
+import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.processor.PrcAdvisedGoodsForGoodsSave;
 import org.beigesoft.webstore.processor.PrcItemCatalogSave;
 import org.beigesoft.webstore.processor.PrcSettingsAddSave;
@@ -40,7 +102,6 @@ import org.beigesoft.webstore.processor.PrcItemSpecificsDelete;
 
 /**
  * <p>Webstore entities processors factory.
- * It is inner inside ACC-Processor factory.
  * These are non-public processors.</p>
  *
  * @param <RS> platform dependent record set type
@@ -98,6 +159,84 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
   private final Map<String, IEntityProcessor> processorsMap = new HashMap<String, IEntityProcessor>();
 
   /**
+   * <p>Web-store entities.</p>
+   **/
+  private final Set<Class<?>> wsEntities;
+
+  /**
+   * <p>Shared entities.</p>
+   **/
+  private final Set<Class<?>> sharedEntities;
+
+  /**
+   * <p>Only constructor.</p>
+   **/
+  public FctBnTradeEntitiesProcessors() {
+    this.sharedEntities = new HashSet<Class<?>>();
+    this.sharedEntities.add(MatchForeign.class);
+    this.sharedEntities.add(MatchForeignLine.class);
+    this.sharedEntities.add(CsvMethod.class);
+    this.sharedEntities.add(CsvColumn.class);
+    this.sharedEntities.add(Languages.class);
+    this.sharedEntities.add(Countries.class);
+    this.sharedEntities.add(DecimalSeparator.class);
+    this.sharedEntities.add(DecimalGroupSeparator.class);
+    this.sharedEntities.add(InvItem.class);
+    this.sharedEntities.add(I18nInvItem.class);
+    this.wsEntities = new HashSet<Class<?>>();
+    this.wsEntities.add(AdviseCategoryOfGs.class);
+    this.wsEntities.add(AdvisedGoodsForGoods.class);
+    this.wsEntities.add(BuyerPriceCategory.class);
+    this.wsEntities.add(CartItem.class);
+    this.wsEntities.add(CartTaxLine.class);
+    this.wsEntities.add(CatalogGs.class);
+    this.wsEntities.add(CatalogSpecifics.class);
+    this.wsEntities.add(ChooseableSpecifics.class);
+    this.wsEntities.add(ChooseableSpecificsType.class);
+    this.wsEntities.add(CustomerGoodsSeen.class);
+    this.wsEntities.add(CustomerOrder.class);
+    this.wsEntities.add(CustomerOrderGoods.class);
+    this.wsEntities.add(CustomerOrderSeGoods.class);
+    this.wsEntities.add(CustomerOrderService.class);
+    this.wsEntities.add(CustomerOrderSeService.class);
+    this.wsEntities.add(CustomerOrderTaxLine.class);
+    this.wsEntities.add(GoodsAdviseCategories.class);
+    this.wsEntities.add(GoodsCatalog.class);
+    this.wsEntities.add(GoodsPlace.class);
+    this.wsEntities.add(GoodsRating.class);
+    this.wsEntities.add(GoodsSpecifics.class);
+    this.wsEntities.add(HtmlTemplate.class);
+    this.wsEntities.add(I18nCatalogGs.class);
+    this.wsEntities.add(I18nChooseableSpecifics.class);
+    this.wsEntities.add(I18nSpecificsOfItem.class);
+    this.wsEntities.add(I18nSpecificsOfItemGroup.class);
+    this.wsEntities.add(I18nWebStore.class);
+    this.wsEntities.add(OnlineBuyer.class);
+    this.wsEntities.add(PickUpPlace.class);
+    this.wsEntities.add(PriceCategory.class);
+    this.wsEntities.add(PriceCategoryOfBuyers.class);
+    this.wsEntities.add(PriceCategoryOfItems.class);
+    this.wsEntities.add(PriceGoods.class);
+    this.wsEntities.add(ServiceCatalog.class);
+    this.wsEntities.add(ServicePlace.class);
+    this.wsEntities.add(ServicePrice.class);
+    this.wsEntities.add(ServiceSpecifics.class);
+    this.wsEntities.add(SeSeller.class);
+    this.wsEntities.add(SettingsAdd.class);
+    this.wsEntities.add(ShoppingCart.class);
+    this.wsEntities.add(SpecificsOfItem.class);
+    this.wsEntities.add(SpecificsOfItemGroup.class);
+    this.wsEntities.add(SubcatalogsCatalogsGs.class);
+    this.wsEntities.add(TradingSettings.class);
+    this.wsEntities.add(EmailConnect.class);
+    this.wsEntities.add(EmailStringProperty.class);
+    this.wsEntities.add(EmailIntegerProperty.class);
+    this.wsEntities.add(EmailMsg.class);
+    this.wsEntities.add(Eattachment.class);
+    this.wsEntities.add(Erecipient.class);
+  }
+
+  /**
    * <p>Get bean in lazy mode (if bean is null then initialize it).</p>
    * @param pAddParam additional param
    * @param pBeanName - bean name
@@ -131,6 +270,8 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
             proc = lazyGetPrcItemSpecificsRetrieve(pAddParam);
           } else if (pBeanName.equals(PrcItemSpecificsSave.class.getSimpleName())) {
             proc = lazyGetPrcItemSpecificsSave(pAddParam);
+          } else {
+            proc = this.fctBnEntitiesProcessors.lazyGet(pAddParam, pBeanName);
           }
         }
       }
@@ -148,9 +289,9 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
    * @throws Exception - an exception
    */
   @Override
-  public final synchronized void set(final String pBeanName,
+  public final void set(final String pBeanName,
     final IEntityProcessor pBean) throws Exception {
-    this.processorsMap.put(pBeanName, pBean);
+    //nothing
   }
 
   /**
@@ -481,4 +622,22 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
   public final void setLogger(final ILogger pLogger) {
     this.logger = pLogger;
   }
+
+  /**
+   * <p>Getter for wsEntities.</p>
+   * @return final Set<Class<?>>
+   **/
+  public final Set<Class<?>> getWsEntities() {
+    return this.wsEntities;
+  }
+
+
+  /**
+   * <p>Getter for sharedEntities.</p>
+   * @return final Set<Class<?>>
+   **/
+  public final Set<Class<?>> getSharedEntities() {
+    return this.sharedEntities;
+  }
+
 }

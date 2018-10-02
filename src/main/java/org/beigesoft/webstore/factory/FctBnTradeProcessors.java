@@ -15,6 +15,7 @@ package org.beigesoft.webstore.factory;
 import java.util.Map;
 import java.util.HashMap;
 
+import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.log.ILogger;
 import org.beigesoft.handler.IHandlerRequestDch;
 import org.beigesoft.factory.IFactoryAppBeansByName;
@@ -22,11 +23,12 @@ import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvI18n;
 import org.beigesoft.service.ISrvDatabase;
-import org.beigesoft.service.ISrvEntitiesPage;
 import org.beigesoft.service.ISrvNumberToString;
 import org.beigesoft.service.PrcRefreshHndlI18n;
 import org.beigesoft.service.ICsvDataRetriever;
 import org.beigesoft.processor.PrcCsvSampleDataRow;
+import org.beigesoft.orm.service.SrvEntitiesPage;
+import org.beigesoft.orm.processor.PrcEntitiesPage;
 import org.beigesoft.accounting.service.ISrvAccSettings;
 import org.beigesoft.webstore.service.GoodsPriceListRetriever;
 import org.beigesoft.webstore.service.ServicePriceListRetriever;
@@ -35,8 +37,7 @@ import org.beigesoft.webstore.processor.PrcRefreshItemsInList;
 import org.beigesoft.webstore.processor.PrcRefreshCatalog;
 
 /**
- * <p>Non-public trade processors factory.
- * It is inner inside ACC-PF.</p>
+ * <p>Non-public trade processors factory.</p>
  *
  * @param <RS> platform dependent record set type
  * @author Yury Demidenko
@@ -57,7 +58,7 @@ public class FctBnTradeProcessors<RS>
   /**
    * <p>Page service.</p>
    **/
-  private ISrvEntitiesPage srvEntitiesPage;
+  private SrvEntitiesPage<RS> srvEntitiesPage;
 
   /**
    * <p>Logger.</p>
@@ -85,9 +86,9 @@ public class FctBnTradeProcessors<RS>
   private ISrvI18n srvI18n;
 
   /**
-   * <p>Retrievers map.</p>
+   * <p>Retrievers (web-store) map.</p>
    **/
-  private Map<String, ICsvDataRetriever> retrievers; //TODO main factory
+  private Map<String, ICsvDataRetriever> retrievers;
 
   /**
    * <p>Business service for accounting settings.</p>
@@ -105,7 +106,7 @@ public class FctBnTradeProcessors<RS>
    * <p>Get bean in lazy mode (if bean is null then initialize it).</p>
    * @param pAddParam additional param
    * @param pBeanName - bean name
-   * @return requested bean
+   * @return requested bean or exception if not found
    * @throws Exception - an exception
    */
   @Override
@@ -115,25 +116,34 @@ public class FctBnTradeProcessors<RS>
     IProcessor proc =
       this.processorsMap.get(pBeanName);
     if (proc == null) {
-      if (pBeanName.equals(PrcRefreshItemsInList
-        .class.getSimpleName())) {
-        proc = lazyGetPrcRefreshItemsInList(pAddParam);
-      } else if (pBeanName.equals(PrcRefreshHndlI18n
-        .class.getSimpleName())) {
-        proc = lazyGetPrcRefreshHndlI18n(pAddParam);
-      } else if (pBeanName.equals(PrcRefreshCatalog
-        .class.getSimpleName())) {
-        proc = lazyGetPrcRefreshCatalog(pAddParam);
-      } else if (pBeanName.equals(PrcCsvSampleDataRow //TODO main factory
-        .class.getSimpleName())) {
-        proc = lazyGetPrcCsvSampleDataRow(pAddParam);
-      } else if (pBeanName.equals(PrcAssignItemsToCatalog
-        .class.getSimpleName())) {
-        proc = lazyGetPrcAssignItemsToCatalog(pAddParam);
+      // locking:
+      synchronized (this.processorsMap) {
+        // make sure again whether it's null after locking:
+        proc = this.processorsMap.get(pBeanName);
+        if (proc == null) {
+          if (pBeanName.equals(PrcRefreshItemsInList
+            .class.getSimpleName())) {
+            proc = lazyGetPrcRefreshItemsInList(pAddParam);
+          } else if (pBeanName.equals(PrcRefreshHndlI18n
+            .class.getSimpleName())) {
+            proc = lazyGetPrcRefreshHndlI18n(pAddParam);
+          } else if (pBeanName.equals(PrcRefreshCatalog
+            .class.getSimpleName())) {
+            proc = lazyGetPrcRefreshCatalog(pAddParam);
+          } else if (pBeanName.equals(PrcCsvSampleDataRow
+            .class.getSimpleName())) { //only web-store
+            proc = lazyGetPrcCsvSampleDataRow(pAddParam);
+          } else if (pBeanName.equals(PrcAssignItemsToCatalog
+            .class.getSimpleName())) {
+            proc = lazyGetPrcAssignItemsToCatalog(pAddParam);
+          } else if (pBeanName.equals("waPrcEntitiesPage")) {
+            proc = createPutPrcWaEntitiesPage();
+          }
+        }
       }
     }
     if (proc == null) {
-      this.logger.info(null, FctBnTradeProcessors.class,
+      throw new ExceptionWithCode(ExceptionWithCode.CONFIGURATION_MISTAKE,
         pBeanName + " not found!");
     }
     return proc;
@@ -297,6 +307,21 @@ public class FctBnTradeProcessors<RS>
     return proc;
   }
 
+  /**
+   * <p>Get PrcEntitiesPage (create and put into map).</p>
+   * @return requested PrcEntitiesPage
+   * @throws Exception - an exception
+   */
+  protected final PrcEntitiesPage
+    createPutPrcWaEntitiesPage() throws Exception {
+    PrcEntitiesPage proc = new PrcEntitiesPage();
+    proc.setSrvEntitiesPage(getSrvEntitiesPage());
+    //assigning fully initialized object:
+    this.processorsMap
+      .put(PrcEntitiesPage.class.getSimpleName(), proc);
+    return proc;
+  }
+
   //Simple getters and setters:
   /**
    * <p>Getter for srvDatabase.</p>
@@ -332,9 +357,9 @@ public class FctBnTradeProcessors<RS>
 
   /**
    * <p>Getter for srvEntitiesPage.</p>
-   * @return ISrvEntitiesPage
+   * @return SrvEntitiesPage<RS>
    **/
-  public final ISrvEntitiesPage getSrvEntitiesPage() {
+  public final SrvEntitiesPage<RS> getSrvEntitiesPage() {
     return this.srvEntitiesPage;
   }
 
@@ -343,7 +368,7 @@ public class FctBnTradeProcessors<RS>
    * @param pSrvEntitiesPage reference
    **/
   public final void setSrvEntitiesPage(
-    final ISrvEntitiesPage pSrvEntitiesPage) {
+    final SrvEntitiesPage<RS> pSrvEntitiesPage) {
     this.srvEntitiesPage = pSrvEntitiesPage;
   }
 

@@ -12,7 +12,7 @@
     <section name="Beigesoft™ WEB Store. Selling goods or services by something else seller.">
       
       <h4>Something else seller</h4>
-      <p>Web-store owner may allow to others sellers to sell their goods and services.</p>
+      <p>Web-store owner may allows to others sellers to sell their goods and services on the web-srore.</p>
       <p>For several reasons S.E. sellers must have their "own" (dedicated to them) information resources:
       <ul>
         <li>data models like SeGoods, SeService, etc.</li>
@@ -37,10 +37,11 @@
           <li><b>Services:</b></li>
           <li>WSeService - servlet that handle "/seseller/service/*" requests - main menu wsSeSeller.jsp, entity list, add....</li>
           <li>WSeFileUploadSingle servlet that handle "/seseller/upload/*" requests - insert SeGoodSpecifics and SeGoodSpecifics with uploaded file</li>
-          <li>HndlSeSellerReq - only request handler that handle all things - I18N vars...</li>
+          <li>HndlSeSellerReq (name hndlSeEntitiesReq) - only request handler that handle all things - I18N vars...</li>
           <li>HldSeSelEntityProcNms - only holder - entities name plus action to IEntityProcessor and IProcessor name holder, egg. "editEntity" and "SeGoods"</li>
           <li>HldSeSelProcNms - only holder - entities name plus action to IProcessor name holder, egg. "list" and "SeGoods"</li>
           <li>Main S.E.seller page - wsSeSeller.jsp</li>
+          <li>PrcEntitiesPage (name sePrcEntitiesPage) - to serve page with only S.E. seller's entities.</li>
           <li><b>Data models:</b></li>
           <li>SeGoods</li>
           <li>SeService</li>
@@ -62,6 +63,55 @@
       <p>Any entity service must check request's user for current entity's S.E.seller for all operations - list, update and delete.
         Request's user name is used to find S.E. seller for inserting.
         Web-store owner (administrator) can only list of S.E.seller's entities.
+      </p>
+
+      <h4>Persistable data models</h4>
+      <h5>Persistable model SeSeller</h5>
+      <p>Something-else seller i.e. any seller that sells its products on your web-store. 
+        <ul>
+          <li>seller - DebtorCreditor, PK</li>
+          <li>userAuth - UserTomcat, User from JEE JDBC based authentication, not null.</li>
+        </ul>
+      </p>
+      
+      <h5>Persistable model SeGoods</h5>
+      <p>
+        <ul>
+          <li>AHasNameIdLongVersion fields, S.E. Seller can import it with ID from his database.</li>
+          <li>seller - SeSeller, not null</li>
+        </ul>
+      </p>
+      
+      <h5>Persistable model SeService</h5>
+      <p>
+        <ul>
+          <li>AHasNameIdLongVersion fields</li>
+          <li>seller - SeSeller, not null</li>
+        </ul>
+      </p>
+      
+      <h4>S.E.Sellers management.</h4>
+      <p>Service <b>ISrvSeSeller</b> handles modify actions on <b>SeSeller</b>, i.e. <b>insert, update, delete</b> and <b>find</b>, that is used by other S.E. services (e.g. page service).
+        Only <b>administrator</b> can invoke modify actions.
+        This service caches SESeller list to serve "find" command (whole list when number of SeSellers is not huge), so it's synchronized service.
+        Methods:
+        <ul>
+          <li>create(Map&lt;String, Object&gt; pAddParam, SeSeller pSeller, IRequestData pData)</li>
+          <li>update(Map&lt;String, Object&gt; pAddParam, SeSeller pSeller, IRequestData pData)</li>
+          <li>delete(Map&lt;String, Object&gt; pAddParam, SeSeller pSeller, IRequestData pData)</li>
+          <li>find(Map&lt;String, Object&gt; pAddParam, String pName) - find by name</li>
+        </ul>
+        all methods require opened transaction
+      </p>
+
+      <h4>S.E.Entities page.</h4>
+      <p>In opposite to ordinal data list (e.g. list of Goods), any S.E.entity list must be filtered by S.E.Seller (HttpRequest.userPrincipal), i.e. page service must itself retrieves "userPrincipal" and make filter (hard-coded approach).
+        But administrator can view entities that belong to all S.E. sellers, e.g. it's used standard entities page service.
+      </p>
+      <h5>Service <b>SrvEntitiesPage</b> with SeSellerFilter delegate</h5>
+      <p>SeSellerFilter retrieves <b>user principal</b>, then find SeSeller with ISrvSeSeller,
+        if found makes S.E.seller filter, otherwise throws ExceptionWithCode.SOMETHING_WRONG.
+        Because of SeSeller is in maximum 3-d level of an entity (e.g. SeGoodsSpecifics or IdI18nSeService), the standard automatically created by ISrvOrm SQL query will do.
       </p>
 
     </section>

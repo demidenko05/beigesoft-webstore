@@ -1,7 +1,7 @@
 package org.beigesoft.webstore.holder;
 
 /*
- * Copyright (c) 2018 Beigesoft™
+ * Copyright (c) 2017 Beigesoft™
  *
  * Licensed under the GNU General Public License (GPL), Version 2.0
  * (the "License");
@@ -15,15 +15,15 @@ package org.beigesoft.webstore.holder;
 import org.beigesoft.holder.IHolderForClassByName;
 
 /**
- * <p>Service that assign IProcessor name for class
- * and action name for S.E. seller only.</p>
+ * <p>Service that assign processor name for class
+ * and action name, only for web-store administrator.</p>
  *
  * @author Yury Demidenko
  */
-public class HldSeSelProcNms implements IHolderForClassByName<String> {
+public class HldTradeProcessorNames implements IHolderForClassByName<String> {
 
   /**
-   * <p>Get processor name for given class and action name.</p>
+   * <p>Get thing for given class and thing name.</p>
    * @param pClass a Class
    * @param pThingName Thing Name
    * @return a thing
@@ -31,7 +31,7 @@ public class HldSeSelProcNms implements IHolderForClassByName<String> {
   @Override
   public final String getFor(final Class<?> pClass, final String pThingName) {
     if ("list".equals(pThingName)) {
-      return "sePrcEntitiesPage";
+      return "waPrcEntitiesPage";
     }
     return null;
   }
