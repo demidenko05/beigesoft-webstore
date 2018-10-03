@@ -12,6 +12,8 @@ package org.beigesoft.webstore.holder;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
+import java.util.Set;
+
 import org.beigesoft.holder.IHolderForClassByName;
 
 /**
@@ -21,6 +23,11 @@ import org.beigesoft.holder.IHolderForClassByName;
  * @author Yury Demidenko
  */
 public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
+
+  /**
+   * <p>Shared entities. Only <b>list</b> operation is allowed, no "modify".</p>
+   **/
+  private Set<Class<?>> sharedEntities;
 
   /**
    * <p>Get processor name for given class and action name.</p>
@@ -73,6 +80,9 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
    * @return a thing
    **/
   protected final String getForCopy(final Class<?> pClass) {
+    if (this.sharedEntities.contains(pClass)) {
+      return null;
+    }
     return null;
   }
 
@@ -91,6 +101,9 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
    * @return a thing
    **/
   protected final String getForSave(final Class<?> pClass) {
+    if (this.sharedEntities.contains(pClass)) {
+      return null;
+    }
     return null;
   }
 
@@ -100,6 +113,9 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
    * @return a thing
    **/
   protected final String getForFfolDelete(final Class<?> pClass) {
+    if (this.sharedEntities.contains(pClass)) {
+      return null;
+    }
     return null;
   }
 
@@ -109,6 +125,9 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
    * @return a thing
    **/
   protected final String getForFfolSave(final Class<?> pClass) {
+    if (this.sharedEntities.contains(pClass)) {
+      return null;
+    }
     return null;
   }
 
@@ -118,6 +137,9 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
    * @return a thing
    **/
   protected final String getForFolDelete(final Class<?> pClass) {
+    if (this.sharedEntities.contains(pClass)) {
+      return null;
+    }
     return null;
   }
 
@@ -127,6 +149,9 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
    * @return a thing
    **/
   protected final String getForFolSave(final Class<?> pClass) {
+    if (this.sharedEntities.contains(pClass)) {
+      return null;
+    }
     return null;
   }
 
@@ -136,6 +161,9 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
    * @return a thing
    **/
   protected final String getForDelete(final Class<?> pClass) {
+    if (this.sharedEntities.contains(pClass)) {
+      return null;
+    }
     return null;
   }
 
@@ -145,6 +173,9 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
    * @return a thing
    **/
   protected final String getForCreate(final Class<?> pClass) {
+    if (this.sharedEntities.contains(pClass)) {
+      return null;
+    }
     return null;
   }
 
@@ -156,6 +187,27 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
    **/
   protected final String getForRetrieveForEditDelete(final Class<?> pClass,
     final String pAction) {
+    if (this.sharedEntities.contains(pClass)) {
+      return null;
+    }
     return null;
+  }
+
+  //Simple getters and setters:
+
+  /**
+   * <p>Getter for sharedEntities.</p>
+   * @return Set<Class<?>>
+   **/
+  public final Set<Class<?>> getSharedEntities() {
+    return this.sharedEntities;
+  }
+
+  /**
+   * <p>Setter for sharedEntities.</p>
+   * @param pSharedEntities reference
+   **/
+  public final void setSharedEntities(final Set<Class<?>> pSharedEntities) {
+    this.sharedEntities = pSharedEntities;
   }
 }

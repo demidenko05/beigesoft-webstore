@@ -16,11 +16,11 @@ import java.util.Map;
 import java.util.HashMap;
 
 import org.beigesoft.log.ILogger;
+import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvPage;
 import org.beigesoft.settings.IMngSettings;
-import org.beigesoft.orm.factory.FctBnProcessors;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.webstore.processor.PrcWebstorePage;
@@ -31,7 +31,6 @@ import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
  * <p>Public trade processors factory.
- * It is inner inside ACC-PF.
  * All processors are public i.e. no need authorization.</p>
  *
  * @param <RS> platform dependent record set type
@@ -39,13 +38,6 @@ import org.beigesoft.webstore.service.ISrvShoppingCart;
  */
 public class FctBnPublicTradeProcessors<RS>
   implements IFactoryAppBeansByName<IProcessor> {
-
-  /**
-   * <p>Factory non-ass processors.
-   * Concrete factory for concrete bean name that is bean class
-   * simple name. Any way any such factory must be no abstract.</p>
-   **/
-  private FctBnProcessors<RS> fctBnProcessors;
 
   /**
    * <p>Database service.</p>
@@ -120,8 +112,8 @@ public class FctBnPublicTradeProcessors<RS>
       }
     }
     if (proc == null) {
-      this.logger.info(null, FctBnPublicTradeProcessors.class,
-        pBeanName + " not found!");
+      throw new ExceptionWithCode(ExceptionWithCode.CONFIGURATION_MISTAKE,
+        "There is no processor with name " + pBeanName);
     }
     return proc;
   }
@@ -274,23 +266,6 @@ public class FctBnPublicTradeProcessors<RS>
    **/
   public final void setSrvOrm(final ISrvOrm<RS> pSrvOrm) {
     this.srvOrm = pSrvOrm;
-  }
-
-  /**
-   * <p>Getter for fctBnProcessors.</p>
-   * @return IFactoryAppBeansByName<IProcessor>
-   **/
-  public final FctBnProcessors<RS> getFctBnProcessors() {
-    return this.fctBnProcessors;
-  }
-
-  /**
-   * <p>Setter for fctBnProcessors.</p>
-   * @param pFctBnProcessors reference
-   **/
-  public final void setFctBnProcessors(
-    final FctBnProcessors<RS> pFctBnProcessors) {
-    this.fctBnProcessors = pFctBnProcessors;
   }
 
   /**

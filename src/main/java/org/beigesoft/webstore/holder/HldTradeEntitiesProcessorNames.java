@@ -271,7 +271,7 @@ public class HldTradeEntitiesProcessorNames
 
   /**
    * <p>Setter for seEntities.</p>
-   * @param pSeEntitiesMap reference
+   * @param pSeEntities reference
    **/
   public final void setSeEntities(final Set<Class<?>> pSeEntities) {
     this.seEntities = pSeEntities;

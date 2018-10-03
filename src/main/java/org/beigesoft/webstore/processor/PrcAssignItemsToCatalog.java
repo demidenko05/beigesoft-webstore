@@ -81,9 +81,8 @@ public class PrcAssignItemsToCatalog<RS> implements IProcessor {
       final Class<T> pItemClass) throws Exception {
     Set<String> filterAppearance = new HashSet<String>();
     pAddParam.put("filterAppearance", filterAppearance);
-    this.srvEntitiesPage
+    StringBuffer sbWhere = this.srvEntitiesPage
       .revealPageFilterData(pAddParam, pRequestData, pItemClass);
-    StringBuffer sbWhere = (StringBuffer) pAddParam.get("sbWhere");
     if (sbWhere.length() == 0) {
       throw new ExceptionWithCode(ExceptionWithCode.WRONG_PARAMETER,
         "filter_must_be_not_empty");

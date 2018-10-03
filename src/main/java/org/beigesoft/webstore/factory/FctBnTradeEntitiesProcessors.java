@@ -39,6 +39,7 @@ import org.beigesoft.persistable.Eattachment;
 import org.beigesoft.persistable.Erecipient;
 import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.accounting.persistable.I18nInvItem;
+import org.beigesoft.accounting.persistable.DebtorCreditor;
 import org.beigesoft.orm.factory.FctBnEntitiesProcessors;
 import org.beigesoft.orm.processor.PrcEntityRetrieve;
 import org.beigesoft.webstore.service.ISrvSettingsAdd;
@@ -169,7 +170,8 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
   private final Set<Class<?>> sharedEntities;
 
   /**
-   * <p>Only constructor.</p>
+   * <p>Only constructor. S.E. entities (shared) will be added
+   * by Mather's factory.</p>
    **/
   public FctBnTradeEntitiesProcessors() {
     this.sharedEntities = new HashSet<Class<?>>();
@@ -183,6 +185,7 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
     this.sharedEntities.add(DecimalGroupSeparator.class);
     this.sharedEntities.add(InvItem.class);
     this.sharedEntities.add(I18nInvItem.class);
+    this.sharedEntities.add(DebtorCreditor.class);
     this.wsEntities = new HashSet<Class<?>>();
     this.wsEntities.add(AdviseCategoryOfGs.class);
     this.wsEntities.add(AdvisedGoodsForGoods.class);

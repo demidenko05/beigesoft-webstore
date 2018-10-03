@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 import org.beigesoft.log.ILogger;
-import org.beigesoft.model.IHasIdLongVersion;
+import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IEntityProcessor;
 import org.beigesoft.settings.IMngSettings;
@@ -28,8 +28,16 @@ import org.beigesoft.persistable.Countries;
 import org.beigesoft.persistable.DecimalSeparator;
 import org.beigesoft.persistable.DecimalGroupSeparator;
 import org.beigesoft.orm.factory.FctBnEntitiesProcessors;
-import org.beigesoft.orm.processor.PrcEntityRetrieve;
 import org.beigesoft.webstore.persistable.SeGoods;
+import org.beigesoft.webstore.persistable.SeGoodsPlace;
+import org.beigesoft.webstore.persistable.SeGoodsPrice;
+import org.beigesoft.webstore.persistable.SeGoodsSpecifics;
+import org.beigesoft.webstore.persistable.SeService;
+import org.beigesoft.webstore.persistable.SeServicePlace;
+import org.beigesoft.webstore.persistable.SeServicePrice;
+import org.beigesoft.webstore.persistable.SeServiceSpecifics;
+import org.beigesoft.webstore.persistable.I18nSeGoods;
+import org.beigesoft.webstore.persistable.I18nSeService;
 
 /**
  * <p>S.E.Seller's entities processors factory.
@@ -38,7 +46,8 @@ import org.beigesoft.webstore.persistable.SeGoods;
  * @param <RS> platform dependent record set type
  * @author Yury Demidenko
  */
-public class FctBnSeSelEntityProcs<RS> implements IFactoryAppBeansByName<IEntityProcessor> {
+public class FctBnSeSelEntityProcs<RS>
+  implements IFactoryAppBeansByName<IEntityProcessor> {
 
   /**
    * <p>Factory non-acc entity processors.
@@ -77,7 +86,8 @@ public class FctBnSeSelEntityProcs<RS> implements IFactoryAppBeansByName<IEntity
   /**
    * <p>Converters map "converter name"-"object' s converter".</p>
    **/
-  private final Map<String, IEntityProcessor> processorsMap = new HashMap<String, IEntityProcessor>();
+  private final Map<String, IEntityProcessor> processorsMap =
+    new HashMap<String, IEntityProcessor>();
 
   /**
    * <p>Web-store entities.</p>
@@ -85,7 +95,7 @@ public class FctBnSeSelEntityProcs<RS> implements IFactoryAppBeansByName<IEntity
   private final Set<Class<?>> seEntities;
 
   /**
-   * <p>Shared entities.</p>
+   * <p>Shared entities. Only <b>list</b> operation is allowed, no "modify".</p>
    **/
   private final Set<Class<?>> sharedEntities;
 
@@ -100,6 +110,15 @@ public class FctBnSeSelEntityProcs<RS> implements IFactoryAppBeansByName<IEntity
     this.sharedEntities.add(DecimalGroupSeparator.class);
     this.seEntities = new HashSet<Class<?>>();
     this.seEntities.add(SeGoods.class);
+    this.seEntities.add(SeGoodsPlace.class);
+    this.seEntities.add(SeGoodsPrice.class);
+    this.seEntities.add(SeGoodsSpecifics.class);
+    this.seEntities.add(SeService.class);
+    this.seEntities.add(SeServicePlace.class);
+    this.seEntities.add(SeServicePrice.class);
+    this.seEntities.add(SeServiceSpecifics.class);
+    this.seEntities.add(I18nSeGoods.class);
+    this.seEntities.add(I18nSeService.class);
   }
 
   /**
@@ -110,7 +129,8 @@ public class FctBnSeSelEntityProcs<RS> implements IFactoryAppBeansByName<IEntity
    * @throws Exception - an exception
    */
   @Override
-  public final IEntityProcessor lazyGet(final Map<String, Object> pAddParam, final String pBeanName) throws Exception {
+  public final IEntityProcessor lazyGet(final Map<String, Object> pAddParam,
+    final String pBeanName) throws Exception {
     IEntityProcessor proc = this.processorsMap.get(pBeanName);
     if (proc == null) {
       // locking:
@@ -127,7 +147,8 @@ public class FctBnSeSelEntityProcs<RS> implements IFactoryAppBeansByName<IEntity
       }
     }
     if (proc == null) {
-      this.logger.info(null, FctBnSeSelEntityProcs.class, pBeanName + " not found!");
+      throw new ExceptionWithCode(ExceptionWithCode.CONFIGURATION_MISTAKE,
+        "There is no processor with name " + pBeanName);
     }
     return proc;
   }

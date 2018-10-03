@@ -20,7 +20,6 @@ import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.orm.service.SrvEntitiesPage;
 import org.beigesoft.orm.processor.PrcEntitiesPage;
-import org.beigesoft.webstore.persistable.SeGoods;
 
 /**
  * <p>S.E. Sellers processors factory.</p>
@@ -94,9 +93,6 @@ public class FctBnSeSelProcessors<RS>
   protected final PrcEntitiesPage
     createPutPrcEntitiesPage() throws Exception {
     PrcEntitiesPage proc = new PrcEntitiesPage();
-    Map<String, Class<?>> entitiesMap = new HashMap<String, Class<?>>();
-    entitiesMap.put(SeGoods.class.getSimpleName(), SeGoods.class);
-    this.srvEntitiesPage.setEntitiesMap(entitiesMap);
     proc.setSrvEntitiesPage(this.srvEntitiesPage);
     //assigning fully initialized object:
     this.processorsMap
