@@ -1,7 +1,7 @@
 package org.beigesoft.webstore.factory;
 
 /*
- * Copyright (c) 2017 Beigesoft ™
+ * Copyright (c) 2017 Beigesoft™
  *
  * Licensed under the GNU General Public License (GPL), Version 2.0
  * (the "License");
@@ -67,9 +67,8 @@ public class FctBnPublicTradeProcessors<RS>
   /**
    * <p>Converters map "converter name"-"object' s converter".</p>
    **/
-  private final Map<String, IProcessor>
-    processorsMap =
-      new HashMap<String, IProcessor>();
+  private final Map<String, IProcessor> processorsMap =
+    new HashMap<String, IProcessor>();
 
   /**
    * <p>Shopping Cart service.</p>
@@ -125,9 +124,9 @@ public class FctBnPublicTradeProcessors<RS>
    * @throws Exception - an exception
    */
   @Override
-  public final synchronized void set(final String pBeanName,
+  public final void set(final String pBeanName,
     final IProcessor pBean) throws Exception {
-    this.processorsMap.put(pBeanName, pBean);
+    //nothing;
   }
 
   /**

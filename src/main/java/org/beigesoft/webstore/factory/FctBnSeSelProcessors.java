@@ -33,9 +33,8 @@ public class FctBnSeSelProcessors<RS>
   /**
    * <p>Converters map "converter name"-"object' s converter".</p>
    **/
-  private final Map<String, IProcessor>
-    processorsMap =
-      new HashMap<String, IProcessor>();
+  private final Map<String, IProcessor> processorsMap =
+    new HashMap<String, IProcessor>();
 
   /**
    * <p>Page service.</p>

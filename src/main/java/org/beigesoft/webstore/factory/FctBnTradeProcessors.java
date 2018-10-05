@@ -24,7 +24,6 @@ import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvI18n;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.service.ISrvNumberToString;
-import org.beigesoft.service.PrcRefreshHndlI18n;
 import org.beigesoft.service.ICsvDataRetriever;
 import org.beigesoft.processor.PrcCsvSampleDataRow;
 import org.beigesoft.orm.service.SrvEntitiesPage;
@@ -71,11 +70,6 @@ public class FctBnTradeProcessors<RS>
   private FctBnPublicTradeProcessors<RS> fctBnPublicTradeProcessors;
 
   /**
-   * <p>I18N request handler.</p>
-   **/
-  private IHandlerRequestDch i18nRequestHandler;
-
-  /**
    * <p>Service print number.</p>
    **/
   private ISrvNumberToString srvNumberToString;
@@ -98,9 +92,8 @@ public class FctBnTradeProcessors<RS>
   /**
    * <p>Converters map "converter name"-"object' s converter".</p>
    **/
-  private final Map<String, IProcessor>
-    processorsMap =
-      new HashMap<String, IProcessor>();
+  private final Map<String, IProcessor> processorsMap =
+    new HashMap<String, IProcessor>();
 
   /**
    * <p>Get bean in lazy mode (if bean is null then initialize it).</p>
@@ -124,9 +117,6 @@ public class FctBnTradeProcessors<RS>
           if (pBeanName.equals(PrcRefreshItemsInList
             .class.getSimpleName())) {
             proc = lazyGetPrcRefreshItemsInList(pAddParam);
-          } else if (pBeanName.equals(PrcRefreshHndlI18n
-            .class.getSimpleName())) {
-            proc = lazyGetPrcRefreshHndlI18n(pAddParam);
           } else if (pBeanName.equals(PrcRefreshCatalog
             .class.getSimpleName())) {
             proc = lazyGetPrcRefreshCatalog(pAddParam);
@@ -156,32 +146,9 @@ public class FctBnTradeProcessors<RS>
    * @throws Exception - an exception
    */
   @Override
-  public final synchronized void set(final String pBeanName,
+  public final void set(final String pBeanName,
     final IProcessor pBean) throws Exception {
-    this.processorsMap.put(pBeanName, pBean);
-  }
-
-  /**
-   * <p>Lazy get PrcRefreshHndlI18n.</p>
-   * @param pAddParam additional param
-   * @return requested PrcRefreshHndlI18n
-   * @throws Exception - an exception
-   */
-  protected final PrcRefreshHndlI18n
-    lazyGetPrcRefreshHndlI18n(
-      final Map<String, Object> pAddParam) throws Exception {
-    String beanName = PrcRefreshHndlI18n.class.getSimpleName();
-    PrcRefreshHndlI18n proc = (PrcRefreshHndlI18n) this.processorsMap
-      .get(beanName);
-    if (proc == null) {
-      proc = new PrcRefreshHndlI18n();
-      proc.setI18nRequestHandler(this.i18nRequestHandler);
-      //assigning fully initialized object:
-      this.processorsMap.put(beanName, proc);
-      this.logger.info(null, FctBnTradeProcessors.class,
-        beanName + " has been created.");
-    }
-    return proc;
+    //nothing
   }
 
   /**
@@ -403,23 +370,6 @@ public class FctBnTradeProcessors<RS>
   public final void setFctBnPublicTradeProcessors(
     final FctBnPublicTradeProcessors<RS> pFctBnPublicTradeProcessors) {
     this.fctBnPublicTradeProcessors = pFctBnPublicTradeProcessors;
-  }
-
-  /**
-   * <p>Getter for i18nRequestHandler.</p>
-   * @return IHandlerRequestDch
-   **/
-  public final IHandlerRequestDch getI18nRequestHandler() {
-    return this.i18nRequestHandler;
-  }
-
-  /**
-   * <p>Setter for i18nRequestHandler.</p>
-   * @param pI18nRequestHandler reference
-   **/
-  public final void setI18nRequestHandler(
-    final IHandlerRequestDch pI18nRequestHandler) {
-    this.i18nRequestHandler = pI18nRequestHandler;
   }
 
   /**
