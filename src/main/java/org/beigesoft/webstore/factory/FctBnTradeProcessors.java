@@ -148,7 +148,7 @@ public class FctBnTradeProcessors<RS>
   @Override
   public final void set(final String pBeanName,
     final IProcessor pBean) throws Exception {
-    //nothing
+    throw new Exception("Setting is not allowed!");
   }
 
   /**

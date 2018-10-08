@@ -79,9 +79,9 @@ public class FctBnSeSelProcessors<RS>
    * @throws Exception - an exception
    */
   @Override
-  public final synchronized void set(final String pBeanName,
+  public final void set(final String pBeanName,
     final IProcessor pBean) throws Exception {
-    //hard-coded
+    throw new Exception("Setting is not allowed!");
   }
 
   /**

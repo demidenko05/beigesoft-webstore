@@ -45,6 +45,6 @@ public class HldSeSelProcNms implements IHolderForClassByName<String> {
   @Override
   public final void setFor(final String pThing,
     final Class<?> pClass, final String pThingName) {
-    //nothing
+    throw new RuntimeException("Setting is not allowed!");
   }
 }

@@ -294,7 +294,7 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
   @Override
   public final void set(final String pBeanName,
     final IEntityProcessor pBean) throws Exception {
-    //nothing
+    throw new Exception("Setting is not allowed!");
   }
 
   /**
