@@ -12,13 +12,7 @@ package org.beigesoft.webstore.processor;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import java.util.Date;
 import java.util.Map;
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
 
 import org.beigesoft.model.IHasIdLongVersion;
 import org.beigesoft.model.IRequestData;
@@ -83,38 +77,6 @@ public class PrcItemSpecificsSave<RS, T extends IHasIdLongVersion,
       //only complex ID
       getSrvOrm().insertEntity(pAddParam, pEntity);
     } else {
-      //if exist file name:
-      String fileToUploadName = (String) pRequestData
-        .getAttribute("fileToUploadName");
-      if (fileToUploadName != null) {
-        OutputStream outs = null;
-        InputStream ins = null;
-        try {
-          String fileToUploadUrl = this.uploadDirectory + File.separator
-            + new Date().getTime() + fileToUploadName;
-          pEntity.setStringValue1(fileToUploadUrl);
-          //fill file and filePath field:
-          String filePath = this.webAppPath + File.separator + fileToUploadUrl;
-          ins = (InputStream) pRequestData
-            .getAttribute("fileToUploadInputStream");
-          outs = new BufferedOutputStream(
-            new FileOutputStream(filePath));
-          byte[] data = new byte[1024];
-          int count;
-          while ((count = ins.read(data)) != -1) {
-            outs.write(data, 0, count);
-          }
-          outs.flush();
-          pEntity.setStringValue2(filePath);
-        } finally {
-          if (ins != null) {
-            ins.close();
-          }
-          if (outs != null) {
-            outs.close();
-          }
-        }
-      }
       getSrvOrm().updateEntity(pAddParam, pEntity);
     }
     return pEntity;

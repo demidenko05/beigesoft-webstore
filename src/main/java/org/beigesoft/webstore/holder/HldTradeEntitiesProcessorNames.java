@@ -15,9 +15,12 @@ package org.beigesoft.webstore.holder;
 import java.util.Set;
 
 import org.beigesoft.persistable.IPersistableBase;
+import org.beigesoft.persistable.Eattachment;
 import org.beigesoft.holder.IHolderForClassByName;
 import org.beigesoft.orm.processor.PrcEntityFfolDelete;
 import org.beigesoft.orm.processor.PrcEntityFfolSave;
+import org.beigesoft.orm.processor.PrcEntityFDelete;
+import org.beigesoft.orm.processor.PrcEntityFSave;
 import org.beigesoft.orm.processor.PrcEntityRetrieve;
 import org.beigesoft.orm.processor.PrcEntityPbEditDelete;
 import org.beigesoft.orm.processor.PrcEntityDelete;
@@ -44,7 +47,6 @@ import org.beigesoft.webstore.processor.PrcSubcatalogsCatalogsGsSave;
 import org.beigesoft.webstore.processor.PrcGoodsAdviseCategoriesSave;
 import org.beigesoft.webstore.processor.PrcItemSpecificsSave;
 import org.beigesoft.webstore.processor.PrcItemSpecificsRetrieve;
-import org.beigesoft.webstore.processor.PrcItemSpecificsDelete;
 import org.beigesoft.webstore.processor.PrcSettingsAddSave;
 import org.beigesoft.webstore.processor.PrcTradingSettingsSave;
 
@@ -79,10 +81,10 @@ public class HldTradeEntitiesProcessorNames
       return getForPrint(pClass);
     } else if ("entitySave".equals(pThingName)) {
       return getForSave(pClass);
-    } else if ("entityFfolDelete".equals(pThingName)) {
-      return getForFfolDelete(pClass);
-    } else if ("entityFfolSave".equals(pThingName)) {
-      return getForFfolSave(pClass);
+    } else if ("entityFDelete".equals(pThingName)) {
+      return getForFDelete(pClass);
+    } else if ("entityFSave".equals(pThingName)) {
+      return getForFSave(pClass);
     } else if ("entityFolDelete".equals(pThingName)) {
       return getForFolDelete(pClass);
     } else if ("entityFolSave".equals(pThingName)) {
@@ -167,27 +169,27 @@ public class HldTradeEntitiesProcessorNames
   }
 
   /**
-   * <p>Get processor name for FFOL delete.</p>
+   * <p>Get processor name for Entity with file delete.</p>
    * @param pClass a Class
    * @return a thing
    **/
-  protected final String getForFfolDelete(final Class<?> pClass) {
-    if (this.seEntities.contains(pClass)) {
-      return null;
+  protected final String getForFDelete(final Class<?> pClass) {
+    if (GoodsSpecifics.class == pClass || ServiceSpecifics.class == pClass) {
+      return PrcEntityFDelete.class.getSimpleName();
     }
-    return PrcEntityFfolDelete.class.getSimpleName();
+    return null;
   }
 
   /**
-   * <p>Get processor name for FFOL save.</p>
+   * <p>Get processor name for Entity with file save.</p>
    * @param pClass a Class
    * @return a thing
    **/
-  protected final String getForFfolSave(final Class<?> pClass) {
-    if (this.seEntities.contains(pClass)) {
-      return null;
+  protected final String getForFSave(final Class<?> pClass) {
+    if (GoodsSpecifics.class == pClass || ServiceSpecifics.class == pClass) {
+      return PrcEntityFSave.class.getSimpleName();
     }
-    return PrcEntityFfolSave.class.getSimpleName();
+    return null;
   }
 
   /**
@@ -198,6 +200,8 @@ public class HldTradeEntitiesProcessorNames
   protected final String getForFolDelete(final Class<?> pClass) {
     if (this.seEntities.contains(pClass)) {
       return null;
+    } else if (Eattachment.class == pClass) {
+        return PrcEntityFfolDelete.class.getSimpleName();
     }
     return PrcEntityFolDelete.class.getSimpleName();
   }
@@ -210,6 +214,8 @@ public class HldTradeEntitiesProcessorNames
   protected final String getForFolSave(final Class<?> pClass) {
     if (this.seEntities.contains(pClass)) {
       return null;
+    } else if (Eattachment.class == pClass) {
+        return PrcEntityFfolSave.class.getSimpleName();
     }
     return PrcEntityFolSave.class.getSimpleName();
   }
@@ -222,9 +228,6 @@ public class HldTradeEntitiesProcessorNames
   protected final String getForDelete(final Class<?> pClass) {
     if (this.seEntities.contains(pClass)) {
       return null;
-    }
-    if (pClass == ServiceSpecifics.class || pClass == GoodsSpecifics.class) {
-      return PrcItemSpecificsDelete.class.getSimpleName();
     } else if (IPersistableBase.class.isAssignableFrom(pClass)) {
       return PrcEntityPbDelete.class.getSimpleName();
     }

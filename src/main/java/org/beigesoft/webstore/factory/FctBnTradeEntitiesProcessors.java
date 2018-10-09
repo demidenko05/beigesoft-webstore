@@ -99,7 +99,6 @@ import org.beigesoft.webstore.processor.PrcSubcatalogsCatalogsGsSave;
 import org.beigesoft.webstore.processor.PrcGoodsAdviseCategoriesSave;
 import org.beigesoft.webstore.processor.PrcItemSpecificsSave;
 import org.beigesoft.webstore.processor.PrcItemSpecificsRetrieve;
-import org.beigesoft.webstore.processor.PrcItemSpecificsDelete;
 
 /**
  * <p>Webstore entities processors factory.
@@ -267,8 +266,6 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
             proc = lazyGetPrcSubcatalogsCatalogsGsSave(pAddParam);
           } else if (pBeanName.equals(PrcGoodsAdviseCategoriesSave.class.getSimpleName())) {
             proc = lazyGetPrcGoodsAdviseCategoriesSave(pAddParam);
-          } else if (pBeanName.equals(PrcItemSpecificsDelete.class.getSimpleName())) {
-            proc = lazyGetPrcItemSpecificsDelete(pAddParam);
           } else if (pBeanName.equals(PrcItemSpecificsRetrieve.class.getSimpleName())) {
             proc = lazyGetPrcItemSpecificsRetrieve(pAddParam);
           } else if (pBeanName.equals(PrcItemSpecificsSave.class.getSimpleName())) {
@@ -414,29 +411,6 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
       proc = new PrcGoodsAdviseCategoriesSave<RS>();
       proc.setSrvOrm(getSrvOrm());
       //assigning fully initialized object:
-      this.processorsMap.put(beanName, proc);
-      this.logger.info(null, FctBnTradeEntitiesProcessors.class, beanName + " has been created.");
-    }
-    return proc;
-  }
-
-  /**
-   * <p>Get PrcItemSpecificsDelete (create and put into map).</p>
-   * @param pAddParam additional param
-   * @return requested PrcItemSpecificsDelete
-   * @throws Exception - an exception
-   */
-  protected final PrcItemSpecificsDelete<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>
-    lazyGetPrcItemSpecificsDelete(final Map<String, Object> pAddParam) throws Exception {
-    String beanName = PrcItemSpecificsDelete.class.getSimpleName();
-    @SuppressWarnings("unchecked")
-    PrcItemSpecificsDelete<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>> proc =
-      (PrcItemSpecificsDelete<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>)
-        this.processorsMap.get(beanName);
-    if (proc == null) {
-      proc = new PrcItemSpecificsDelete<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>();
-      proc.setSrvOrm(getSrvOrm());
-       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);
       this.logger.info(null, FctBnTradeEntitiesProcessors.class, beanName + " has been created.");
     }
