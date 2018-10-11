@@ -105,8 +105,7 @@ public class FctBnTradeProcessors<RS>
   public final IProcessor lazyGet(//NOPMD
     final Map<String, Object> pAddParam,
       final String pBeanName) throws Exception {
-    IProcessor proc =
-      this.processorsMap.get(pBeanName);
+    IProcessor proc = this.processorsMap.get(pBeanName);
     if (proc == null) {
       // locking:
       synchronized (this.processorsMap) {

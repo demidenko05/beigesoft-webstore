@@ -91,17 +91,14 @@
       </p>
       
       <h4>S.E.Sellers management.</h4>
-      <p>Service <b>ISrvSeSeller</b> handles modify actions on <b>SeSeller</b>, i.e. <b>insert, update, delete</b> and <b>find</b>, that is used by other S.E. services (e.g. page service).
-        Only <b>administrator</b> can invoke modify actions.
+      <p>Service <b>IFindSeSeller</b> finds <b>SeSeller</b> by name. It is used by other S.E. services (e.g. page service).
         This service caches SESeller list to serve "find" command (whole list when number of SeSellers is not huge), so it's synchronized service.
         Methods:
         <ul>
-          <li>create(Map&lt;String, Object&gt; pAddParam, SeSeller pSeller, IRequestData pData)</li>
-          <li>update(Map&lt;String, Object&gt; pAddParam, SeSeller pSeller, IRequestData pData)</li>
-          <li>delete(Map&lt;String, Object&gt; pAddParam, SeSeller pSeller, IRequestData pData)</li>
           <li>find(Map&lt;String, Object&gt; pAddParam, String pName) - find by name</li>
+          <li>handleSeSellerChanged(Map&lt;String, Object&gt; pAddParam, String pName) - handles changes</li>
         </ul>
-        all methods require opened transaction
+        it requires opened transaction
       </p>
 
       <h4>S.E.Entities page.</h4>
@@ -109,7 +106,7 @@
         But administrator can view entities that belong to all S.E. sellers, e.g. it's used standard entities page service.
       </p>
       <h5>Service <b>SrvEntitiesPage</b> with SeSellerFilter delegate</h5>
-      <p>SeSellerFilter retrieves <b>user principal</b>, then find SeSeller with ISrvSeSeller,
+      <p>SeSellerFilter retrieves <b>user principal</b>, then find SeSeller with IFindSeSeller,
         if found makes S.E.seller filter, otherwise throws ExceptionWithCode.SOMETHING_WRONG.
         Because of SeSeller is in maximum 3-d level of an entity (e.g. SeGoodsSpecifics or IdI18nSeService), the standard automatically created by ISrvOrm SQL query will do.
       </p>

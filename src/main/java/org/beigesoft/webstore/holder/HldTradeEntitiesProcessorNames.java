@@ -32,6 +32,7 @@ import org.beigesoft.orm.processor.PrcEntityPbCopy;
 import org.beigesoft.orm.processor.PrcEntitySave;
 import org.beigesoft.orm.processor.PrcEntityPbSave;
 import org.beigesoft.orm.processor.PrcEntityCopy;
+import org.beigesoft.webstore.persistable.SeSeller;
 import org.beigesoft.webstore.persistable.SettingsAdd;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.persistable.SubcatalogsCatalogsGs;
@@ -41,6 +42,8 @@ import org.beigesoft.webstore.persistable.GoodsSpecifics;
 import org.beigesoft.webstore.persistable.ServiceSpecifics;
 import org.beigesoft.webstore.persistable.GoodsCatalog;
 import org.beigesoft.webstore.persistable.ServiceCatalog;
+import org.beigesoft.webstore.processor.PrcSeSellerDel;
+import org.beigesoft.webstore.processor.PrcSeSellerSave;
 import org.beigesoft.webstore.processor.PrcAdvisedGoodsForGoodsSave;
 import org.beigesoft.webstore.processor.PrcItemCatalogSave;
 import org.beigesoft.webstore.processor.PrcSubcatalogsCatalogsGsSave;
@@ -159,6 +162,8 @@ public class HldTradeEntitiesProcessorNames
       return PrcSubcatalogsCatalogsGsSave.class.getSimpleName();
     } else if (pClass == GoodsAdviseCategories.class) {
       return PrcGoodsAdviseCategoriesSave.class.getSimpleName();
+    } else if (pClass == SeSeller.class) {
+      return PrcSeSellerSave.class.getSimpleName();
     } else if (pClass == ServiceSpecifics.class
       || pClass == GoodsSpecifics.class) {
       return PrcItemSpecificsSave.class.getSimpleName();
@@ -228,6 +233,8 @@ public class HldTradeEntitiesProcessorNames
   protected final String getForDelete(final Class<?> pClass) {
     if (this.seEntities.contains(pClass)) {
       return null;
+    } else if (SeSeller.class == pClass) {
+      return PrcSeSellerDel.class.getSimpleName();
     } else if (IPersistableBase.class.isAssignableFrom(pClass)) {
       return PrcEntityPbDelete.class.getSimpleName();
     }

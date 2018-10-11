@@ -37,6 +37,7 @@ import org.beigesoft.persistable.EmailIntegerProperty;
 import org.beigesoft.persistable.EmailMsg;
 import org.beigesoft.persistable.Eattachment;
 import org.beigesoft.persistable.Erecipient;
+import org.beigesoft.persistable.UserTomcat;
 import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.accounting.persistable.I18nInvItem;
 import org.beigesoft.accounting.persistable.DebtorCreditor;
@@ -44,6 +45,7 @@ import org.beigesoft.orm.factory.FctBnEntitiesProcessors;
 import org.beigesoft.orm.processor.PrcEntityRetrieve;
 import org.beigesoft.webstore.service.ISrvSettingsAdd;
 import org.beigesoft.webstore.service.ISrvTradingSettings;
+import org.beigesoft.webstore.service.IFindSeSeller;
 import org.beigesoft.webstore.persistable.base.AItemSpecifics;
 import org.beigesoft.webstore.persistable.base.AItemSpecificsId;
 import org.beigesoft.webstore.persistable.base.AItemCatalogId;
@@ -91,6 +93,8 @@ import org.beigesoft.webstore.persistable.SpecificsOfItem;
 import org.beigesoft.webstore.persistable.SpecificsOfItemGroup;
 import org.beigesoft.webstore.persistable.SubcatalogsCatalogsGs;
 import org.beigesoft.webstore.persistable.TradingSettings;
+import org.beigesoft.webstore.processor.PrcSeSellerDel;
+import org.beigesoft.webstore.processor.PrcSeSellerSave;
 import org.beigesoft.webstore.processor.PrcAdvisedGoodsForGoodsSave;
 import org.beigesoft.webstore.processor.PrcItemCatalogSave;
 import org.beigesoft.webstore.processor.PrcSettingsAddSave;
@@ -154,6 +158,11 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
   private ILogger logger;
 
   /**
+   * <p>Find S.E.Seller service.</p>
+   **/
+  private IFindSeSeller findSeSeller;
+
+  /**
    * <p>Converters map "converter name"-"object' s converter".</p>
    **/
   private final Map<String, IEntityProcessor> processorsMap = new HashMap<String, IEntityProcessor>();
@@ -185,6 +194,7 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
     this.sharedEntities.add(InvItem.class);
     this.sharedEntities.add(I18nInvItem.class);
     this.sharedEntities.add(DebtorCreditor.class);
+    this.sharedEntities.add(UserTomcat.class);
     this.wsEntities = new HashSet<Class<?>>();
     this.wsEntities.add(AdviseCategoryOfGs.class);
     this.wsEntities.add(AdvisedGoodsForGoods.class);
@@ -264,6 +274,10 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
             proc = lazyGetPrcItemCatalogSave(pAddParam);
           } else if (pBeanName.equals(PrcSubcatalogsCatalogsGsSave.class.getSimpleName())) {
             proc = lazyGetPrcSubcatalogsCatalogsGsSave(pAddParam);
+          } else if (pBeanName.equals(PrcSeSellerDel.class.getSimpleName())) {
+            proc = lazyGetPrcSeSellerDel(pAddParam);
+          } else if (pBeanName.equals(PrcSeSellerSave.class.getSimpleName())) {
+            proc = lazyGetPrcSeSellerSave(pAddParam);
           } else if (pBeanName.equals(PrcGoodsAdviseCategoriesSave.class.getSimpleName())) {
             proc = lazyGetPrcGoodsAdviseCategoriesSave(pAddParam);
           } else if (pBeanName.equals(PrcItemSpecificsRetrieve.class.getSimpleName())) {
@@ -390,6 +404,48 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
     if (proc == null) {
       proc = new PrcSubcatalogsCatalogsGsSave<RS>();
       proc.setSrvOrm(getSrvOrm());
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnTradeEntitiesProcessors.class, beanName + " has been created.");
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Get PrcSeSellerDel (create and put into map).</p>
+   * @param pAddParam additional param
+   * @return requested PrcSeSellerDel
+   * @throws Exception - an exception
+   */
+  protected final PrcSeSellerDel<RS> lazyGetPrcSeSellerDel(final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcSeSellerDel.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrcSeSellerDel<RS> proc = (PrcSeSellerDel<RS>) this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrcSeSellerDel<RS>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setFindSeSeller(getFindSeSeller());
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnTradeEntitiesProcessors.class, beanName + " has been created.");
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Get PrcSeSellerSave (create and put into map).</p>
+   * @param pAddParam additional param
+   * @return requested PrcSeSellerSave
+   * @throws Exception - an exception
+   */
+  protected final PrcSeSellerSave<RS> lazyGetPrcSeSellerSave(final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcSeSellerSave.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrcSeSellerSave<RS> proc = (PrcSeSellerSave<RS>) this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrcSeSellerSave<RS>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setFindSeSeller(getFindSeSeller());
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);
       this.logger.info(null, FctBnTradeEntitiesProcessors.class, beanName + " has been created.");
@@ -617,4 +673,19 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
     return this.sharedEntities;
   }
 
+  /**
+   * <p>Getter for findSeSeller.</p>
+   * @return IFindSeSeller<RS>
+   **/
+  public final IFindSeSeller getFindSeSeller() {
+    return this.findSeSeller;
+  }
+
+  /**
+   * <p>Setter for findSeSeller.</p>
+   * @param pFindSeSeller reference
+   **/
+  public final void setFindSeSeller(final IFindSeSeller pFindSeSeller) {
+    this.findSeSeller = pFindSeSeller;
+  }
 }

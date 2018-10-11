@@ -60,7 +60,7 @@ public class FctBnSeSelProcessors<RS>
         // make sure again whether it's null after locking:
         proc = this.processorsMap.get(pBeanName);
         if (proc == null && pBeanName
-          .equals(PrcEntitiesPage.class.getSimpleName())) {
+          .equals("sePrcEntitiesPage")) {
           proc = createPutPrcEntitiesPage();
         }
       }

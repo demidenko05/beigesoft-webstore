@@ -25,9 +25,9 @@ import org.beigesoft.webstore.persistable.SeSeller;
 public class SeSellerFilter implements IDelegateEvaluate<IRequestData, String> {
 
   /**
-   * <p>S.E.Seller service.</p>
+   * <p>S.E.Seller find service.</p>
    **/
-  private ISrvSeSeller srvSeSeller;
+  private IFindSeSeller findSeSeller;
 
   /**
    * <p>Evaluates S.E.Seller filter
@@ -37,28 +37,28 @@ public class SeSellerFilter implements IDelegateEvaluate<IRequestData, String> {
    * @throws Exception - if not S.E.Seller
    **/
   public final String evaluate(final IRequestData pData) throws Exception {
-    SeSeller seSeller = this.srvSeSeller.find(null, pData.getUserName());
+    SeSeller seSeller = this.findSeSeller.find(null, pData.getUserName());
     if (seSeller == null) {
       throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
         "It's not S.E.Seller - " + pData.getUserName());
     }
-    return "SELLER=" + seSeller.getItsId();
+    return "SELLER=" + seSeller.getItsId().getItsId();
   }
 
   //Simple getters and setters:
   /**
-   * <p>Getter for srvSeSeller.</p>
-   * @return ISrvSeSeller
+   * <p>Getter for findSeSeller.</p>
+   * @return IFindSeSeller
    **/
-  public final ISrvSeSeller getSrvSeSeller() {
-    return this.srvSeSeller;
+  public final IFindSeSeller getFindSeSeller() {
+    return this.findSeSeller;
   }
 
   /**
-   * <p>Setter for srvSeSeller.</p>
-   * @param pSrvSeSeller reference
+   * <p>Setter for findSeSeller.</p>
+   * @param pFindSeSeller reference
    **/
-  public final void setSrvSeSeller(final ISrvSeSeller pSrvSeSeller) {
-    this.srvSeSeller = pSrvSeSeller;
+  public final void setFindSeSeller(final IFindSeSeller pFindSeSeller) {
+    this.findSeSeller = pFindSeSeller;
   }
 }
