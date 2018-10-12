@@ -22,7 +22,8 @@ import org.beigesoft.webstore.persistable.base.AItemSpecifics;
  * @author Yury Demidenko
  */
 public class SeServiceSpecifics
-  extends AItemSpecifics<SeService, SeServiceSpecificsId> {
+  extends AItemSpecifics<SeService, SeServiceSpecificsId>
+    implements IHasSeSeller<SeServiceSpecificsId> {
 
   /**
    * <p>Complex ID. Must be initialized cause reflection use.</p>
@@ -106,5 +107,23 @@ public class SeServiceSpecifics
       setItsId(new SeServiceSpecificsId());
     }
     getItsId().setItem(this.item);
+  }
+
+  /**
+   * <p>Getter for seller.</p>
+   * @return SeSeller
+   **/
+  @Override
+  public final SeSeller getSeller() {
+    return this.item.getSeller();
+  }
+
+  /**
+   * <p>Setter for seller.</p>
+   * @param pSeller reference
+   **/
+  @Override
+  public final void setSeller(final SeSeller pSeller) {
+    this.item.setSeller(pSeller);
   }
 }

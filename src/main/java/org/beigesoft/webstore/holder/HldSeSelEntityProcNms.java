@@ -15,6 +15,15 @@ package org.beigesoft.webstore.holder;
 import java.util.Set;
 
 import org.beigesoft.holder.IHolderForClassByName;
+import org.beigesoft.orm.processor.PrcEntityRetrieve;
+import org.beigesoft.orm.processor.PrcEntityCreate;
+import org.beigesoft.webstore.persistable.IHasSeSeller;
+import org.beigesoft.webstore.persistable.SeGoodsSpecifics;
+import org.beigesoft.webstore.persistable.SeServiceSpecifics;
+import org.beigesoft.webstore.processor.PrcHasSeSellerSave;
+import org.beigesoft.webstore.processor.PrcHasSeSellerDel;
+import org.beigesoft.webstore.processor.PrcSeGoodsSpecSave;
+import org.beigesoft.webstore.processor.PrcSeServiceSpecSave;
 
 /**
  * <p>Service that assign IEntityProcessor and IProcessor name for class
@@ -82,6 +91,8 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
   protected final String getForCopy(final Class<?> pClass) {
     if (this.sharedEntities.contains(pClass)) {
       return null;
+    } else if (IHasSeSeller.class.isAssignableFrom(pClass)) {
+      return PrcEntityRetrieve.class.getSimpleName();
     }
     return null;
   }
@@ -92,6 +103,11 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
    * @return a thing
    **/
   protected final String getForPrint(final Class<?> pClass) {
+    if (this.sharedEntities.contains(pClass)) {
+      return null;
+    } else if (IHasSeSeller.class.isAssignableFrom(pClass)) {
+      return PrcEntityRetrieve.class.getSimpleName();
+    }
     return null;
   }
 
@@ -103,6 +119,12 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
   protected final String getForSave(final Class<?> pClass) {
     if (this.sharedEntities.contains(pClass)) {
       return null;
+    } else if (SeServiceSpecifics.class == pClass) {
+      return PrcSeServiceSpecSave.class.getSimpleName();
+    } else if (SeGoodsSpecifics.class == pClass) {
+      return PrcSeGoodsSpecSave.class.getSimpleName();
+    } else if (IHasSeSeller.class.isAssignableFrom(pClass)) {
+      return PrcHasSeSellerSave.class.getSimpleName();
     }
     return null;
   }
@@ -163,6 +185,8 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
   protected final String getForDelete(final Class<?> pClass) {
     if (this.sharedEntities.contains(pClass)) {
       return null;
+    } else if (IHasSeSeller.class.isAssignableFrom(pClass)) {
+      return PrcHasSeSellerDel.class.getSimpleName();
     }
     return null;
   }
@@ -175,6 +199,8 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
   protected final String getForCreate(final Class<?> pClass) {
     if (this.sharedEntities.contains(pClass)) {
       return null;
+    } else if (IHasSeSeller.class.isAssignableFrom(pClass)) {
+      return PrcEntityCreate.class.getSimpleName();
     }
     return null;
   }
@@ -189,6 +215,8 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
     final String pAction) {
     if (this.sharedEntities.contains(pClass)) {
       return null;
+    } else if (IHasSeSeller.class.isAssignableFrom(pClass)) {
+      return PrcEntityRetrieve.class.getSimpleName();
     }
     return null;
   }

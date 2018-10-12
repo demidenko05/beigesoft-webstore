@@ -22,7 +22,8 @@ import org.beigesoft.persistable.Languages;
  *
  * @author Yury Demidenko
  */
-public class I18nSeGoods extends AI18nName<SeGoods, IdI18nSeGoods> {
+public class I18nSeGoods extends AI18nName<SeGoods, IdI18nSeGoods>
+ implements IHasSeSeller<IdI18nSeGoods> {
 
   /**
    * <p>ID.</p>
@@ -106,5 +107,23 @@ public class I18nSeGoods extends AI18nName<SeGoods, IdI18nSeGoods> {
   @Override
   public final Languages getLang() {
     return this.lang;
+  }
+
+  /**
+   * <p>Getter for seller.</p>
+   * @return SeSeller
+   **/
+  @Override
+  public final SeSeller getSeller() {
+    return this.hasName.getSeller();
+  }
+
+  /**
+   * <p>Setter for seller.</p>
+   * @param pSeller reference
+   **/
+  @Override
+  public final void setSeller(final SeSeller pSeller) {
+    this.hasName.setSeller(pSeller);
   }
 }

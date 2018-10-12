@@ -21,13 +21,13 @@ import org.beigesoft.log.ILogger;
 import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IEntityProcessor;
-import org.beigesoft.settings.IMngSettings;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.persistable.Languages;
 import org.beigesoft.persistable.Countries;
 import org.beigesoft.persistable.DecimalSeparator;
 import org.beigesoft.persistable.DecimalGroupSeparator;
 import org.beigesoft.orm.factory.FctBnEntitiesProcessors;
+import org.beigesoft.webstore.service.IFindSeSeller;
 import org.beigesoft.webstore.persistable.SeGoods;
 import org.beigesoft.webstore.persistable.SeGoodsPlace;
 import org.beigesoft.webstore.persistable.SeGoodsPrice;
@@ -38,6 +38,11 @@ import org.beigesoft.webstore.persistable.SeServicePrice;
 import org.beigesoft.webstore.persistable.SeServiceSpecifics;
 import org.beigesoft.webstore.persistable.I18nSeGoods;
 import org.beigesoft.webstore.persistable.I18nSeService;
+import org.beigesoft.webstore.persistable.IHasSeSeller;
+import org.beigesoft.webstore.processor.PrcHasSeSellerSave;
+import org.beigesoft.webstore.processor.PrcHasSeSellerDel;
+import org.beigesoft.webstore.processor.PrcSeGoodsSpecSave;
+import org.beigesoft.webstore.processor.PrcSeServiceSpecSave;
 
 /**
  * <p>S.E.Seller's entities processors factory.
@@ -50,16 +55,10 @@ public class FctBnSeSelEntityProcs<RS>
   implements IFactoryAppBeansByName<IEntityProcessor> {
 
   /**
-   * <p>Factory non-acc entity processors.
-   * Concrete factory for concrete bean name that is bean class
-   * simple name. Any way any such factory must be no abstract.</p>
+   * <p>Factory non-acc entity processors. They are used either as
+   * delegates in wrappers or directly.</p>
    **/
   private FctBnEntitiesProcessors<RS> fctBnEntitiesProcessors;
-
-  /**
-   * <p>Manager UVD settings.</p>
-   **/
-  private IMngSettings mngUvdSettings;
 
   /**
    * <p>ORM service.</p>
@@ -67,21 +66,14 @@ public class FctBnSeSelEntityProcs<RS>
   private ISrvOrm<RS> srvOrm;
 
   /**
-   * <p>Upload directory relative to WEB-APP path
-   * without start and end separator, e.g. "static/uploads".</p>
-   **/
-  private String uploadDirectory;
-
-  /**
-   * <p>Full WEB-APP path without end separator,
-   * revealed from servlet context and used for upload files.</p>
-   **/
-  private String webAppPath;
-
-  /**
    * <p>Logger.</p>
    **/
   private ILogger logger;
+
+  /**
+   * <p>Find S.E.Seller service.</p>
+   **/
+  private IFindSeSeller findSeSeller;
 
   /**
    * <p>Converters map "converter name"-"object' s converter".</p>
@@ -138,11 +130,20 @@ public class FctBnSeSelEntityProcs<RS>
         // make sure again whether it's null after locking:
         proc = this.processorsMap.get(pBeanName);
         if (proc == null) {
-          /*if (pBeanName.equals(Prc.class.getSimpleName())) {
-            proc = lazyGetPrc(pAddParam);
-          } else {*/
-          proc = this.fctBnEntitiesProcessors.lazyGet(pAddParam, pBeanName);
-          //}
+          if (pBeanName.equals(PrcHasSeSellerSave.class.getSimpleName())) {
+            proc = lazyGetPrcHasSeSellerSave(pAddParam);
+          } else if (pBeanName.equals(PrcHasSeSellerDel
+            .class.getSimpleName())) {
+            proc = lazyGetPrcHasSeSellerDel(pAddParam);
+          } else if (pBeanName.equals(PrcSeGoodsSpecSave
+            .class.getSimpleName())) {
+            proc = lazyGetPrcSeGoodsSpecSave(pAddParam);
+          } else if (pBeanName.equals(PrcSeServiceSpecSave
+            .class.getSimpleName())) {
+            proc = lazyGetPrcSeServiceSpecSave(pAddParam);
+          } else {
+            proc = this.fctBnEntitiesProcessors.lazyGet(pAddParam, pBeanName);
+          }
         }
       }
     }
@@ -163,6 +164,108 @@ public class FctBnSeSelEntityProcs<RS>
   public final void set(final String pBeanName,
     final IEntityProcessor pBean) throws Exception {
     throw new Exception("Setting is not allowed!");
+  }
+
+  /**
+   * <p>Get PrcSeServiceSpecSave (create and put into map).</p>
+   * @param pAddParam additional param
+   * @return requested PrcSeServiceSpecSave
+   * @throws Exception - an exception
+   */
+  protected final PrcSeServiceSpecSave<RS>
+    lazyGetPrcSeServiceSpecSave(
+      final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcSeServiceSpecSave.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrcSeServiceSpecSave<RS> proc = (PrcSeServiceSpecSave<RS>)
+      this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrcSeServiceSpecSave<RS>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setFindSeSeller(getFindSeSeller());
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnSeSelEntityProcs.class,
+        beanName + " has been created.");
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Get PrcSeGoodsSpecSave (create and put into map).</p>
+   * @param pAddParam additional param
+   * @return requested PrcSeGoodsSpecSave
+   * @throws Exception - an exception
+   */
+  protected final PrcSeGoodsSpecSave<RS>
+    lazyGetPrcSeGoodsSpecSave(
+      final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcSeGoodsSpecSave.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrcSeGoodsSpecSave<RS> proc = (PrcSeGoodsSpecSave<RS>)
+      this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrcSeGoodsSpecSave<RS>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setFindSeSeller(getFindSeSeller());
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnSeSelEntityProcs.class,
+        beanName + " has been created.");
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Get PrcHasSeSellerDel (create and put into map).</p>
+   * @param pAddParam additional param
+   * @return requested PrcHasSeSellerDel
+   * @throws Exception - an exception
+   */
+  protected final PrcHasSeSellerDel<RS, IHasSeSeller<Object>, Object>
+    lazyGetPrcHasSeSellerDel(
+      final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcHasSeSellerDel.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrcHasSeSellerDel<RS, IHasSeSeller<Object>, Object> proc =
+      (PrcHasSeSellerDel<RS, IHasSeSeller<Object>, Object>)
+        this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrcHasSeSellerDel<RS, IHasSeSeller<Object>, Object>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setFindSeSeller(getFindSeSeller());
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnSeSelEntityProcs.class,
+        beanName + " has been created.");
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Get PrcHasSeSellerSave (create and put into map).</p>
+   * @param pAddParam additional param
+   * @return requested PrcHasSeSellerSave
+   * @throws Exception - an exception
+   */
+  protected final PrcHasSeSellerSave<RS, IHasSeSeller<Object>, Object>
+    lazyGetPrcHasSeSellerSave(
+      final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcHasSeSellerSave.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrcHasSeSellerSave<RS, IHasSeSeller<Object>, Object> proc =
+      (PrcHasSeSellerSave<RS, IHasSeSeller<Object>, Object>)
+        this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrcHasSeSellerSave<RS, IHasSeSeller<Object>, Object>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setFindSeSeller(getFindSeSeller());
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnSeSelEntityProcs.class,
+        beanName + " has been created.");
+    }
+    return proc;
   }
 
   //Simple getters and setters:
@@ -200,54 +303,6 @@ public class FctBnSeSelEntityProcs<RS>
   }
 
   /**
-   * <p>Getter for mngUvdSettings.</p>
-   * @return IMngSettings
-   **/
-  public final IMngSettings getMngUvdSettings() {
-    return this.mngUvdSettings;
-  }
-
-  /**
-   * <p>Setter for mngUvdSettings.</p>
-   * @param pMngUvdSettings reference
-   **/
-  public final void setMngUvdSettings(final IMngSettings pMngUvdSettings) {
-    this.mngUvdSettings = pMngUvdSettings;
-  }
-
-  /**
-   * <p>Getter for uploadDirectory.</p>
-   * @return String
-   **/
-  public final String getUploadDirectory() {
-    return this.uploadDirectory;
-  }
-
-  /**
-   * <p>Setter for uploadDirectory.</p>
-   * @param pUploadDirectory reference
-   **/
-  public final void setUploadDirectory(final String pUploadDirectory) {
-    this.uploadDirectory = pUploadDirectory;
-  }
-
-  /**
-   * <p>Getter for webAppPath.</p>
-   * @return String
-   **/
-  public final String getWebAppPath() {
-    return this.webAppPath;
-  }
-
-  /**
-   * <p>Setter for webAppPath.</p>
-   * @param pWebAppPath reference
-   **/
-  public final void setWebAppPath(final String pWebAppPath) {
-    this.webAppPath = pWebAppPath;
-  }
-
-  /**
    * <p>Geter for logger.</p>
    * @return ILogger
    **/
@@ -280,4 +335,19 @@ public class FctBnSeSelEntityProcs<RS>
     return this.sharedEntities;
   }
 
+  /**
+   * <p>Getter for findSeSeller.</p>
+   * @return IFindSeSeller<RS>
+   **/
+  public final IFindSeSeller getFindSeSeller() {
+    return this.findSeSeller;
+  }
+
+  /**
+   * <p>Setter for findSeSeller.</p>
+   * @param pFindSeSeller reference
+   **/
+  public final void setFindSeSeller(final IFindSeSeller pFindSeSeller) {
+    this.findSeSeller = pFindSeSeller;
+  }
 }

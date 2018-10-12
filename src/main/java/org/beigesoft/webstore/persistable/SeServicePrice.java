@@ -21,7 +21,8 @@ import org.beigesoft.webstore.persistable.base.AItemPrice;
  *
  * @author Yury Demidenko
  */
-public class SeServicePrice extends AItemPrice<SeService, SeServicePriceId> {
+public class SeServicePrice extends AItemPrice<SeService, SeServicePriceId>
+ implements IHasSeSeller<SeServicePriceId> {
 
   /**
    * <p>Complex ID. Must be initialized cause reflection use.</p>
@@ -105,5 +106,23 @@ public class SeServicePrice extends AItemPrice<SeService, SeServicePriceId> {
       this.itsId = new SeServicePriceId();
     }
     this.itsId.setItem(this.item);
+  }
+
+  /**
+   * <p>Getter for seller.</p>
+   * @return SeSeller
+   **/
+  @Override
+  public final SeSeller getSeller() {
+    return this.item.getSeller();
+  }
+
+  /**
+   * <p>Setter for seller.</p>
+   * @param pSeller reference
+   **/
+  @Override
+  public final void setSeller(final SeSeller pSeller) {
+    this.item.setSeller(pSeller);
   }
 }

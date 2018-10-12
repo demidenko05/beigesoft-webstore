@@ -1,7 +1,7 @@
 package org.beigesoft.webstore.persistable;
 
 /*
- * Copyright (c) 2017 Beigesoft ™
+ * Copyright (c) 2018 Beigesoft™
  *
  * Licensed under the GNU General Public License (GPL), Version 2.0
  * (the "License");
@@ -12,38 +12,25 @@ package org.beigesoft.webstore.persistable;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import org.beigesoft.persistable.AHasNameIdLongVersion;
+import org.beigesoft.model.IHasId;
 
 /**
- * <pre>
- * Model of SeGoods.
- * </pre>
+ * <p>Abstraction of S.E.Seller's data model.</p>
  *
+ * @param <ID> type of ID
  * @author Yury Demidenko
  */
-public class SeGoods extends AHasNameIdLongVersion
-  implements IHasSeSeller<Long> {
-
-  /**
-   * <p>Seller.</p>
-   **/
-  private SeSeller seller;
+public interface IHasSeSeller<ID> extends IHasId<ID> {
 
   /**
    * <p>Getter for seller.</p>
    * @return SeSeller
    **/
-  @Override
-  public final SeSeller getSeller() {
-    return this.seller;
-  }
+  SeSeller getSeller();
 
   /**
    * <p>Setter for seller.</p>
    * @param pSeller reference
    **/
-  @Override
-  public final void setSeller(final SeSeller pSeller) {
-    this.seller = pSeller;
-  }
+  void setSeller(SeSeller pSeller);
 }

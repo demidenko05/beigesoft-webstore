@@ -111,6 +111,13 @@
         Because of SeSeller is in maximum 3-d level of an entity (e.g. SeGoodsSpecifics or IdI18nSeService), the standard automatically created by ISrvOrm SQL query will do.
       </p>
 
+      <h4>S.E.Seller's entity processors</h4>
+      <p>Any action on existed entity - view, edit, save, delete must be checked for current S.E.Seller,
+        i.e. processor must retrieves "old entity" then checks seller.</p>
+      <p>Action "create" - processor just set current S.E.Seller</p>
+      <p>Most entity processors uses cached S.E.Sellers from <b>IFindSeSeller</b>, except PrcEntityCreate - it just creates empty entity.</p>
+      <p>To make generic processor any S.E. entity should implements <b>IHasSeSeller</b>, i.e. S.E.Seller's getter/setter.</p>
+
     </section>
 
   </body>

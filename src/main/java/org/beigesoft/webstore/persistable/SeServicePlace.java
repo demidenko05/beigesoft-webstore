@@ -21,7 +21,8 @@ import org.beigesoft.webstore.persistable.base.AItemPlace;
  *
  * @author Yury Demidenko
  */
-public class SeServicePlace extends AItemPlace<SeService, SeServicePlaceId> {
+public class SeServicePlace extends AItemPlace<SeService, SeServicePlaceId>
+ implements IHasSeSeller<SeServicePlaceId> {
 
   /**
    * <p>Complex ID. Must be initialized cause reflection use.</p>
@@ -110,6 +111,24 @@ public class SeServicePlace extends AItemPlace<SeService, SeServicePlaceId> {
       this.itsId = new SeServicePlaceId();
     }
     this.itsId.setItem(this.item);
+  }
+
+  /**
+   * <p>Getter for seller.</p>
+   * @return SeSeller
+   **/
+  @Override
+  public final SeSeller getSeller() {
+    return this.item.getSeller();
+  }
+
+  /**
+   * <p>Setter for seller.</p>
+   * @param pSeller reference
+   **/
+  @Override
+  public final void setSeller(final SeSeller pSeller) {
+    this.item.setSeller(pSeller);
   }
 
   //SGS:

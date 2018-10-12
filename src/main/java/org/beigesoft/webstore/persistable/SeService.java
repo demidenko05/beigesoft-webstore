@@ -21,18 +21,19 @@ import org.beigesoft.persistable.AHasNameIdLongVersion;
  *
  * @author Yury Demidenko
  */
-public class SeService extends AHasNameIdLongVersion {
+public class SeService extends AHasNameIdLongVersion
+  implements IHasSeSeller<Long> {
 
   /**
    * <p>Seller.</p>
    **/
   private SeSeller seller;
 
-  //Simple getters and setters:
   /**
    * <p>Getter for seller.</p>
    * @return SeSeller
    **/
+  @Override
   public final SeSeller getSeller() {
     return this.seller;
   }
@@ -41,6 +42,7 @@ public class SeService extends AHasNameIdLongVersion {
    * <p>Setter for seller.</p>
    * @param pSeller reference
    **/
+  @Override
   public final void setSeller(final SeSeller pSeller) {
     this.seller = pSeller;
   }

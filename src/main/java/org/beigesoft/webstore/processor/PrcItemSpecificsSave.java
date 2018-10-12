@@ -39,21 +39,8 @@ public class PrcItemSpecificsSave<RS, T extends IHasIdLongVersion,
   private ISrvOrm<RS> srvOrm;
 
   /**
-   * <p>Upload directory relative to WEB-APP path
-   * without start and end separator, e.g. "static/uploads".</p>
-   **/
-  private String uploadDirectory;
-
-  /**
-   * <p>Full WEB-APP path without end separator,
-   * revealed from servlet context and used for upload files.</p>
-   **/
-  private String webAppPath;
-
-  /**
    * <p>Process entity request.</p>
-   * @param pAddParam additional param, e.g. return this line's
-   * document in "nextEntity" for farther process
+   * @param pReqVars additional request scoped parameters
    * @param pRequestData Request Data
    * @param pEntity Entity to process
    * @return Entity processed for farther process or null
@@ -61,11 +48,11 @@ public class PrcItemSpecificsSave<RS, T extends IHasIdLongVersion,
    **/
   @Override
   public final AItemSpecifics<T, ID> process(
-    final Map<String, Object> pAddParam,
+    final Map<String, Object> pReqVars,
       final AItemSpecifics<T, ID> pEntity,
         final IRequestData pRequestData) throws Exception {
     //Beige-ORM refresh:
-    pEntity.setSpecifics(getSrvOrm().retrieveEntity(pAddParam,
+    pEntity.setSpecifics(getSrvOrm().retrieveEntity(pReqVars,
       pEntity.getSpecifics()));
     if (pEntity.getSpecifics().getChooseableSpecificsType() != null) {
       pEntity.setLongValue2(pEntity.getSpecifics().getChooseableSpecificsType()
@@ -75,9 +62,9 @@ public class PrcItemSpecificsSave<RS, T extends IHasIdLongVersion,
     }
     if (pEntity.getIsNew()) {
       //only complex ID
-      getSrvOrm().insertEntity(pAddParam, pEntity);
+      getSrvOrm().insertEntity(pReqVars, pEntity);
     } else {
-      getSrvOrm().updateEntity(pAddParam, pEntity);
+      getSrvOrm().updateEntity(pReqVars, pEntity);
     }
     return pEntity;
   }
@@ -98,37 +85,5 @@ public class PrcItemSpecificsSave<RS, T extends IHasIdLongVersion,
    **/
   public final void setSrvOrm(final ISrvOrm<RS> pSrvOrm) {
     this.srvOrm = pSrvOrm;
-  }
-
-  /**
-   * <p>Getter for uploadDirectory.</p>
-   * @return String
-   **/
-  public final String getUploadDirectory() {
-    return this.uploadDirectory;
-  }
-
-  /**
-   * <p>Setter for uploadDirectory.</p>
-   * @param pUploadDirectory reference
-   **/
-  public final void setUploadDirectory(final String pUploadDirectory) {
-    this.uploadDirectory = pUploadDirectory;
-  }
-
-  /**
-   * <p>Getter for webAppPath.</p>
-   * @return String
-   **/
-  public final String getWebAppPath() {
-    return this.webAppPath;
-  }
-
-  /**
-   * <p>Setter for webAppPath.</p>
-   * @param pWebAppPath reference
-   **/
-  public final void setWebAppPath(final String pWebAppPath) {
-    this.webAppPath = pWebAppPath;
   }
 }

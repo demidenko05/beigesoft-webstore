@@ -25,19 +25,19 @@ public interface IFindSeSeller {
 
   /**
    * <p>Finds by name.</p>
-   * @param pAddParam additional param
+   * @param pReqVars additional request scoped parameters
    * @param pName seller's
    * @return S.E. Seller or null
    * @throws Exception - an exception
    **/
-  SeSeller find(Map<String, Object> pAddParam, String pName) throws Exception;
+  SeSeller find(Map<String, Object> pReqVars, String pName) throws Exception;
 
   /**
    * <p>Handle S.E. seller changed.</p>
-   * @param pAddParam additional param
+   * @param pReqVars additional param
    * @param pName seller's, null means "refresh all"
    * @throws Exception - an exception
    **/
-  void handleSeSellerChanged(Map<String, Object> pAddParam,
+  void handleSeSellerChanged(Map<String, Object> pReqVars,
     String pName) throws Exception;
 }

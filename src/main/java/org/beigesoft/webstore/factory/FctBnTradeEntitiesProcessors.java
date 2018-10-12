@@ -516,8 +516,6 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
     if (proc == null) {
       proc = new PrcItemSpecificsSave<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>();
       proc.setSrvOrm(getSrvOrm());
-      proc.setUploadDirectory(getUploadDirectory());
-      proc.setWebAppPath(getWebAppPath());
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);
       this.logger.info(null, FctBnTradeEntitiesProcessors.class, beanName + " has been created.");

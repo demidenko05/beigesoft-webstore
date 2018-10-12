@@ -40,16 +40,16 @@ public class FindSeSeller<RS> implements IFindSeSeller {
 
   /**
    * <p>Finds by name.</p>
-   * @param pAddParam additional param
+   * @param pReqVars additional request scoped parameters
    * @param pName seller's
    * @return S.E. Seller or null
    * @throws Exception - an exception
    **/
   @Override
-  public final synchronized SeSeller find(final Map<String, Object> pAddParam,
+  public final synchronized SeSeller find(final Map<String, Object> pReqVars,
     final String pName) throws Exception {
     if (this.sesellers == null) {
-      this.sesellers = this.srvOrm.retrieveList(pAddParam, SeSeller.class);
+      this.sesellers = this.srvOrm.retrieveList(pReqVars, SeSeller.class);
     }
     for (SeSeller ses : this.sesellers) {
       if (ses.getUserAuth().getItsUser().equals(pName)) {
@@ -62,13 +62,13 @@ public class FindSeSeller<RS> implements IFindSeSeller {
   /**
    * <p>Handle S.E. seller changed.
    * Any change leads to refreshing whole list.</p>
-   * @param pAddParam additional param
+   * @param pReqVars additional param
    * @param pName seller's, null means "refresh all"
    * @throws Exception - an exception
    **/
   @Override
   public final synchronized void handleSeSellerChanged(
-    final Map<String, Object> pAddParam,
+    final Map<String, Object> pReqVars,
       final String pName) throws Exception {
     this.sesellers = null;
   }
