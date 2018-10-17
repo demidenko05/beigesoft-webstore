@@ -41,6 +41,7 @@ import org.beigesoft.persistable.UserTomcat;
 import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.accounting.persistable.I18nInvItem;
 import org.beigesoft.accounting.persistable.DebtorCreditor;
+import org.beigesoft.accounting.persistable.ServiceToSale;
 import org.beigesoft.orm.factory.FctBnEntitiesProcessors;
 import org.beigesoft.orm.processor.PrcEntityRetrieve;
 import org.beigesoft.webstore.service.ISrvSettingsAdd;
@@ -93,6 +94,7 @@ import org.beigesoft.webstore.persistable.SpecificsOfItem;
 import org.beigesoft.webstore.persistable.SpecificsOfItemGroup;
 import org.beigesoft.webstore.persistable.SubcatalogsCatalogsGs;
 import org.beigesoft.webstore.persistable.TradingSettings;
+import org.beigesoft.webstore.persistable.SeGoodCatalog;
 import org.beigesoft.webstore.processor.PrcSeSellerDel;
 import org.beigesoft.webstore.processor.PrcSeSellerSave;
 import org.beigesoft.webstore.processor.PrcAdvisedGoodsForGoodsSave;
@@ -195,6 +197,7 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
     this.sharedEntities.add(I18nInvItem.class);
     this.sharedEntities.add(DebtorCreditor.class);
     this.sharedEntities.add(UserTomcat.class);
+    this.sharedEntities.add(ServiceToSale.class);
     this.wsEntities = new HashSet<Class<?>>();
     this.wsEntities.add(AdviseCategoryOfGs.class);
     this.wsEntities.add(AdvisedGoodsForGoods.class);
@@ -246,6 +249,7 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
     this.wsEntities.add(EmailMsg.class);
     this.wsEntities.add(Eattachment.class);
     this.wsEntities.add(Erecipient.class);
+    this.wsEntities.add(SeGoodCatalog.class);
   }
 
   /**

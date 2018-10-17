@@ -51,6 +51,11 @@ import org.beigesoft.webstore.persistable.GoodsPlace;
 import org.beigesoft.webstore.persistable.ServicePlace;
 import org.beigesoft.webstore.persistable.ServicePrice;
 import org.beigesoft.webstore.persistable.ServiceSpecifics;
+import org.beigesoft.webstore.persistable.SeGoods;
+import org.beigesoft.webstore.persistable.I18nSeGoods;
+import org.beigesoft.webstore.persistable.SeGoodsPlace;
+import org.beigesoft.webstore.persistable.SeGoodsPrice;
+import org.beigesoft.webstore.persistable.SeGoodsSpecifics;
 //import org.beigesoft.webstore.persistable.GoodsRating;
 import org.beigesoft.webstore.persistable.GoodsInListLuv;
 import org.beigesoft.webstore.persistable.TradingSettings;
@@ -155,6 +160,33 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
     updateForItemPlaceList(pReqVars, servicePlaceLst, settingsAdd, goodsInListLuv, EShopItemType.SERVICE);
     pRequestData.setAttribute("totalUpdatedServAv", servicePlaceLst.size());
     servicePlaceLst = null;
+    List<SeGoodsSpecifics> seGoodSpecificsLst;
+    if (refreshAll != null) {
+      seGoodSpecificsLst = retrieveItemSpecificsLst(pReqVars, null, SeGoodsSpecifics.class);
+    } else {
+      seGoodSpecificsLst = retrieveItemSpecificsLst(pReqVars, goodsInListLuv.getSeGoodSpecificLuv(), SeGoodsSpecifics.class);
+    }
+    updateForItemSpecificsList(pReqVars, seGoodSpecificsLst, settingsAdd, goodsInListLuv, tradingSettings, I18nSeGoods.class, EShopItemType.SEGOODS);
+    pRequestData.setAttribute("totalUpdatedSeGoodSp", seGoodSpecificsLst.size());
+    seGoodSpecificsLst = null;
+    List<SeGoodsPrice> seGoodPriceLst;
+    if (refreshAll != null) {
+      seGoodPriceLst = retrieveItemPriceLst(pReqVars, null, SeGoodsPrice.class);
+    } else {
+      seGoodPriceLst = retrieveItemPriceLst(pReqVars, goodsInListLuv.getSeGoodPriceLuv(), SeGoodsPrice.class);
+    }
+    updateForItemPriceList(pReqVars, seGoodPriceLst, settingsAdd, goodsInListLuv, EShopItemType.SEGOODS);
+    pRequestData.setAttribute("totalUpdatedSeGoodPr", seGoodPriceLst.size());
+    seGoodPriceLst = null;
+    List<SeGoodsPlace> seGoodPlaceLst;
+    if (refreshAll != null) {
+      seGoodPlaceLst = retrieveItemPlaceLst(pReqVars, null, SeGoodsPlace.class);
+    } else {
+      seGoodPlaceLst = retrieveItemPlaceLst(pReqVars, goodsInListLuv.getSeGoodPlaceLuv(), SeGoodsPlace.class);
+    }
+    updateForItemPlaceList(pReqVars, seGoodPlaceLst, settingsAdd, goodsInListLuv, EShopItemType.SEGOODS);
+    pRequestData.setAttribute("totalUpdatedSeGoodAv", seGoodPlaceLst.size());
+    seGoodPlaceLst = null;
     pReqVars.remove("langPreferences");
   }
 
@@ -285,6 +317,8 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
           pGoodsInListLuv.setGoodsAvailableLuv(lastUpdatedVersion);
         } else if (pItemType == EShopItemType.SERVICE) {
           pGoodsInListLuv.setServicePlaceLuv(lastUpdatedVersion);
+        } else if (pItemType == EShopItemType.SEGOODS) {
+          pGoodsInListLuv.setSeGoodPlaceLuv(lastUpdatedVersion);
         } else {
           throw new Exception("NEI for " + pItemType);
         }
@@ -400,6 +434,8 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
           pGoodsInListLuv.setGoodsPriceLuv(lastUpdatedVersion);
         } else if (pItemType == EShopItemType.SERVICE) {
           pGoodsInListLuv.setServicePriceLuv(lastUpdatedVersion);
+        } else if (pItemType == EShopItemType.SEGOODS) {
+          pGoodsInListLuv.setSeGoodPriceLuv(lastUpdatedVersion);
         } else {
           throw new Exception("NEI for " + pItemType);
         }
@@ -944,6 +980,8 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
           pGoodsInListLuv.setGoodsSpecificLuv(lastUpdatedVersion);
         } else if (pItemType.equals(EShopItemType.SERVICE)) {
           pGoodsInListLuv.setServiceSpecificLuv(lastUpdatedVersion);
+        } else if (pItemType.equals(EShopItemType.SEGOODS)) {
+          pGoodsInListLuv.setSeGoodSpecificLuv(lastUpdatedVersion);
         } else {
           throw new Exception("NYI for " + pItemType);
         }
@@ -1125,6 +1163,8 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
       itemType = EShopItemType.GOODS;
     } else if (pItem.getClass() == ServiceToSale.class) {
       itemType = EShopItemType.SERVICE;
+    } else if (pItem.getClass() == SeGoods.class) {
+      itemType = EShopItemType.SEGOODS;
     } else {
       throw new Exception("NYI for " + pItem.getClass());
     }

@@ -12,8 +12,8 @@
 <properties>
 <comment>App properties</comment>
 <entry key="title">Beige Accounting All In One</entry>
-<entry key="appVersion">1.1.7</entry>
-<entry key="databaseVersion">7</entry>
+<entry key="appVersion">1.1.8</entry>
+<entry key="databaseVersion">8</entry>
 <entry key="useSubFolder">mysql</entry>
 <entry key="jdbcDriverClass">com.mysql.jdbc.Driver</entry>
 <entry key="dataSourceClassName">com.mysql.jdbc.jdbc2.optional.MysqlDataSource</entry>

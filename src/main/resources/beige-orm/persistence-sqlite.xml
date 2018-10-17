@@ -198,6 +198,7 @@
   org.beigesoft.webstore.persistable.SeServicePrice,
   org.beigesoft.webstore.persistable.SeGoodsPlace,
   org.beigesoft.webstore.persistable.SeServicePlace,
+  org.beigesoft.webstore.persistable.SeGoodCatalog,
   org.beigesoft.webstore.persistable.CustomerGoodsSeen</entry>
 <entry key="settingsKeysForClasses">idColumnsNames, idFieldName, ownerFieldName, constraintAdd, excludeFields, versionAlgorithm</entry>
 <entry key="settingsKeysForFields">definition, isNullable</entry>

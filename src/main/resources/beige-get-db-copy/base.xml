@@ -188,6 +188,7 @@
   org.beigesoft.webstore.persistable.SeGoodsPrice,
   org.beigesoft.webstore.persistable.SeServicePrice,
   org.beigesoft.webstore.persistable.SeGoodsPlace,
+  org.beigesoft.webstore.persistable.SeGoodCatalog,
   org.beigesoft.webstore.persistable.SeServicePlace,
   org.beigesoft.webstore.persistable.TradingSettings</entry>
 <entry key="settingsKeysForClasses">excludeFields</entry>

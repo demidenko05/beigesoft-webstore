@@ -56,6 +56,9 @@
           <li><b>Shared data models (only list)</b></li>
           <li>Languages</li>
           <li>UnitOfMeasure</li>
+          <li>SpecificsOfItem</li>
+          <li>PickUpPlace</li>
+          <li>PriceCategory</li>
         </ul>
       </p>
       

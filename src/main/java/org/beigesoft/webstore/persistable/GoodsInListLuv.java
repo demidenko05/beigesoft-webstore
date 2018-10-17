@@ -63,6 +63,46 @@ public class GoodsInListLuv extends AHasIdLongVersion {
    **/
   private Long serviceRatingLuv;
 
+  /**
+   * <p>Last version of SeGoodsSpecifics updated ItemInList.</p>
+   **/
+  private Long seGoodSpecificLuv;
+
+  /**
+   * <p>Last version of SeGoodsPrice updated ItemInList.</p>
+   **/
+  private Long seGoodPriceLuv;
+
+  /**
+   * <p>Last version of SeGoodsPlace updated ItemInList.</p>
+   **/
+  private Long seGoodPlaceLuv;
+
+  /**
+   * <p>Last version of SeGoodsRating updated ItemInList.</p>
+   **/
+  private Long seGoodRatingLuv;
+
+  /**
+   * <p>Last version of SeServiceSpecifics updated ItemInList.</p>
+   **/
+  private Long seServiceSpecificLuv;
+
+  /**
+   * <p>Last version of SeServicePrice updated ItemInList.</p>
+   **/
+  private Long seServicePriceLuv;
+
+  /**
+   * <p>Last version of SeServicePlace updated ItemInList.</p>
+   **/
+  private Long seServicePlaceLuv;
+
+  /**
+   * <p>Last version of SeServiceRating updated ItemInList.</p>
+   **/
+  private Long seServiceRatingLuv;
+
   //Simple getters and setters:
   /**
    * <p>Getter for goodsSpecificLuv.</p>
@@ -190,5 +230,133 @@ public class GoodsInListLuv extends AHasIdLongVersion {
    **/
   public final void setServiceRatingLuv(final Long pServiceRatingLuv) {
     this.serviceRatingLuv = pServiceRatingLuv;
+  }
+
+  /**
+   * <p>Getter for seGoodSpecificLuv.</p>
+   * @return Long
+   **/
+  public final Long getSeGoodSpecificLuv() {
+    return this.seGoodSpecificLuv;
+  }
+
+  /**
+   * <p>Setter for seGoodSpecificLuv.</p>
+   * @param pSeGoodSpecificLuv reference
+   **/
+  public final void setSeGoodSpecificLuv(final Long pSeGoodSpecificLuv) {
+    this.seGoodSpecificLuv = pSeGoodSpecificLuv;
+  }
+
+  /**
+   * <p>Getter for seGoodPriceLuv.</p>
+   * @return Long
+   **/
+  public final Long getSeGoodPriceLuv() {
+    return this.seGoodPriceLuv;
+  }
+
+  /**
+   * <p>Setter for seGoodPriceLuv.</p>
+   * @param pSeGoodPriceLuv reference
+   **/
+  public final void setSeGoodPriceLuv(final Long pSeGoodPriceLuv) {
+    this.seGoodPriceLuv = pSeGoodPriceLuv;
+  }
+
+  /**
+   * <p>Getter for seGoodPlaceLuv.</p>
+   * @return Long
+   **/
+  public final Long getSeGoodPlaceLuv() {
+    return this.seGoodPlaceLuv;
+  }
+
+  /**
+   * <p>Setter for seGoodPlaceLuv.</p>
+   * @param pSeGoodPlaceLuv reference
+   **/
+  public final void setSeGoodPlaceLuv(final Long pSeGoodPlaceLuv) {
+    this.seGoodPlaceLuv = pSeGoodPlaceLuv;
+  }
+
+  /**
+   * <p>Getter for seGoodRatingLuv.</p>
+   * @return Long
+   **/
+  public final Long getSeGoodRatingLuv() {
+    return this.seGoodRatingLuv;
+  }
+
+  /**
+   * <p>Setter for seGoodRatingLuv.</p>
+   * @param pSeGoodRatingLuv reference
+   **/
+  public final void setSeGoodRatingLuv(final Long pSeGoodRatingLuv) {
+    this.seGoodRatingLuv = pSeGoodRatingLuv;
+  }
+
+  /**
+   * <p>Getter for seServiceSpecificLuv.</p>
+   * @return Long
+   **/
+  public final Long getSeServiceSpecificLuv() {
+    return this.seServiceSpecificLuv;
+  }
+
+  /**
+   * <p>Setter for seServiceSpecificLuv.</p>
+   * @param pSeServiceSpecificLuv reference
+   **/
+  public final void setSeServiceSpecificLuv(final Long pSeServiceSpecificLuv) {
+    this.seServiceSpecificLuv = pSeServiceSpecificLuv;
+  }
+
+  /**
+   * <p>Getter for seServicePriceLuv.</p>
+   * @return Long
+   **/
+  public final Long getSeServicePriceLuv() {
+    return this.seServicePriceLuv;
+  }
+
+  /**
+   * <p>Setter for seServicePriceLuv.</p>
+   * @param pSeServicePriceLuv reference
+   **/
+  public final void setSeServicePriceLuv(final Long pSeServicePriceLuv) {
+    this.seServicePriceLuv = pSeServicePriceLuv;
+  }
+
+  /**
+   * <p>Getter for seServicePlaceLuv.</p>
+   * @return Long
+   **/
+  public final Long getSeServicePlaceLuv() {
+    return this.seServicePlaceLuv;
+  }
+
+  /**
+   * <p>Setter for seServicePlaceLuv.</p>
+   * @param pSeServicePlaceLuv reference
+   **/
+  public final void setSeServicePlaceLuv(final Long pSeServicePlaceLuv) {
+    this.seServicePlaceLuv = pSeServicePlaceLuv;
+  }
+
+  /**
+   * <p>Getter for seServiceRatingLuv.</p>
+   * @return Long
+   **/
+  public final Long getSeServiceRatingLuv() {
+    return this.seServiceRatingLuv;
+  }
+
+  /**
+   * <p>Setter for seServiceRatingLuv.</p>
+   * @param pSeServiceRatingLuv reference
+   **/
+  public final void setSeServiceRatingLuv(final Long pSeServiceRatingLuv) {
+    this.seServiceRatingLuv = pSeServiceRatingLuv;
   }
 }

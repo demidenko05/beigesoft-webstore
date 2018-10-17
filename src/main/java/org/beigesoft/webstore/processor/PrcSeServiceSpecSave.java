@@ -69,12 +69,14 @@ public class PrcSeServiceSpecSave<RS>
       pEntity.setIsNew(false);
     } else {
       SeServiceSpecifics entOld = this.srvOrm.retrieveEntity(pReqVars, pEntity);
-      if (!entOld.getSeller().getItsId()
-        .equals(pEntity.getSeller().getItsId())) {
+      if (!entOld.getSeller().getItsId().getItsId()
+        .equals(pEntity.getSeller().getItsId().getItsId())) {
         throw new ExceptionWithCode(ExceptionWithCode.FORBIDDEN,
-          "Attempt to update smb. else's entity: user/entity/EID - "
-            + pRequestData.getUserName() + "/" + pEntity.getClass()
-              .getSimpleName() + "/" + pEntity.getItsId());
+        "Attempt to update smb. else's entity: user/entity/EID/SEOLDID/SEID - "
+          + pRequestData.getUserName() + "/" + pEntity.getClass()
+           .getSimpleName() + "/" + pEntity.getItsId() + "/" + entOld
+            .getSeller().getItsId().getItsId() + "/" + pEntity.getSeller()
+              .getItsId().getItsId());
       }
       this.srvOrm.updateEntity(pReqVars, pEntity);
     }

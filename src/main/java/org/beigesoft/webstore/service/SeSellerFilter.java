@@ -12,6 +12,7 @@ package org.beigesoft.webstore.service;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
+import java.util.Set;
 import java.util.Map;
 
 import org.beigesoft.exception.ExceptionWithCode;
@@ -32,8 +33,14 @@ public class SeSellerFilter implements IDelegateEvaluate<IRequestData, String> {
   private IFindSeSeller findSeSeller;
 
   /**
+   * <p>Se entities. Only <b>list</b> operation is allowed, no "modify".</p>
+   **/
+  private Set<Class<?>> seEntities;
+
+  /**
    * <p>Evaluates S.E.Seller filter
-   * or throws "SOMETHING_WRONG" if not found.</p>
+   * or throws "SOMETHING_WRONG" if not found.
+   * For se entities it return NULL.</p>
    * @param pReqVars additional request scoped parameters
    * @param pData data
    * @return S.E.Seller filter
@@ -46,17 +53,28 @@ public class SeSellerFilter implements IDelegateEvaluate<IRequestData, String> {
       throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
         "It's not S.E.Seller - " + pData.getUserName());
     }
-    //simple-hummer implementation:
     String nmEnt = pData.getParameter("nmEnt").toUpperCase();
-    String tbl = "SEGOODS";
-    if (nmEnt.contains("I18NSE")) {
-      tbl = "HASNAME";
-    } else if (nmEnt.length() > 9) {
-      tbl = "ITEM";
-    } else if (!nmEnt.contains(tbl)) {
-      tbl = "SESERVICE";
+    boolean isSe = false;
+    for (Class<?> cl : this.seEntities) {
+      if (cl.getSimpleName().equals(nmEnt)) {
+        isSe = true;
+        break;
+      }
     }
-    return tbl + ".SELLER=" + seSeller.getItsId().getItsId();
+    if (isSe) {
+      //simple-hummer implementation:
+      String tbl = "SEGOODS";
+      if (nmEnt.contains("I18NSE")) {
+        tbl = "HASNAME";
+      } else if (nmEnt.length() > 9) {
+        tbl = "ITEM";
+      } else if (!nmEnt.contains(tbl)) {
+        tbl = "SESERVICE";
+      }
+      return tbl + ".SELLER=" + seSeller.getItsId().getItsId();
+    } else {
+      return null;
+    }
   }
 
   //Simple getters and setters:
@@ -74,5 +92,21 @@ public class SeSellerFilter implements IDelegateEvaluate<IRequestData, String> {
    **/
   public final void setFindSeSeller(final IFindSeSeller pFindSeSeller) {
     this.findSeSeller = pFindSeSeller;
+  }
+
+  /**
+   * <p>Getter for seEntities.</p>
+   * @return Set<Class<?>>
+   **/
+  public final Set<Class<?>> getSeEntities() {
+    return this.seEntities;
+  }
+
+  /**
+   * <p>Setter for seEntities.</p>
+   * @param pSeEntities reference
+   **/
+  public final void setSeEntities(final Set<Class<?>> pSeEntities) {
+    this.seEntities = pSeEntities;
   }
 }

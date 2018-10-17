@@ -149,6 +149,29 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   private String querySilForCatNoAucSmPrI18n;
 
   /**
+   * <p>Query for specifics of S.E.Goods filter.</p>
+   **/
+  private String quSpecSeGdFlt;
+
+  /**
+   * <p>Query S.E.Goods in list for catalog not auctioning
+   * same price for all customers.</p>
+   **/
+  private String quSeGdForCatNoAucSmPr;
+
+  /**
+   * <p>Total qu S.E.Goods in list for catalog not auctioning
+   * same price for all customers.</p>
+   **/
+  private String quSeGdForCatNoAucSmPrTotal;
+
+  /**
+   * <p>I18N qu S.E.Goods in list for catalog not auctioning
+   * same price for all customers.</p>
+   **/
+  private String quSeGdForCatNoAucSmPrI18n;
+
+  /**
    * <p>Handle catalog changed event.</p>
    * @throws Exception an Exception
    **/
@@ -204,6 +227,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
         String whereCatalog = revealWhereCatalog(tcat, filterCatalog);
         String queryg = null;
         String querys = null;
+        String queryseg = null;
         if (tradingSettings.getUseAdvancedI18n()) {
           String lang = (String) pReqVars.get("lang");
           String langDef = (String) pReqVars.get("langDef");
@@ -218,6 +242,11 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
                 ":CATALOGFILTER", whereCatalog).replace(":WHEREADD", whereAdd)
                   .replace(":LANG", lang);
             }
+            if (tcat.getCatalog().getHasSeGoods()) {
+              queryseg = lazyGetQuSeGdForCatNoAucSmPrI18n().replace(
+                ":CATALOGFILTER", whereCatalog).replace(":WHEREADD", whereAdd)
+                  .replace(":LANG", lang);
+            }
           }
         }
         if (tcat.getCatalog().getHasGoods() && queryg == null) {
@@ -228,6 +257,10 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
           querys = lazyGetQuerySilForCatNoAucSmPr().replace(
             ":CATALOGFILTER", whereCatalog).replace(":WHEREADD", whereAdd);
         }
+        if (tcat.getCatalog().getHasSeGoods() && queryseg == null) {
+          queryseg = lazyGetQuSeGdForCatNoAucSmPr().replace(
+            ":CATALOGFILTER", whereCatalog).replace(":WHEREADD", whereAdd);
+        }
         String querygRc = null;
         if (tcat.getCatalog().getHasGoods()) {
           querygRc = lazyGetQueryGilForCatNoAucSmPrTotal().replace(
@@ -236,6 +269,11 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
         String querysRc = null;
         if (tcat.getCatalog().getHasServices()) {
           querysRc = lazyGetQuerySilForCatNoAucSmPrTotal().replace(
+            ":CATALOGFILTER", whereCatalog).replace(":WHEREADD", whereAdd);
+        }
+        String querysegRc = null;
+        if (tcat.getCatalog().getHasSeGoods()) {
+          querysegRc = lazyGetQuSeGdForCatNoAucSmPrTotal().replace(
             ":CATALOGFILTER", whereCatalog).replace(":WHEREADD", whereAdd);
         }
         if (filtersSpecifics != null) {
@@ -261,20 +299,39 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
               querys += querySpec;
               querysRc += querySpec;
             }
+            if (queryseg != null) {
+              String querySpec = lazyGetQuSpecSeGdFlt().replace(
+                ":WHERESPGDFILTER", whereSpec.getWhere()).replace(
+                  ":SPGDFILTERCOUNT", whereSpec.getWhereCount().toString());
+              queryseg += querySpec;
+              querysegRc += querySpec;
+            }
           }
         }
-        if (queryg != null || querys != null) {
-          String query;
-          String queryRc;
-          if (queryg != null && querys != null) {
-            query = queryg + "\n union all \n" + querys;
-            queryRc = querygRc + "\n union all \n" + querysRc;
-          } else if (queryg != null) {
+        if (queryg != null || querys != null || queryseg != null) {
+          String query = null;
+          String queryRc = null;
+          if (queryg != null) {
             query = queryg;
             queryRc = querygRc;
-          } else {
-            query = querys;
-            queryRc = querysRc;
+          }
+          if (querys != null) {
+            if (query == null) {
+              query = querys;
+              queryRc = querysRc;
+            } else {
+              query += "\n union all \n" + querys;
+              queryRc += "\n union all \n" + querysRc;
+            }
+          }
+          if (queryseg != null) {
+            if (query == null) {
+              query = queryseg;
+              queryRc = querysegRc;
+            } else {
+              query += "\n union all \n" + queryseg;
+              queryRc += "\n union all \n" + querysegRc;
+            }
           }
           Integer rowCount = this.srvOrm
             .evalRowCountByQuery(pReqVars, ItemInList.class, queryRc);
@@ -1030,6 +1087,60 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
       }
     }
     return null;
+  }
+
+  /**
+   * <p>Lazy Get quSeGdForCatNoAucSmPrTotal.</p>
+   * @return String
+   * @throws Exception - an exception
+   **/
+  public final String lazyGetQuSeGdForCatNoAucSmPrTotal() throws Exception {
+    if (this.quSeGdForCatNoAucSmPrTotal == null) {
+      String flName =
+        "/webstore/seGdInLstForCatNotAucSmPrTot.sql";
+      this.quSeGdForCatNoAucSmPrTotal = loadString(flName);
+    }
+    return this.quSeGdForCatNoAucSmPrTotal;
+  }
+
+  /**
+   * <p>Lazy Get quSeGdForCatNoAucSmPr.</p>
+   * @return String
+   * @throws Exception - an exception
+   **/
+  public final String lazyGetQuSeGdForCatNoAucSmPr() throws Exception {
+    if (this.quSeGdForCatNoAucSmPr == null) {
+      String flName = "/webstore/seGdInLstForCatNotAucSmPr.sql";
+      this.quSeGdForCatNoAucSmPr = loadString(flName);
+    }
+    return this.quSeGdForCatNoAucSmPr;
+  }
+
+  /**
+   * <p>Lazy Get quSeGdForCatNoAucSmPrI18n.</p>
+   * @return String
+   * @throws Exception - an exception
+   **/
+  public final String lazyGetQuSeGdForCatNoAucSmPrI18n() throws Exception {
+    if (this.quSeGdForCatNoAucSmPrI18n == null) {
+      String flName =
+        "/webstore/seGdInLstForCatNotAucSmPrI18n.sql";
+      this.quSeGdForCatNoAucSmPrI18n = loadString(flName);
+    }
+    return this.quSeGdForCatNoAucSmPrI18n;
+  }
+
+  /**
+   * <p>Lazy Get quSpecSeGdFlt.</p>
+   * @return String
+   * @throws Exception - an exception
+   **/
+  public final String lazyGetQuSpecSeGdFlt() throws Exception {
+    if (this.quSpecSeGdFlt == null) {
+      String flName = "/webstore/specificsSeGoodsFilter.sql";
+      this.quSpecSeGdFlt = loadString(flName);
+    }
+    return this.quSpecSeGdFlt;
   }
 
   /**

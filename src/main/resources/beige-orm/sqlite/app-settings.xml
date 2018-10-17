@@ -11,8 +11,8 @@
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
 <comment>App properties</comment>
-<entry key="databaseVersion">7</entry>
-<entry key="appVersion">1.1.7</entry>
+<entry key="databaseVersion">8</entry>
+<entry key="appVersion">1.1.8</entry>
 <entry key="useSubFolder">sqlite</entry>
 <entry key="title">Beige Accounting All In One</entry>
 <entry key="jdbcDriverClass">org.sqlite.JDBC</entry>
