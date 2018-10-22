@@ -22,7 +22,8 @@ package org.beigesoft.webstore.model;
 public enum ESpecificsItemType {
 
   /**
-   * <p>0, default, printed as text.</p>
+   * <p>0, default, printed as text. Use FILE_EMBEDDED instead cause
+   * its' more suitable, powerful and I18N ready.</p>
    **/
   TEXT,
 
@@ -60,10 +61,13 @@ public enum ESpecificsItemType {
   FILE,
 
   /**
-   * <p>6, show it on page, stringValue1 hold URL to file e.g. a PDF,
+   * <p>6, show it on page, stringValue1 hold URL to file e.g. a PDF/HTML,
    * stringValue2 - uploaded file path if it was uploaded,
    * longValue1 may hold "showSizeTypeClass", e.g. class=1 means
-   * show 30% of page size.</p>
+   * show 30% of page size. Main file is on base language,
+   * stringValue3 may holds comma separated other languages (e.g. "ru,fr" means
+   * that there are two files with these languages with the same name
+   * plus "_ru.html".</p>
    **/
   FILE_EMBEDDED,
 
@@ -73,8 +77,8 @@ public enum ESpecificsItemType {
   LINK,
 
   /**
-   * <p>8, show HTML page. stringValue1 hold URL,
-   * longValue1 may hold "showSizeClass".</p>
+   * <p>8, show HTML page. stringValue1 hold URL HTML page,
+   * longValue1 may hold "showSizeClass". Use FILE_EMBEDDED instead.</p>
    **/
   LINK_EMBEDDED,
 

@@ -47,6 +47,10 @@ import org.beigesoft.webstore.processor.PrcHasSeSellerSave;
 import org.beigesoft.webstore.processor.PrcHasSeSellerDel;
 import org.beigesoft.webstore.processor.PrcSeGoodsSpecSave;
 import org.beigesoft.webstore.processor.PrcSeServiceSpecSave;
+import org.beigesoft.webstore.processor.PrcSeGdSpecEmbFlSave;
+import org.beigesoft.webstore.processor.PrcSeGdSpecEmbFlDel;
+import org.beigesoft.webstore.processor.PrcSeSrvSpecEmbFlSave;
+import org.beigesoft.webstore.processor.PrcSeSrvSpecEmbFlDel;
 
 /**
  * <p>S.E.Seller's entities processors factory.
@@ -94,6 +98,18 @@ public class FctBnSeSelEntityProcs<RS>
    * <p>Shared entities. Only <b>list</b> operation is allowed, no "modify".</p>
    **/
   private final Set<Class<?>> sharedEntities;
+
+  /**
+   * <p>Upload directory relative to WEB-APP path
+   * without start and end separator, e.g. "static/uploads".</p>
+   **/
+  private String uploadDirectory;
+
+  /**
+   * <p>Full WEB-APP path without end separator,
+   * revealed from servlet context and used for upload files.</p>
+   **/
+  private String webAppPath;
 
   /**
    * <p>Only constructor.</p>
@@ -149,6 +165,18 @@ public class FctBnSeSelEntityProcs<RS>
           } else if (pBeanName.equals(PrcSeServiceSpecSave
             .class.getSimpleName())) {
             proc = lazyGetPrcSeServiceSpecSave(pAddParam);
+          } else if (pBeanName.equals(PrcSeGdSpecEmbFlSave
+            .class.getSimpleName())) {
+            proc = lazyGetPrcSeGdSpecEmbFlSave(pAddParam);
+          } else if (pBeanName.equals(PrcSeGdSpecEmbFlDel
+            .class.getSimpleName())) {
+            proc = lazyGetPrcSeGdSpecEmbFlDel(pAddParam);
+          } else if (pBeanName.equals(PrcSeSrvSpecEmbFlSave
+            .class.getSimpleName())) {
+            proc = lazyGetPrcSeSrvSpecEmbFlSave(pAddParam);
+          } else if (pBeanName.equals(PrcSeSrvSpecEmbFlDel
+            .class.getSimpleName())) {
+            proc = lazyGetPrcSeSrvSpecEmbFlDel(pAddParam);
           } else {
             proc = this.fctBnEntitiesProcessors.lazyGet(pAddParam, pBeanName);
           }
@@ -172,6 +200,114 @@ public class FctBnSeSelEntityProcs<RS>
   public final void set(final String pBeanName,
     final IEntityProcessor pBean) throws Exception {
     throw new Exception("Setting is not allowed!");
+  }
+
+  /**
+   * <p>Get PrcSeSrvSpecEmbFlDel (create and put into map).</p>
+   * @param pAddParam additional param
+   * @return requested PrcSeSrvSpecEmbFlDel
+   * @throws Exception - an exception
+   */
+  protected final PrcSeSrvSpecEmbFlDel<RS>
+    lazyGetPrcSeSrvSpecEmbFlDel(
+      final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcSeSrvSpecEmbFlDel.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrcSeSrvSpecEmbFlDel<RS> proc = (PrcSeSrvSpecEmbFlDel<RS>)
+      this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrcSeSrvSpecEmbFlDel<RS>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setFindSeSeller(getFindSeSeller());
+      proc.setWebAppPath(getWebAppPath());
+      proc.setUploadDirectory(getUploadDirectory());
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnSeSelEntityProcs.class,
+        beanName + " has been created.");
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Get PrcSeSrvSpecEmbFlSave (create and put into map).</p>
+   * @param pAddParam additional param
+   * @return requested PrcSeSrvSpecEmbFlSave
+   * @throws Exception - an exception
+   */
+  protected final PrcSeSrvSpecEmbFlSave<RS>
+    lazyGetPrcSeSrvSpecEmbFlSave(
+      final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcSeSrvSpecEmbFlSave.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrcSeSrvSpecEmbFlSave<RS> proc = (PrcSeSrvSpecEmbFlSave<RS>)
+      this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrcSeSrvSpecEmbFlSave<RS>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setFindSeSeller(getFindSeSeller());
+      proc.setWebAppPath(getWebAppPath());
+      proc.setUploadDirectory(getUploadDirectory());
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnSeSelEntityProcs.class,
+        beanName + " has been created.");
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Get PrcSeGdSpecEmbFlDel (create and put into map).</p>
+   * @param pAddParam additional param
+   * @return requested PrcSeGdSpecEmbFlDel
+   * @throws Exception - an exception
+   */
+  protected final PrcSeGdSpecEmbFlDel<RS>
+    lazyGetPrcSeGdSpecEmbFlDel(
+      final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcSeGdSpecEmbFlDel.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrcSeGdSpecEmbFlDel<RS> proc = (PrcSeGdSpecEmbFlDel<RS>)
+      this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrcSeGdSpecEmbFlDel<RS>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setFindSeSeller(getFindSeSeller());
+      proc.setWebAppPath(getWebAppPath());
+      proc.setUploadDirectory(getUploadDirectory());
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnSeSelEntityProcs.class,
+        beanName + " has been created.");
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Get PrcSeGdSpecEmbFlSave (create and put into map).</p>
+   * @param pAddParam additional param
+   * @return requested PrcSeGdSpecEmbFlSave
+   * @throws Exception - an exception
+   */
+  protected final PrcSeGdSpecEmbFlSave<RS>
+    lazyGetPrcSeGdSpecEmbFlSave(
+      final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcSeGdSpecEmbFlSave.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrcSeGdSpecEmbFlSave<RS> proc = (PrcSeGdSpecEmbFlSave<RS>)
+      this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrcSeGdSpecEmbFlSave<RS>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setFindSeSeller(getFindSeSeller());
+      proc.setWebAppPath(getWebAppPath());
+      proc.setUploadDirectory(getUploadDirectory());
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnSeSelEntityProcs.class,
+        beanName + " has been created.");
+    }
+    return proc;
   }
 
   /**
@@ -357,5 +493,38 @@ public class FctBnSeSelEntityProcs<RS>
    **/
   public final void setFindSeSeller(final IFindSeSeller pFindSeSeller) {
     this.findSeSeller = pFindSeSeller;
+  }
+
+
+  /**
+   * <p>Getter for uploadDirectory.</p>
+   * @return String
+   **/
+  public final String getUploadDirectory() {
+    return this.uploadDirectory;
+  }
+
+  /**
+   * <p>Setter for uploadDirectory.</p>
+   * @param pUploadDirectory reference
+   **/
+  public final void setUploadDirectory(final String pUploadDirectory) {
+    this.uploadDirectory = pUploadDirectory;
+  }
+
+  /**
+   * <p>Getter for webAppPath.</p>
+   * @return String
+   **/
+  public final String getWebAppPath() {
+    return this.webAppPath;
+  }
+
+  /**
+   * <p>Setter for webAppPath.</p>
+   * @param pWebAppPath reference
+   **/
+  public final void setWebAppPath(final String pWebAppPath) {
+    this.webAppPath = pWebAppPath;
   }
 }

@@ -50,6 +50,8 @@ import org.beigesoft.webstore.processor.PrcItemCatalogSave;
 import org.beigesoft.webstore.processor.PrcSubcatalogsCatalogsGsSave;
 import org.beigesoft.webstore.processor.PrcGoodsAdviseCategoriesSave;
 import org.beigesoft.webstore.processor.PrcItemSpecificsSave;
+import org.beigesoft.webstore.processor.PrcItSpecEmbFlSave;
+import org.beigesoft.webstore.processor.PrcItSpecEmbFlDel;
 import org.beigesoft.webstore.processor.PrcItemSpecificsRetrieve;
 import org.beigesoft.webstore.processor.PrcSettingsAddSave;
 import org.beigesoft.webstore.processor.PrcTradingSettingsSave;
@@ -87,8 +89,12 @@ public class HldTradeEntitiesProcessorNames
       return getForSave(pClass);
     } else if ("entityFDelete".equals(pThingName)) {
       return getForFDelete(pClass);
+    } else if ("entityEFDelete".equals(pThingName)) {
+      return getForEFDelete(pClass);
     } else if ("entityFSave".equals(pThingName)) {
       return getForFSave(pClass);
+    } else if ("entityEFSave".equals(pThingName)) {
+      return getForEFSave(pClass);
     } else if ("entityFolDelete".equals(pThingName)) {
       return getForFolDelete(pClass);
     } else if ("entityFolSave".equals(pThingName)) {
@@ -188,6 +194,18 @@ public class HldTradeEntitiesProcessorNames
   }
 
   /**
+   * <p>Get processor name for specifics with embed file delete.</p>
+   * @param pClass a Class
+   * @return a thing
+   **/
+  protected final String getForEFDelete(final Class<?> pClass) {
+    if (GoodsSpecifics.class == pClass || ServiceSpecifics.class == pClass) {
+      return PrcItSpecEmbFlDel.class.getSimpleName();
+    }
+    return null;
+  }
+
+  /**
    * <p>Get processor name for Entity with file save.</p>
    * @param pClass a Class
    * @return a thing
@@ -195,6 +213,18 @@ public class HldTradeEntitiesProcessorNames
   protected final String getForFSave(final Class<?> pClass) {
     if (GoodsSpecifics.class == pClass || ServiceSpecifics.class == pClass) {
       return PrcEntityFSave.class.getSimpleName();
+    }
+    return null;
+  }
+
+  /**
+   * <p>Get processor name for specifics embedded file save.</p>
+   * @param pClass a Class
+   * @return a thing
+   **/
+  protected final String getForEFSave(final Class<?> pClass) {
+    if (GoodsSpecifics.class == pClass || ServiceSpecifics.class == pClass) {
+      return PrcItSpecEmbFlSave.class.getSimpleName();
     }
     return null;
   }

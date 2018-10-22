@@ -42,6 +42,8 @@ import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.accounting.persistable.I18nInvItem;
 import org.beigesoft.accounting.persistable.DebtorCreditor;
 import org.beigesoft.accounting.persistable.ServiceToSale;
+import org.beigesoft.accounting.persistable.InvItemTaxCategory;
+import org.beigesoft.accounting.persistable.UnitOfMeasure;
 import org.beigesoft.orm.factory.FctBnEntitiesProcessors;
 import org.beigesoft.orm.processor.PrcEntityRetrieve;
 import org.beigesoft.webstore.service.ISrvSettingsAdd;
@@ -105,6 +107,8 @@ import org.beigesoft.webstore.processor.PrcSubcatalogsCatalogsGsSave;
 import org.beigesoft.webstore.processor.PrcGoodsAdviseCategoriesSave;
 import org.beigesoft.webstore.processor.PrcItemSpecificsSave;
 import org.beigesoft.webstore.processor.PrcItemSpecificsRetrieve;
+import org.beigesoft.webstore.processor.PrcItSpecEmbFlSave;
+import org.beigesoft.webstore.processor.PrcItSpecEmbFlDel;
 
 /**
  * <p>Webstore entities processors factory.
@@ -198,6 +202,8 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
     this.sharedEntities.add(DebtorCreditor.class);
     this.sharedEntities.add(UserTomcat.class);
     this.sharedEntities.add(ServiceToSale.class);
+    this.sharedEntities.add(InvItemTaxCategory.class);
+    this.sharedEntities.add(UnitOfMeasure.class);
     this.wsEntities = new HashSet<Class<?>>();
     this.wsEntities.add(AdviseCategoryOfGs.class);
     this.wsEntities.add(AdvisedGoodsForGoods.class);
@@ -288,6 +294,10 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
             proc = lazyGetPrcItemSpecificsRetrieve(pAddParam);
           } else if (pBeanName.equals(PrcItemSpecificsSave.class.getSimpleName())) {
             proc = lazyGetPrcItemSpecificsSave(pAddParam);
+          } else if (pBeanName.equals(PrcItSpecEmbFlSave.class.getSimpleName())) {
+            proc = lazyGetPrcItSpecEmbFlSave(pAddParam);
+          } else if (pBeanName.equals(PrcItSpecEmbFlDel.class.getSimpleName())) {
+            proc = lazyGetPrcItSpecEmbFlDel(pAddParam);
           } else {
             proc = this.fctBnEntitiesProcessors.lazyGet(pAddParam, pBeanName);
           }
@@ -497,6 +507,56 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
         procDlg = (PrcEntityRetrieve<RS, AItemSpecifics<IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>, AItemSpecificsId<IHasIdLongVersion>>)
           this.fctBnEntitiesProcessors.lazyGet(pAddParam, PrcEntityRetrieve.class.getSimpleName());
       proc.setPrcEntityRetrieve(procDlg);
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnTradeEntitiesProcessors.class, beanName + " has been created.");
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Get PrcItSpecEmbFlDel (create and put into map).</p>
+   * @param pAddParam additional param
+   * @return requested PrcItSpecEmbFlDel
+   * @throws Exception - an exception
+   */
+  protected final PrcItSpecEmbFlDel<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>
+    lazyGetPrcItSpecEmbFlDel(final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcItSpecEmbFlDel.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrcItSpecEmbFlDel<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>> proc =
+      (PrcItSpecEmbFlDel<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>)
+        this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrcItSpecEmbFlDel<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setUploadDirectory(getUploadDirectory());
+      proc.setWebAppPath(getWebAppPath());
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnTradeEntitiesProcessors.class, beanName + " has been created.");
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Get PrcItSpecEmbFlSave (create and put into map).</p>
+   * @param pAddParam additional param
+   * @return requested PrcItSpecEmbFlSave
+   * @throws Exception - an exception
+   */
+  protected final PrcItSpecEmbFlSave<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>
+    lazyGetPrcItSpecEmbFlSave(final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcItSpecEmbFlSave.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrcItSpecEmbFlSave<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>> proc =
+      (PrcItSpecEmbFlSave<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>)
+        this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrcItSpecEmbFlSave<RS, IHasIdLongVersion, AItemSpecificsId<IHasIdLongVersion>>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setUploadDirectory(getUploadDirectory());
+      proc.setWebAppPath(getWebAppPath());
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);
       this.logger.info(null, FctBnTradeEntitiesProcessors.class, beanName + " has been created.");

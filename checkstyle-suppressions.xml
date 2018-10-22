@@ -6,7 +6,9 @@
 
 <suppressions>
   <suppress checks="MagicNumberCheck"
-    files="PrcRefreshItemsInList|PrcItemPage|PrcWebstorePage|PrcItemSpecificsSave|HndlSeSellerReq|GoodsPriceListRetriever|ServicePriceListRetriever|HndlWebAdminReq|SeSellerFilter"/>
+    files="PrcRefreshItemsInList|PrcItemPage|PrcWebstorePage|HndlSeSellerReq|GoodsPriceListRetriever|ServicePriceListRetriever"/>
+  <suppress checks="MagicNumberCheck"
+    files="PrcItSpecEmbFlSave|HndlWebAdminReq|SeSellerFilter|PrcSeGdSpecEmbFlSave|PrcSeSrvSpecEmbFlSave"/>
   <suppress checks="LineLength"
     files="PrcRefreshItemsInList|UtlTradeJsp|FctBnTradeEntitiesProcessors"/>
   <suppress checks="MethodLength"

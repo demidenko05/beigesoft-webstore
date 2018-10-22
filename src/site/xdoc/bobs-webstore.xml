@@ -4,23 +4,33 @@
   xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
 
   <properties>
-    <title>Beigesoft™ Accounting</title>
+    <title>Beigesoft™ web-store.</title>
    </properties>
 
   <body>
 
-    <section name="Bob's webstore example.">
-      <h4>Bob's pizza webstore (DRAFT).</h4>
+    <section name="Bob's web-store example.">
+      <h4>Bob's pizza web-store example. Part 1, catalog.</h4>
+        <p>Beigesoft™ web-store allows you to create extremely powerful and flexible catalog of goods/services.
+          You can create dynamically (without programming) any good/service specifics (characteristic), e.g. "Color", "Size", "Car's body type", "Car's fuel type".
+          And these specifics is ready to use in filter. Beigesoft™ web-store implements advanced, dynamic internationalization, so your catalog will be appeared in language that a buyer prefers.
+        </p>
+        <p>Any catalog can consist of your goods and services as well as something else's ones (belongs to another seller)</p>
+        <p>* S.E. seller is available since 1.1.8 version (in source code right now).
+          Internationalization of embed HTML in item's detail page is also available since 1.1.8 version.</p>
         <p>
           Bob decided to use Beige-Webstore (it's included into Beige-Accounting) for selling his pizza.
+          He also decided to start new business activity - allow others sellers to sell their used car on Bob's store.
+          People trust Bob, so Bob will inspects other seller's cars to insure buyers that all information about goods is true.
+          Other sellers will paid fee to Bob for his service after they have sold their cars.
         </p>
-        <p>At start it open <b>menu -> Admin -> Webstore-admin</b>. Then he fill trading settings:
+        <p>At start it opened <b>menu -> Admin -> Webstore-admin</b>. Then he filled trading settings:
           <p align="center"><img alt="Beige-Webstore settings" style="max-width: 100%" src="images/webstore-settings.png" /></p>
-          He just set webstore name to "Bob's store" and set "Show Logo" to "true" - this is image in the file "static/img/logo-web-store.png".
+          He set web-store name to "Bob's store" and set "Show Logo" and "Use advanced internalization" to "true". "Logo" is image in the file "static/img/logo-web-store.png".
         </p>
         
         <p>
-          Bob sell frozen and hot pizza to individual buyers and other business-makers. So he add several catalogs into "menu - Catalog of goods":
+          Bob added several catalogs into "menu - Catalog of goods":
           <p align="center"><img alt="Beige-Webstore making catalog of goods" style="max-width: 100%" src="images/webstore-goods-catalogs.png" /></p>
         </p>
         <p>To add sub-catalog into catalog bob uses menu <b>Subcatalogs in catalogs</b>:
@@ -56,8 +66,7 @@
         <p>Then Bob added <b>Price category of goods/service</b>:
           <p align="center"><img style="max-width: 100%" src="images/webstore-pricecatgoods.png" /></p>
         </p>
-        <p>Then Bob added <b>Price category of buyers</b>:
-          <p align="center"><img style="max-width: 100%" src="images/webstore-pricecatbuyer.png" /></p>
+        <p>Then Bob added <b>Price category of buyers</b> at same way
         </p>
         <p>Then Bob added <b>Price category</b>:
           <p align="center"><img style="max-width: 100%" src="images/webstore-pricecat.png" /></p>
@@ -65,17 +74,14 @@
         <p>Then Bob assign <b>Price of goods</b> for every goods:
           <p align="center"><img style="max-width: 100%" src="images/webstore-pricegoods.png" /></p>
         </p>
-        <p>After data has been completed Bob push <b>Refresh goods in list</b>:
-          <p align="center"><img style="max-width: 100%" src="images/webstore-refreshgoodslist.png" /></p>
+        <p>After data has been completed Bob push <b>Refresh goods in list</b> in "Menu-..."</p>
+        <p>Resulting web-store catalog "Pizza hot" is:
+          <p align="center"><img style="max-width: 100%" src="images/webstore-pizzahot.png" /></p>
         </p>
-        <p>Resulting webstore screenshots:
-          <p align="center"><img style="max-width: 100%" src="images/webstore1.png" /></p>
-          <p align="center"><img style="max-width: 100%" src="images/webstore2.png" /></p>
-          <p align="center"><img style="max-width: 100%" src="images/webstore3.png" /></p>
-          <p align="center"><img style="max-width: 100%" src="images/bebstoremobile1.png" /></p>
-          <p align="center"><img style="max-width: 100%" src="images/bebstoremobile2.png" /></p>
-          <p align="center"><img style="max-width: 100%" src="images/bebstoremobile3.png" /></p>
-          <p align="center"><img style="max-width: 100%" src="images/bebstoremobile4.png" /></p>
+        <p>Dynamically added specifics "Weight" is in filter:
+          <p align="center"><img style="max-width: 100%" src="images/webstore-pizzahotf0.png" /></p>
+          <p align="center"><img style="max-width: 100%" src="images/webstore-pizzahotf.png" /></p>
+          <p align="center"><img style="max-width: 100%" src="images/webstore-pizzahotf1.png" /></p>
         </p>
     </section>
 

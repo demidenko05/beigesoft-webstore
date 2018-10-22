@@ -31,6 +31,10 @@ import org.beigesoft.webstore.persistable.base.AItemSpecifics;
 import org.beigesoft.webstore.persistable.base.AItemPrice;
 import org.beigesoft.webstore.persistable.GoodsSpecifics;
 import org.beigesoft.webstore.persistable.ServiceSpecifics;
+import org.beigesoft.webstore.persistable.SeGoods;
+import org.beigesoft.webstore.persistable.SeGoodsPlace;
+import org.beigesoft.webstore.persistable.SeGoodsPrice;
+import org.beigesoft.webstore.persistable.SeGoodsSpecifics;
 import org.beigesoft.webstore.persistable.ServicePlace;
 import org.beigesoft.webstore.persistable.ServicePrice;
 import org.beigesoft.webstore.persistable.PriceGoods;
@@ -76,6 +80,11 @@ public class PrcItemPage<RS> implements IProcessor {
   private String querySpecificsServiceDetailI18n;
 
   /**
+   * <p>I18N query SeGoods specifics for SeGoods.</p>
+   **/
+  private String querySpecificsSeGoodsDetailI18n;
+
+  /**
    * <p>Process entity request.</p>
    * @param pReqVars additional param
    * @param pRequestData Request Data
@@ -89,6 +98,8 @@ public class PrcItemPage<RS> implements IProcessor {
       processGoods(pReqVars, pRequestData);
     } else if (EShopItemType.SERVICE.toString().equals(itemTypeStr)) {
       processService(pReqVars, pRequestData);
+    } else if (EShopItemType.SEGOODS.toString().equals(itemTypeStr)) {
+      processSeGoods(pReqVars, pRequestData);
     } else {
       throw new Exception(
         "Detail page not yet implemented for item type: " + itemTypeStr);
@@ -125,6 +136,62 @@ public class PrcItemPage<RS> implements IProcessor {
     itemPrice = retrieveItemPrice(pReqVars, itemId, PriceGoods.class);
     itemPlaceLst = getSrvOrm().retrieveListWithConditions(pReqVars,
         GoodsPlace.class, " where ITEM=" + itemId);
+    if (pRequestData.getAttribute("shoppingCart") == null) {
+      ShoppingCart shoppingCart = this.srvShoppingCart
+        .getShoppingCart(pReqVars, pRequestData, false);
+      if (shoppingCart != null) {
+        pRequestData.setAttribute("shoppingCart", shoppingCart);
+      }
+    }
+    if (pRequestData.getAttribute("shoppingCart") != null) {
+      ShoppingCart shoppingCart = (ShoppingCart) pRequestData
+        .getAttribute("shoppingCart");
+      if (shoppingCart.getItsItems() != null) {
+        String itemTypeStr = pRequestData.getParameter("itemType");
+        for (CartItem ci : shoppingCart.getItsItems()) {
+          if (!ci.getIsDisabled() && ci.getItemId().equals(itemId)
+            && ci.getItemType().toString().equals(itemTypeStr)) {
+            pRequestData.setAttribute("cartItem", ci);
+            break;
+          }
+        }
+      }
+    }
+    pRequestData.setAttribute("itemSpecLst", itemSpecLst);
+    pRequestData.setAttribute("itemPlaceLst", itemPlaceLst);
+    pRequestData.setAttribute("itemPrice", itemPrice);
+  }
+
+  /**
+   * <p>Process a seGood.</p>
+   * @param pReqVars additional param
+   * @param pRequestData Request Data
+   * @throws Exception - an exception
+   **/
+  public final void processSeGoods(final Map<String, Object> pReqVars,
+    final IRequestData pRequestData) throws Exception {
+    Long itemId = Long.valueOf(pRequestData.getParameter("itemId"));
+    List<SeGoodsSpecifics> itemSpecLst;
+    List<SeGoodsPlace> itemPlaceLst;
+    SeGoodsPrice itemPrice;
+    itemSpecLst = retrieveItemSpecificsList(pReqVars, itemId,
+      SeGoodsSpecifics.class, SeGoods.class.getSimpleName());
+    //extract main image if exist:
+    int miIdx = -1;
+    for (int i = 0; i < itemSpecLst.size(); i++) {
+      if (itemSpecLst.get(i).getSpecifics().getItsType()
+        .equals(ESpecificsItemType.IMAGE)) {
+        pRequestData.setAttribute("itemImage", itemSpecLst.get(i));
+        miIdx = i;
+        break;
+      }
+    }
+    if (miIdx != -1) {
+      itemSpecLst.remove(miIdx);
+    }
+    itemPrice = retrieveItemPrice(pReqVars, itemId, SeGoodsPrice.class);
+    itemPlaceLst = getSrvOrm().retrieveListWithConditions(pReqVars,
+        SeGoodsPlace.class, " where ITEM=" + itemId);
     if (pRequestData.getAttribute("shoppingCart") == null) {
       ShoppingCart shoppingCart = this.srvShoppingCart
         .getShoppingCart(pReqVars, pRequestData, false);
@@ -296,6 +363,9 @@ public class PrcItemPage<RS> implements IProcessor {
         } else if (pItemSpecCl == ServiceSpecifics.class) {
           qd = lazyGetQuerySpecificsServiceDetailI18n()
             .replace(":ITEMID", pItemId.toString()).replace(":LANG", lang);
+        } else if (pItemSpecCl == SeGoodsSpecifics.class) {
+          qd = lazyGetQuerySpecificsSeGoodsDetailI18n()
+            .replace(":ITEMID", pItemId.toString()).replace(":LANG", lang);
         } else {
           throw new Exception("NYI for " +  pItemSpecCl);
         }
@@ -328,6 +398,20 @@ public class PrcItemPage<RS> implements IProcessor {
       this.querySpecificsGoodsDetailI18n = loadString(flName);
     }
     return this.querySpecificsGoodsDetailI18n;
+  }
+
+  /**
+   * <p>Lazy Get querySpecificsSeGoodsDetailI18n.</p>
+   * @return String
+   * @throws Exception - an exception
+   **/
+  public final String
+    lazyGetQuerySpecificsSeGoodsDetailI18n() throws Exception {
+    if (this.querySpecificsSeGoodsDetailI18n == null) {
+      String flName = "/webstore/seGdSpecDetI18n.sql";
+      this.querySpecificsSeGoodsDetailI18n = loadString(flName);
+    }
+    return this.querySpecificsSeGoodsDetailI18n;
   }
 
   /**

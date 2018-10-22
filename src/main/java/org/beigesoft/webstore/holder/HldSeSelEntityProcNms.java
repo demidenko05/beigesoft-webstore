@@ -26,6 +26,10 @@ import org.beigesoft.webstore.processor.PrcHasSeSellerSave;
 import org.beigesoft.webstore.processor.PrcHasSeSellerDel;
 import org.beigesoft.webstore.processor.PrcSeGoodsSpecSave;
 import org.beigesoft.webstore.processor.PrcSeServiceSpecSave;
+import org.beigesoft.webstore.processor.PrcSeGdSpecEmbFlSave;
+import org.beigesoft.webstore.processor.PrcSeGdSpecEmbFlDel;
+import org.beigesoft.webstore.processor.PrcSeSrvSpecEmbFlSave;
+import org.beigesoft.webstore.processor.PrcSeSrvSpecEmbFlDel;
 
 /**
  * <p>Service that assign IEntityProcessor and IProcessor name for class
@@ -57,6 +61,8 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
       return getForPrint(pClass);
     } else if ("entityFSave".equals(pThingName)) {
       return getForFSave(pClass);
+    } else if ("entityEFSave".equals(pThingName)) {
+      return getForEFSave(pClass);
     } else if ("entitySave".equals(pThingName)) {
       return getForSave(pClass);
     } else if ("entityFfolDelete".equals(pThingName)) {
@@ -69,6 +75,8 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
       return getForFolSave(pClass);
     } else if ("entityFDelete".equals(pThingName)) {
       return getForFDelete(pClass);
+    } else if ("entityEFDelete".equals(pThingName)) {
+      return getForEFDelete(pClass);
     } else if ("entityDelete".equals(pThingName)) {
       return getForDelete(pClass);
     } else if ("entityCreate".equals(pThingName)) {
@@ -149,6 +157,20 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
   }
 
   /**
+   * <p>Get processor name for specifics with embed file save.</p>
+   * @param pClass a Class
+   * @return a thing
+   **/
+  protected final String getForEFSave(final Class<?> pClass) {
+    if (SeGoodsSpecifics.class == pClass) {
+      return PrcSeGdSpecEmbFlSave.class.getSimpleName();
+    } else if (SeServiceSpecifics.class == pClass) {
+      return PrcSeSrvSpecEmbFlSave.class.getSimpleName();
+    }
+    return null;
+  }
+
+  /**
    * <p>Get processor name for Entity with file delete.</p>
    * @param pClass a Class
    * @return a thing
@@ -157,6 +179,20 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
     if (SeGoodsSpecifics.class == pClass
       || SeServiceSpecifics.class == pClass) {
       return PrcEntityFDelete.class.getSimpleName();
+    }
+    return null;
+  }
+
+  /**
+   * <p>Get processor name for item specifics with embed HTML for delete.</p>
+   * @param pClass a Class
+   * @return a thing
+   **/
+  protected final String getForEFDelete(final Class<?> pClass) {
+    if (SeGoodsSpecifics.class == pClass) {
+      return PrcSeGdSpecEmbFlDel.class.getSimpleName();
+    } else if (SeServiceSpecifics.class == pClass) {
+      return PrcSeSrvSpecEmbFlDel.class.getSimpleName();
     }
     return null;
   }

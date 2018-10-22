@@ -238,9 +238,9 @@ left join (
 </pre>
       </p>
       <p>Chooseable specifics of item that has non-null StringValue1, e.g. unit of measure may has prefix "i18n_", e.g. "i18n_Inch", that will be replaced by regular SrvI18n.</p>
-      <p>Specifics of type "FILE_EMBEDDED" e.g. "Embedded HTML" StringValue4 holds comma-separated languages codes (without default) for existing files, e.g. "ru,fr,it",
+      <p>Specifics of type "FILE_EMBEDDED" e.g. "Embedded HTML" StringValue3 holds comma-separated languages codes (without default) for existing files, e.g. "ru,fr,it",
         StringValue1 contains of URL for default language, other files should has language suffix,
-        e.g. StringValue1="static/uploads/1524298538401googs126e1.html", StringValue4="ru,fr",
+        e.g. StringValue1="static/uploads/1524298538401googs126e1.html", StringValue3="ru,fr",
         so files must exist: "static/uploads/1524298538401googs126e1_ru.html" and "static/uploads/1524298538401googs126e1_fr.html".</p>
       <p>
         <h4>All request scoped I18N and other variables (include Accounting and Web-Store) that passed to JSP in reqVars:</h4>
