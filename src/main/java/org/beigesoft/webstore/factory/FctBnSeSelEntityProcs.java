@@ -43,6 +43,7 @@ import org.beigesoft.webstore.persistable.IHasSeSeller;
 import org.beigesoft.webstore.persistable.PickUpPlace;
 import org.beigesoft.webstore.persistable.SpecificsOfItem;
 import org.beigesoft.webstore.persistable.PriceCategory;
+import org.beigesoft.webstore.persistable.ChooseableSpecifics;
 import org.beigesoft.webstore.processor.PrcHasSeSellerSave;
 import org.beigesoft.webstore.processor.PrcHasSeSellerDel;
 import org.beigesoft.webstore.processor.PrcSeGoodsSpecSave;
@@ -124,6 +125,7 @@ public class FctBnSeSelEntityProcs<RS>
     this.sharedEntities.add(PickUpPlace.class);
     this.sharedEntities.add(UnitOfMeasure.class);
     this.sharedEntities.add(PriceCategory.class);
+    this.sharedEntities.add(ChooseableSpecifics.class);
     this.seEntities = new HashSet<Class<?>>();
     this.seEntities.add(SeGoods.class);
     this.seEntities.add(SeGoodsPlace.class);
