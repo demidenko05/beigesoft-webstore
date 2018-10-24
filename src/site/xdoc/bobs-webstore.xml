@@ -84,17 +84,14 @@
           <p align="center"><img style="max-width: 100%" src="images/webstore-pizzahotf1.png" /></p>
         </p>
         <h4>S.E. sellers.</h4>
-        <p>To register a seller, you should add it into database with SQL commands:
-<pre style="white-space: pre-wrap;">
-insert into USERTOMCAT values ('[seseller_name]', '[seseller_password]');
-insert into USERROLETOMCAT  values ('[seseller_name]', 'seseller');
-</pre>
-where second parameter "user role" in USERROLETOMCAT table must be exactly 'seseller'.
+        <p>To register a seller, you should add in menu "Web-store admin-..."<b>User</b>
+          then add <b>User role</b> for this user with role exactly 'seseller':
+          <p align="center"><img style="max-width: 100%" src="images/webstore-seselus.png" /></p>
         </p>
         <p>Then you should add S.E. seller as "Debtor/Creditor" in accounting main menu.
           Then you should add S.E. seller as "S.E.Seller" in "Web-store Admin" menu.</p>
         <p>Any S.E.Seller can create its own goods/services. It can't see neither software owner's accounting information (expect shared information like "Unit of measure" or "Pick-up place")
-          nor information of other S.E. sellers. Software administrator only can see S.E.Seller's information, it can't change it.
+          nor information of other S.E. sellers. Software administrator only can see S.E.Seller's information, it can't change it by using HTML interface (it can change only by using direct database access).
           Any way adding/deleting S.E.Seller's item to any catalog can only web-store administrator.
         </p>
         <p>At start, Bob added information that any S.E.Seller can't add:  "Pickup place":
@@ -217,7 +214,7 @@ where second parameter "user role" in USERROLETOMCAT table must be exactly 'sese
           e.g. screenshot:
           <p align="center"><img style="max-width: 100%" src="images/webstore-ford2010htmlru.png" /></p>
         </p>
-        <p>Internationalization of all others things is made in same way as described in <a href="https://sites.google.com/site/beigesoftware/acc-overseas-sales">https://sites.google.com/site/beigesoftware/acc-overseas-sales</a> except - it's no need make static internationalization.</p>
+        <p>Internationalization of all others things is made in the same way as described in <a href="https://sites.google.com/site/beigesoftware/acc-overseas-sales">Overseas sales. Advanced internationalization</a>.</p>
         
         <h4>Final</h4>
         <p>Finally Bob just added S.E. good in catalog and refresh items list, catalog is in "en/ru":
@@ -227,6 +224,8 @@ where second parameter "user role" in USERROLETOMCAT table must be exactly 'sese
           <p align="center"><img style="max-width: 100%" src="images/webstore-car.png" /></p>
           <p align="center"><img style="max-width: 100%" src="images/webstore-car1.png" /></p>
           <p align="center"><img style="max-width: 100%" src="images/webstore-carru.png" /></p>
+          list's filter has all dynamically added specifics:
+          <p align="center"><img style="max-width: 100%" src="images/webstore-carflt.png" /></p>
         </p>
     </section>
 

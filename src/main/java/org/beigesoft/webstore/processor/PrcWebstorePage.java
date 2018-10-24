@@ -493,11 +493,10 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   public final void refreshCatalogsFilters(final Map<String, Object> pReqVars,
     final List<TradingCatalog> pCurrentList) throws Exception {
     for (TradingCatalog tc : pCurrentList) {
-      if (tc.getSubcatalogs().size() > 0
-        && (tc.getCatalog().getUseAvailableFilter()
+      if (tc.getCatalog().getUseAvailableFilter()
           || tc.getCatalog().getUseFilterSpecifics()
             || tc.getCatalog().getUseFilterSubcatalog()
-              || tc.getCatalog().getUsePickupPlaceFilter())) {
+              || tc.getCatalog().getUsePickupPlaceFilter()) {
         if (tc.getCatalog().getUseFilterSpecifics()) {
           CatalogSpecifics cs = new CatalogSpecifics();
           cs.setItsOwner(tc.getCatalog());

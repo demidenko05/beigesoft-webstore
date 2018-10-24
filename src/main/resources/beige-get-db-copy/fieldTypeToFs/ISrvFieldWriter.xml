@@ -14,4 +14,5 @@
 <entry key="java.lang.Object">SrvFieldWriterXmlStd</entry>
 <entry key="org.beigesoft.model.IHasId">SrvFieldHasIdWriterXml</entry>
 <entry key="org.beigesoft.webstore.persistable.ShoppingCart">SrvFieldShoppingCartWriterXml</entry>
+<entry key="org.beigesoft.webstore.persistable.SeSeller">SrvFieldSeSellerWriterXml</entry>
 </properties>

@@ -151,9 +151,6 @@
   org.beigesoft.webstore.persistable.GoodsAdviseCategories,
   org.beigesoft.webstore.persistable.AdvisedGoodsForGoods,
   org.beigesoft.webstore.persistable.ItemInList,
-  org.beigesoft.webstore.persistable.SeSeller,
-  org.beigesoft.webstore.persistable.SeGoods,
-  org.beigesoft.webstore.persistable.SeService,
   org.beigesoft.webstore.persistable.PickUpPlace,
   org.beigesoft.webstore.persistable.GoodsInListLuv,
   org.beigesoft.webstore.persistable.SettingsAdd,
@@ -181,6 +178,10 @@
   org.beigesoft.webstore.persistable.GoodsPlace,
   org.beigesoft.webstore.persistable.ServicePlace,
   org.beigesoft.webstore.persistable.ServicePrice,
+  org.beigesoft.webstore.persistable.TradingSettings,
+  org.beigesoft.webstore.persistable.SeSeller,
+  org.beigesoft.webstore.persistable.SeGoods,
+  org.beigesoft.webstore.persistable.SeService,
   org.beigesoft.webstore.persistable.I18nSeGoods,
   org.beigesoft.webstore.persistable.I18nSeService,
   org.beigesoft.webstore.persistable.SeGoodsSpecifics,
@@ -189,8 +190,7 @@
   org.beigesoft.webstore.persistable.SeServicePrice,
   org.beigesoft.webstore.persistable.SeGoodsPlace,
   org.beigesoft.webstore.persistable.SeGoodCatalog,
-  org.beigesoft.webstore.persistable.SeServicePlace,
-  org.beigesoft.webstore.persistable.TradingSettings</entry>
+  org.beigesoft.webstore.persistable.SeServicePlace</entry>
 <entry key="settingsKeysForClasses">excludeFields</entry>
 <entry key="settingsKeysForFields">isEnabled, ISrvFieldWriter, ISrvEntityFieldFiller</entry>
 <entry key="excludeFields">isNew</entry>

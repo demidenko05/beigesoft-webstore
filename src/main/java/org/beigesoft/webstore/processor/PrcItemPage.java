@@ -104,6 +104,9 @@ public class PrcItemPage<RS> implements IProcessor {
       throw new Exception(
         "Detail page not yet implemented for item type: " + itemTypeStr);
     }
+    String listFltAp = new String(pRequestData.getParameter("listFltAp")
+      .getBytes("ISO-8859-1"), "UTF-8");
+    pRequestData.setAttribute("listFltAp", listFltAp);
   }
 
   /**
