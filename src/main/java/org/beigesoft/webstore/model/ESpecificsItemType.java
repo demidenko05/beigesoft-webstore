@@ -28,8 +28,9 @@ public enum ESpecificsItemType {
   TEXT,
 
   /**
-   * <p>1, for specifics like "Weight", stringValue
-   * may hold unit of measure.</p>
+   * <p>1, for specifics like "Weight", longValue2 may hold unit of
+   * measure ID and stringValue1 UOM name (def lang) to improve
+   * performance, longValue1 holds decimal places - 2 default.</p>
    **/
   BIGDECIMAL,
 

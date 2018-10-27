@@ -52,6 +52,25 @@ public abstract class
   private UnitOfMeasure unitOfMeasure;
 
   /**
+   * <p>Number of decimal places, it's used together with UOM,
+   * e.g. 4.5 hours, 0.123lb, etc, 0 default.</p>
+   **/
+  private Integer decPlaces = 0;
+
+  /**
+   * <p>Price per quantity of item, 1 default,
+   * e.g. 12USD per 0.5ft, UOM ft, DP=1.</p>
+   **/
+  private BigDecimal perUnit = BigDecimal.ONE;
+
+  /**
+   * <p>Quantity step, 1 default,
+   * e.g. 12USD per 0.5ft, UOM ft, DP=1, ST=0.5, so
+   * buyer can order 0.5/1.0/1.5/2.0/etc. units of item.</p>
+   **/
+  private BigDecimal uStep = BigDecimal.ONE;
+
+  /**
    * <p>Setter for pPriceCategory.</p>
    * @param pPriceCategory reference
    **/
@@ -122,5 +141,53 @@ public abstract class
    **/
   public final void setUnitOfMeasure(final UnitOfMeasure pUnitOfMeasure) {
     this.unitOfMeasure = pUnitOfMeasure;
+  }
+
+  /**
+   * <p>Getter for decPlaces.</p>
+   * @return Integer
+   **/
+  public final Integer getDecPlaces() {
+    return this.decPlaces;
+  }
+
+  /**
+   * <p>Setter for decPlaces.</p>
+   * @param pDecPlaces reference
+   **/
+  public final void setDecPlaces(final Integer pDecPlaces) {
+    this.decPlaces = pDecPlaces;
+  }
+
+  /**
+   * <p>Getter for perUnit.</p>
+   * @return BigDecimal
+   **/
+  public final BigDecimal getPerUnit() {
+    return this.perUnit;
+  }
+
+  /**
+   * <p>Setter for perUnit.</p>
+   * @param pPerUnit reference
+   **/
+  public final void setPerUnit(final BigDecimal pPerUnit) {
+    this.perUnit = pPerUnit;
+  }
+
+  /**
+   * <p>Getter for uStep.</p>
+   * @return BigDecimal
+   **/
+  public final BigDecimal getUStep() {
+    return this.uStep;
+  }
+
+  /**
+   * <p>Setter for uStep.</p>
+   * @param pUStep reference
+   **/
+  public final void setUStep(final BigDecimal pUStep) {
+    this.uStep = pUStep;
   }
 }

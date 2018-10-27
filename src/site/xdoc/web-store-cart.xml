@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns="http://maven.apache.org/XDOC/2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+
+  <properties>
+    <title>Beigesoft™ WEB Store specification #1. Shopping cart.</title>
+   </properties>
+
+  <body>
+
+    <section name="Beigesoft™ WEB Store specification #1. Shopping cart.">
+      
+      <h4>Common information, requirements.</h4>
+      <p>A buyer can order goods and services that belong to web-store owner and other sellers.
+        Depends of seller tax methods maybe different. During cart check out, it's created customer order for each seller.
+        In all countries law is similar about payment - 100% by default, otherwise it should be agreement (contract) signed by seller and buyer.
+        In case of partially paid, it's might be created separated orders for the same seller,
+        e.g. one that 100% paid right now through any online payment system and another for payment after buyer received goods.
+        This is maybe used for selling scheme - "buy 4, pay for 2 right now, pay the rest in 1 week or return 2 goods",
+        or just "I'm not sure right now about seller or its goods".
+        It's also maybe "a seller sells goods to a reseller and to want 30% prepayment".
+        In these cases buyer can itself makes different carts/orders, e.g. first 30% on-line paid, second 70% will paid after.
+      </p>
+      <p>"Price inclusive of tax" is the most world-wide used method. For goods like "used car" buyer usually estimates and pays taxes by itself.
+        Any way for ordinal taxable goods it's used tax methods in same way as in Beigesoft-Accounting.
+        Buyer maybe foreigner and delivering by mail, so no taxes.
+        Buyer maybe in other "Tax destination" region of the country, so it should be assigned by ZIP
+        "DebtorCreditor.taxDestination" for owner's goods or "OnlineBuyer.taxDestSe" for S.E.goods.
+        Buyer maybe reseller, and taxes maybe omitted (according the law).
+        Because of cart can has multiply item's owners, taxes are separated and their methods maybe different,
+        e.g. one "tax dest#1, half up, item basis" another "tax dest#2, half down, invoice basis".
+        For "invoice basis" and cart dividing in two orders for same item's owner,
+        total tax from cart maybe little bit different than in orders.
+      </p>
+      <p>Customer order does neither accounting nor warehouse entries, but it reduces "Goods Available in Place".
+        Canceled order increases back "Goods Available in Place".
+        Order with web-store owner's items is used to create Sales Invoice.
+        S.E.Seller has no accounting/warehouse subsystem, but S.E.seller can print/send by email invoice from order's information.
+        Order can be in one of statuses - "new/pending/closed/canceled".
+        Orders is remained in database, buyers cart history - no, only the last (current).
+        Buyers can see all their orders.
+        After order has been done (status closed), invoice in default language (and in preferred one) will be sent to buyer by email automatically.
+      </p>
+      <p>Buyer (overseas) may prefer foreign currency. All prices are made in national currency.
+        If web-store owner wants to offer goods in foreign currency, then it should add available foreign currency rates<b>CurrRate</b>
+        and keep them up to date. Buyer can opt currency from offered list,
+        price in foreign currency is calculated dynamically <b>price FC = price NC * currency rate</b>.
+        All S.E. sellers should accept payments in any currency that is from web-store foreign currency list.
+        Native buyers (or buyers that have the country's geolocation) may/should be restricted from choosing foreign currency.
+        Cash payment is often made in native currency (e.g. foreign tourist pay during check-in),
+        but it still can use other currency and pay with native one by using booking rate.
+      </p>
+      <p>Buyer's location maybe revealed by using HTML5-geolocation or buyer itself enters shipping address.
+        If buyer prefer/should pickup good/service by himself (payment usually cash), then buyer's address maybe omitted.</p>
+      <p>Items measuring may have different decimal places e.g.:
+        <ul>
+          <li>Cable 3ft - 1</li>
+          <li>Wire GH - 23.3ft</li>
+        </ul>
+        AItemPrice holds unit of measure to be printed, price per unit (default 1 unit), step of unit, and number of decimal places (0 default).
+        E.g.:
+        <ul>
+          <li>Wire GH 12USD per 3ft, decimal places 0, step 1</li>
+          <li>Wire GHA 12USD per 3ft, decimal places 1, step 0.5</li>
+          <li>Wire GHJ 12USD per 3.2ft, decimal places 1, step 0.5</li>
+        </ul>
+      </p>
+      
+      <h4>Persistable model OnlineBuyer</h4>
+      <p>
+        <ul>
+          <li>AHasNameIdLongVersion (autogenerated ID) fields</li>
+          <li>registeredPassword - String, null for unregistered buyer</li>
+          <li>regEmail - String, null for unregistered buyer</li>
+          <li>regCustomer - DebtorCreditor, it will be assigned/created when CustomerInvoice is created for request. No need for S.E.Seller.</li>
+          <li>regAddr1 - String, if applied</li>
+          <li>regAddr2 - String, if applied</li>
+          <li>regZip - String, if applied</li>
+          <li>regCountry - String, if applied</li>
+          <li>regState - String, if applied</li>
+          <li>regCity - String, if applied</li>
+          <li>regPhone - String, if applied</li>
+          <li>taxDestSe - TaxDestination only for S.E. goods/services without creating "DebtorCreditor"</li>
+        </ul>
+      </p>
+      <p>TradingSettings.isCreateOnlineUserOnFirstVisit - create online user on first visit if there is no cookie "cUserId"
+        and of course user unauthorized. False by default, otherwise it used for BI and tracking unauthorized users who even did not
+        added any item to cart for farther suggesting goods.
+      </p>
+      <p>Any user has dedicated at first visit cookie <b>cBuyerId=OnlineBuyer.itsId</b>, so OnlineBuyer is created either immediately
+        if TradingSettings.rememberUnauthorizedUserFor &gt; 0 or when cart check out.
+        Unauthorized user (did not buy anything) can be deleted according TradingSettings.rememberUnauthorizedUserFor days.</p>
+      <p>After user fist authorized it's created automatically their customer (DebtorCreditor) with DebtorCreditorCategory.
+        It can be changed or assigned by hand. 
+      </p>
+
+      <h4>Persistable model Cart</h4>
+      <p>
+        <ul>
+          <li>buyer - OnlineBuyer, PK</li>
+          <li>itsTotal - BigDecimal, not null</li>
+          <li>totItems - Integer, not null</li>
+          <li>recName - String, if buyer bought for someone else i.e. for this recipient
+            or buyer want to receive goods at different address</li>
+          <li>recAddr1 - String, if applied</li>
+          <li>recAddr2 - String, if applied</li>
+          <li>recZip - String, if applied</li>
+          <li>recCountry - String, if applied</li>
+          <li>recState - String, if applied</li>
+          <li>recCity - String, if applied</li>
+          <li>recPhone - String, if applied</li>
+          <li>itsItems - List&lt;CartLn&gt;</li>
+          <li>taxes - List&lt;CartTaxLn&gt;</li>
+        </ul>
+      </p>
+      <p>Persistable model CartLn:
+        <ul>
+          <li>AHasNameIdLong (autogenerated ID) fields</li>
+          <li>itsOwner - Cart, not null.</li>
+          <li>isDis - Boolean, do not show in cart, it's for performance,
+            old purchased cart emptied with this flag, when buyer add new goods to cart then it's used any disabled
+            line (if exist) otherwise new line will be created</li>
+          <li>itType - EShopItemType, not null</li>
+          <li>itId - Long, not null</li>
+          <li>price - BigDecimal, not null, grater than zero</li>
+          <li>quant - BigDecimal, not null</li>
+          <li>subtot - BigDecimal, not null</li>
+          <li>totTax - BigDecimal, not null</li>
+          <li>taxDescr - String, Taxes description, uneditable, e.g. "tax1 10%=12, tax2 5%=6"</li>
+          <li>tot - BigDecimal, not null</li>
+          <li>avQuant - BigDecimal, not null, to constraint buyer/inform "N items left"</li>
+        </ul>
+      </p>
+      <p>Persistable model base ATaxLine:
+        <ul>
+          <li>AHasIdLongVersion (autogenerated ID) fields</li>
+          <li>tax - Tax, not null.</li>
+          <li>tot - BigDecimal, not null</li>
+        </ul>
+      </p>
+      <p>Persistable model CartTaxLn:
+        <ul>
+          <li>ATaxLine fields</li>
+          <li>seller - SeSeller, if used in cart</li>
+          <li>itsOwner - Cart, not null.</li>
+        </ul>
+     </p>
+      <p>Model EShopItemType, enumeration:
+        <ul>
+          <li>GOODS, goods that stored in shop owner's warehouse, they are usually belongs to the owner.
+            Owner can rent his warehouse to store S.E. seller's goods.
+            It's org.beigesoft.accounting.persistable.InvItem.</li>
+          <li>SERVICE, service that performed by shop owner.
+            It's org.beigesoft.accounting.persistable.ServiceToSale.
+          </li>
+          <li>SEGOODS, goods that located in S.E. seller warehouse.
+            It's org.beigesoft.webstore.persistable.SeGoods.
+          </li>
+          <li>SESERVICE, service that performed by S.E. Seller.
+            It's org.beigesoft.webstore.persistable.SeService.
+         </li>
+        </ul>
+      </p>
+
+      <p>Persistable model CustOrder for web-store owner's goods/services:
+        <ul>
+          <li>AHasNameIdLongVersion (+autogenerated ID) fields</li>
+          <li>buyer - OnlineBuyer, not null</li>
+          <li>payMeth - EPaymentMethod, not null, ANY default</li>
+          <li>goodLst - List[CustOrderGdLn], ordered goods</li>
+          <li>servLst - List[CusOrderSrvLn], ordered services</li>
+          <li>taxLst - List[CustOrderTaxLn], taxes</li>
+        </ul>
+        CustOrderGdLn and CustOrderSrvLn decreased availability of goods/service if GoodsAvailable.isAlways = false.
+        If seSeller=null, then SalesInvoice will be created for buyer with goods/services in this order to report profit and withdraw warehouse,
+        otherwise SalesInvoice will be created for S.E.Seller with service "webstore selling fee" to report webstore owner's profit.
+      </p>
+      <p>Persistable model CustOrderTaxLn:
+        <ul>
+          <li>ATaxLine fields</li>
+          <li>itsOwner - CustOrder, not null.</li>
+        </ul>
+      </p>
+      <p>Persistable model base ACustOrderLn:
+        <ul>
+          <li>AHasIdLongVersion (autogenerated ID) fields</li>
+          <li>itsOwner - CustOrder, not null.</li>
+          <li>piUpPl - PickUpPlace, not null.</li>
+          <li>price - BigDecimal, not null, grater than zero</li>
+          <li>quant - BigDecimal, not null, negative means reversing</li>
+          <li>subtot - BigDecimal, not null</li>
+          <li>totTax - BigDecimal, not null</li>
+          <li>taxDescr - String, Taxes description, uneditable, e.g. "tax1 10%=12, tax2 5%=6"</li>
+          <li>tot - BigDecimal, not null</li>
+          <li>taxCat - InvItemTaxCategory, not null, Origin or destination tax category</li>
+        </ul>
+      </p>
+      <p>Persistable model CustOrderGdLn:
+        <ul>
+          <li>ACustOrderLn fields</li>
+          <li>goods - InvItem, not null.</li>
+        </ul>
+      </p>
+      <p>Persistable model CustOrderSrvLn:
+        <ul>
+          <li>ACustOrderLn fields</li>
+          <li>service - ServiceToSale, not null.</li>
+        </ul>
+      </p>
+      <p>Persistable model CustOrderSe for S.E.Seller's goods/services:
+        <ul>
+          <li>AHasNameIdLongVersion (+autogenerated ID) fields</li>
+          <li>buyer - OnlineBuyer, not null</li>
+          <li>seller - SeSeller, not null.</li>
+          <li>payMeth - EPaymentMethod, not null, ANY default</li>
+          <li>seGoodLst - List[CustOrderSeGgLn], ordered S.E.goods</li>
+          <li>seSrvLst - List[CustOrderSeSrvLn], ordered S.E.services</li>
+          <li>taxeLst - List[CustOrderSeTaxLine], taxes</li>
+        </ul>
+      </p>
+      <p>Persistable model CustOrderSeGd:
+        <ul>
+          <li>ACustOrderLn fields</li>
+          <li>goods - SeGoods, not null.</li>
+          <li>taxCat - InvItemTaxCategory, not null, Origin or destination tax category</li>
+        </ul>
+      </p>
+      <p>Persistable model CustOrderSeSrvLn:
+        <ul>
+          <li>ACustOrderLn fields</li>
+          <li>service - SeService, not null.</li>
+        </ul>
+      </p>
+      <p>Persistable model CustOrderSeTaxLn:
+        <ul>
+          <li>ATaxLine fields</li>
+          <li>itsOwner - CustOrderSe, not null.</li>
+        </ul>
+      </p>
+      <p>Model EPaymentMethod:
+        <ul>
+          <li>ONLINE, buyer must pay right now with any online method (e.g. credit card, PayPal)</li>
+          <li>ANY, it's means that buyer can pay 100% with any method (e.g. with cash when goods has been delivered),
+            and if order can be payed partially with several methods,
+            e.g. 50% online, 50% bank transfer, cash or cheque.</li>
+          <li>CASH, cash.</li>
+          <li>BANK_TRANSFER, bank transfer.</li>
+          <li>BANK_CHEQUE, bank cheque.</li>
+          <li>CASH_BANK_TRANSFER, cash or bank transfer.</li>
+          <li>BANK_TRANSFER_CHEQUE, bank transfer or cheque.</li>
+          <li>CASH_BANK_TRANSFER_CHEQUE, cash, bank transfer or cheque.</li>
+          <li>PARTIAL_ONLINE, in case when order must be payed partially online e.g 50% and the rest
+            with any methods - online, bank transfer, cash or cheque.</li>
+        </ul>
+      </p>
+      <p>Persistable model GoodsPaymentMethod to register payment method for a goods:
+        <ul>
+ p c db f         <li>goods - InvItem, PK</li>
+          <li>paymentMethod - EPaymentMethod, not null, ONLINE default.</li>
+        </ul>
+        TradingSettings.isUsedSeveralPaymentMethods = false by default. It means that web-store uses only payment method,
+        and consequently there is no need for dividing customer order. Usually it's online payment.
+        For small shop or service maker payment usually is made by cash.
+        For S.E.sellers there is no need to truck non-online payments [p]??.
+        It will be created orders grouped by payment method and owner for cart items during cart check-out.
+        If there is no GoodsPaymentMethod for a goods then it's used TradingSettings.defaultPaymentMethod.
+      </p>
+      
+      <h4>Buyer's(customer's) payments</h4>
+      <p>Buyer can pay with several methods: cash, bank money transfer and online methods - credit card, Paypal etc.
+        Non-cash-in-hand account (in bank) may be either webstore owner's or S.E. seller's in any way,
+        i.e. S.E. seller can receive "payment minus fee" from paid webstore account.
+[p]        S.E. Seller can also pay for other services/materials that made by webstore business, e.g. goods storage,
+        packaging, delivering, advertising etc., so it's reasonable to create only SalesInvoice for S.E. seller
+        that containing all. The best way is let worker to decide -
+        "create new invoice or add order fee in existed unaccounted one".
+        Online payments entirely handled(by using their checkout page for security reasons) by 3-d party
+        - any gateway payment e.g. 2checkout.
+        That is means that Beige-Webstore never hold/store customer payments method data like cart number and CVV number(Card Security Code).
+      </p>
+      
+      <h4>Cart checkout</h4>
+      <p>The first transaction is goods reservation (create order that decrease available goods if GoodsAvailable.isAlways=false),
+[p]        farther is payment transaction.
+        In case farther online checkout transaction by 3-d party that is not completed, and buyer
+        did not change payment method then reservation (order) is reversed.
+        In case of cash or bank transfer order saved with this information. 
+      </p>
+      
+      <h4>Seller payments preferences/requirements</h4>
+      <p>Seller webstore or S.E.seller can require desired payment method.
+[p]        For example minimum 50% online payments, or 100% cash, or "no credit card" etc.
+      </p>
+      
+      <h4>Customer payments</h4>
+      <h5>* Direct payments to S.E. seller with any method (cash, online...)</h5>
+      <p>In this case webstore can not control it.
+[db][i]        S.E.seller himself mark order as paid. Buyer himself mark order as completed (delivered).
+      </p>
+      <h5>* Payments to webstore account</h5>
+      <p>Customer can change mind about payment method (if this allowed) e.g. pay with cash or online despite
+        of chosen "bank transfer method", that is buyer can choose unpaid order and make online payments.
+        In case bank transfer buyer can make PaymentNotice for paid order for highlighting this event.
+        Buyer should see when payment rich webstore - order should be updated with this information.
+      </p>
+      <h5>*Partially payments </h5>
+      <p><b>Online</b>. Not all online payment gateways allowed partially payments.
+        If allowed then customer can make online partially payments himself - he select
+        order to pay, enter desired amount (less or equals the rest) and currency and make payments with payment gateway.
+      </p>
+      
+      <h4>Buyer email notification</h4>
+      <p>Buyer should receive email of every event:
+        <ul>
+          <li>Order created</li>
+          <li>Order payment (partially or full)</li>
+          <li></li>
+        </ul>
+      </p>
+      
+      <h4>Customer order changing when customer didn't pick up goods or delivering hasn't started yet ()</h4>
+[p]      <p>There are cases:
+        <ul>
+          <li>Full payments occurred
+            <ul>
+              <li></li>
+            </ul>
+          </li>
+          <li>Partially paid
+          </li>
+          <li>Unpaid
+          </li>
+        </ul>
+  In case offline unpaid payment customer can change order during all time till pickup or starting of delivery
+        except if it's S.E.seller's goods.
+      </p>
+    </section>
+
+  </body>
+
+</document>
