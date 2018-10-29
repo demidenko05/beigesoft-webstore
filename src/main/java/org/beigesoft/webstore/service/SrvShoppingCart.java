@@ -20,8 +20,8 @@ import java.math.BigDecimal;
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
-import org.beigesoft.webstore.persistable.ShoppingCart;
-import org.beigesoft.webstore.persistable.CartItem;
+import org.beigesoft.webstore.persistable.Cart;
+import org.beigesoft.webstore.persistable.CartLn;
 import org.beigesoft.webstore.persistable.TradingSettings;
 
 /**
@@ -44,7 +44,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
   private ISrvTradingSettings srvTradingSettings;
 
   /**
-   * <p>Get/Create ShoppingCart.</p>
+   * <p>Get/Create Cart.</p>
    * @param pAddParam additional param
    * @param pRequestData Request Data
    * @param pIsNeedToCreate Is Need To Create cart
@@ -52,7 +52,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    * @throws Exception - an exception
    **/
   @Override
-  public final ShoppingCart getShoppingCart(final Map<String, Object> pAddParam,
+  public final Cart getShoppingCart(final Map<String, Object> pAddParam,
     final IRequestData pRequestData,
       final boolean pIsNeedToCreate) throws Exception {
     Long buyerId = null;
@@ -81,20 +81,19 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
           .toString());
       }
     }
-    ShoppingCart shoppingCart = getSrvOrm()
-      .retrieveEntityById(pAddParam, ShoppingCart.class, onlineBuyer);
+    Cart shoppingCart = getSrvOrm()
+      .retrieveEntityById(pAddParam, Cart.class, onlineBuyer);
     if (shoppingCart != null) {
-      CartItem ci = new CartItem();
+      CartLn ci = new CartLn();
       ci.setItsOwner(shoppingCart);
-      List<CartItem> cartItems = getSrvOrm()
+      List<CartLn> cartItems = getSrvOrm()
         .retrieveListForField(pAddParam, ci, "itsOwner");
-      shoppingCart.setItsItems(cartItems);
+      shoppingCart.setItems(cartItems);
     } else if (pIsNeedToCreate) {
-      shoppingCart = new ShoppingCart();
+      shoppingCart = new Cart();
       shoppingCart.setItsId(onlineBuyer);
       shoppingCart.setBuyer(onlineBuyer);
-      shoppingCart.setItsTotal(BigDecimal.ZERO);
-      shoppingCart.setTotalItems(0);
+      shoppingCart.setTot(BigDecimal.ZERO);
       getSrvOrm().insertEntity(pAddParam, shoppingCart);
     }
     return shoppingCart;

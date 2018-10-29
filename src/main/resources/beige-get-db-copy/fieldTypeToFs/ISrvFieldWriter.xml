@@ -13,6 +13,6 @@
 <comment>Correspondence of Java types to store service. ORDER is essential, the LAST value will be used.</comment>
 <entry key="java.lang.Object">SrvFieldWriterXmlStd</entry>
 <entry key="org.beigesoft.model.IHasId">SrvFieldHasIdWriterXml</entry>
-<entry key="org.beigesoft.webstore.persistable.ShoppingCart">SrvFieldShoppingCartWriterXml</entry>
+<entry key="org.beigesoft.webstore.persistable.Cart">SrvFieldShoppingCartWriterXml</entry>
 <entry key="org.beigesoft.webstore.persistable.SeSeller">SrvFieldSeSellerWriterXml</entry>
 </properties>

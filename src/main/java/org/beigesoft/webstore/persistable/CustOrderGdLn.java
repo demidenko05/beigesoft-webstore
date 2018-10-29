@@ -13,27 +13,28 @@ package org.beigesoft.webstore.persistable;
  */
 
 import org.beigesoft.webstore.persistable.base.ACustomerOrderLine;
+import org.beigesoft.accounting.persistable.InvItem;
 
 /**
  * <p>
- * Model of Customer Order S.E.Goods line.
+ * Model of Customer Order Goods line.
  * </p>
  *
  * @author Yury Demidenko
  */
-public class CustomerOrderSeGoods extends ACustomerOrderLine {
+public class CustOrderGdLn extends ACustomerOrderLine {
 
   /**
    * <p>Goods, not null.</p>
    **/
-  private SeGoods goods;
+  private InvItem goods;
 
   //Simple getters and setters:
   /**
    * <p>Getter for goods.</p>
-   * @return SeGoods
+   * @return InvItem
    **/
-  public final SeGoods getGoods() {
+  public final InvItem getGoods() {
     return this.goods;
   }
 
@@ -41,7 +42,7 @@ public class CustomerOrderSeGoods extends ACustomerOrderLine {
    * <p>Setter for goods.</p>
    * @param pGoods reference
    **/
-  public final void setGoods(final SeGoods pGoods) {
+  public final void setGoods(final InvItem pGoods) {
     this.goods = pGoods;
   }
 }

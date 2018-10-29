@@ -17,11 +17,11 @@ import java.io.Writer;
 
 import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.service.IUtilXml;
-import org.beigesoft.webstore.persistable.ShoppingCart;
+import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.replicator.service.ISrvFieldWriter;
 
 /**
- * <p>Service to write ShoppingCart owned entity as ID.</p>
+ * <p>Service to write Cart owned entity as ID.</p>
  *
  * @author Yury Demidenko
  */
@@ -51,12 +51,12 @@ public class SrvFieldShoppingCartWriterXml implements ISrvFieldWriter {
     if (pField == null) {
       fieldValue = "NULL";
     } else {
-      if (ShoppingCart.class != pField.getClass()) {
+      if (Cart.class != pField.getClass()) {
         throw new ExceptionWithCode(ExceptionWithCode
           .CONFIGURATION_MISTAKE, "It's wrong service to write that field: "
             + pField + "/" + pFieldName);
       }
-      fieldValue = ((ShoppingCart) pField).getBuyer().getItsId().toString();
+      fieldValue = ((Cart) pField).getBuyer().getItsId().toString();
     }
     pWriter.write(" " + pFieldName + "=\"" + fieldValue
       + "\"\n");

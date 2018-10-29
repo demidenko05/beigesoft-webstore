@@ -1,7 +1,7 @@
 package org.beigesoft.webstore.processor;
 
 /*
- * Copyright (c) 2017 Beigesoft ™
+ * Copyright (c) 2017 Beigesoft™
  *
  * Licensed under the GNU General Public License (GPL), Version 2.0
  * (the "License");
@@ -29,8 +29,8 @@ import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.accounting.persistable.AccSettings;
 import org.beigesoft.webstore.model.EShopItemType;
-import org.beigesoft.webstore.persistable.ShoppingCart;
-import org.beigesoft.webstore.persistable.CartItem;
+import org.beigesoft.webstore.persistable.Cart;
+import org.beigesoft.webstore.persistable.CartLn;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.persistable.BuyerPriceCategory;
 import org.beigesoft.webstore.persistable.PriceGoodsId;
@@ -82,9 +82,9 @@ public class PrcItemInCart<RS> implements IProcessor {
     final IRequestData pRequestData) throws Exception {
     TradingSettings tradingSettings = (TradingSettings)
       pAddParam.get("tradingSettings");
-    ShoppingCart shoppingCart = this.srvShoppingCart
+    Cart shoppingCart = this.srvShoppingCart
       .getShoppingCart(pAddParam, pRequestData, true);
-    CartItem cartItem = null;
+    CartLn cartItem = null;
     String cartItemItsIdStr = pRequestData.getParameter("cartItemItsId");
     String cartItemQuantityStr = pRequestData
       .getParameter("cartItemQuantity");
@@ -102,23 +102,23 @@ public class PrcItemInCart<RS> implements IProcessor {
       Long cartItemItsId = Long.valueOf(cartItemItsIdStr);
       cartItem = findCartItemById(shoppingCart, cartItemItsId);
     } else { //add
-      if (shoppingCart.getItsItems() == null) {
-        shoppingCart.setItsItems(new ArrayList<CartItem>());
+      if (shoppingCart.getItems() == null) {
+        shoppingCart.setItems(new ArrayList<CartLn>());
         cartItem = createCartItem(shoppingCart);
       } else {
-        for (CartItem ci : shoppingCart.getItsItems()) {
+        for (CartLn ci : shoppingCart.getItems()) {
           //check for duplicate
-          if (!ci.getIsDisabled() && ci.getItemType().equals(cartItemType)
-            && ci.getItemId().equals(cartItemId)) {
+          if (!ci.getDisab() && ci.getItTyp().equals(cartItemType)
+            && ci.getItId().equals(cartItemId)) {
             cartItem = ci;
             break;
           }
         }
         if (cartItem == null) {
-          for (CartItem ci : shoppingCart.getItsItems()) {
-            if (ci.getIsDisabled()) {
+          for (CartLn ci : shoppingCart.getItems()) {
+            if (ci.getDisab()) {
               cartItem = ci;
-              cartItem.setIsDisabled(false);
+              cartItem.setDisab(false);
               break;
             }
           }
@@ -127,8 +127,8 @@ public class PrcItemInCart<RS> implements IProcessor {
           cartItem = createCartItem(shoppingCart);
         }
       }
-      cartItem.setItemId(cartItemId);
-      cartItem.setItemType(cartItemType);
+      cartItem.setItId(cartItemId);
+      cartItem.setItTyp(cartItemType);
       BigDecimal price = null;
       if (tradingSettings.getIsUsePriceForCustomer()) {
         //try to reveal price dedicated for customer:
@@ -177,15 +177,13 @@ public class PrcItemInCart<RS> implements IProcessor {
           //TODO Services, SE G/S
         }
       }
-      cartItem.setItsPrice(price);
+      cartItem.setPrice(price);
     }
-    cartItem.setTotalTaxes(BigDecimal.ZERO);
-    cartItem.setItsQuantity(cartItemQuantity);
-    cartItem.setAvailableQuantity(cartItemAvailableQuantity);
-    cartItem.setSubtotal(cartItem.getItsPrice()
-      .multiply(cartItem.getItsQuantity()));
-    cartItem.setItsTotal(cartItem.getSubtotal()
-      .add(cartItem.getTotalTaxes()));
+    cartItem.setTotTx(BigDecimal.ZERO);
+    cartItem.setQuant(cartItemQuantity);
+    cartItem.setAvQuan(cartItemAvailableQuantity);
+    cartItem.setSubt(cartItem.getPrice().multiply(cartItem.getQuant()));
+    cartItem.setTot(cartItem.getSubt().add(cartItem.getTotTx()));
     if (cartItem.getIsNew()) {
       this.getSrvOrm().insertEntity(pAddParam, cartItem);
     } else {
@@ -194,19 +192,15 @@ public class PrcItemInCart<RS> implements IProcessor {
     String query = lazyGetQueryCartTotals();
     query = query.replace(":CARTID", shoppingCart.getItsId()
       .getItsId().toString());
-    String[] columns = new String[]{"ITSTOTAL", "TOTALITEMS"};
+    String[] columns = new String[]{"ITSTOTAL"};
     Double[] totals = this.getSrvDatabase()
       .evalDoubleResults(query, columns);
     if (totals[0] == null) {
       totals[0] = 0d;
     }
-    if (totals[1] == null) {
-      totals[1] = 0d;
-    }
     AccSettings accSettings = (AccSettings) pAddParam.get("accSettings");
-    shoppingCart.setItsTotal(BigDecimal.valueOf(totals[0]).
+    shoppingCart.setTot(BigDecimal.valueOf(totals[0]).
       setScale(accSettings.getPricePrecision(), accSettings.getRoundingMode()));
-    shoppingCart.setTotalItems(totals[1].intValue());
     this.getSrvOrm().updateEntity(pAddParam, shoppingCart);
     pRequestData.setAttribute("shoppingCart", shoppingCart);
     String processorName = pRequestData.getParameter("nmPrcRedirect");
@@ -221,12 +215,12 @@ public class PrcItemInCart<RS> implements IProcessor {
    * @return cart item
    * @throws Exception - an exception
    **/
-  public final CartItem findCartItemById(final ShoppingCart pShoppingCart,
+  public final CartLn findCartItemById(final Cart pShoppingCart,
     final Long pCartItemItsId) throws Exception {
-    CartItem cartItem = null;
-    for (CartItem ci : pShoppingCart.getItsItems()) {
+    CartLn cartItem = null;
+    for (CartLn ci : pShoppingCart.getItems()) {
       if (ci.getItsId().equals(pCartItemItsId)) {
-        if (ci.getIsDisabled()) {
+        if (ci.getDisab()) {
           throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
             "requested_item_disabled");
         }
@@ -246,13 +240,13 @@ public class PrcItemInCart<RS> implements IProcessor {
    * @param pShoppingCart cart
    * @return cart item
    **/
-  public final CartItem createCartItem(
-    final ShoppingCart pShoppingCart) {
-    CartItem cartItem = new CartItem();
+  public final CartLn createCartItem(
+    final Cart pShoppingCart) {
+    CartLn cartItem = new CartLn();
     cartItem.setIsNew(true);
-    cartItem.setIsDisabled(false);
+    cartItem.setDisab(false);
     cartItem.setItsOwner(pShoppingCart);
-    pShoppingCart.getItsItems().add(cartItem);
+    pShoppingCart.getItems().add(cartItem);
     return cartItem;
   }
 

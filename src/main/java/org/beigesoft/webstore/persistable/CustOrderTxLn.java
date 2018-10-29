@@ -1,7 +1,7 @@
 package org.beigesoft.webstore.persistable;
 
 /*
- * Copyright (c) 2017 Beigesoft ™
+ * Copyright (c) 2017 Beigesoft™
  *
  * Licensed under the GNU General Public License (GPL), Version 2.0
  * (the "License");
@@ -13,7 +13,7 @@ package org.beigesoft.webstore.persistable;
  */
 
 import org.beigesoft.model.IOwned;
-import org.beigesoft.webstore.persistable.base.ATaxLine;
+import org.beigesoft.webstore.persistable.base.ATaxLn;
 
 /**
  * <p>
@@ -22,20 +22,19 @@ import org.beigesoft.webstore.persistable.base.ATaxLine;
  *
  * @author Yury Demidenko
  */
-public class CustomerOrderTaxLine extends ATaxLine
-  implements IOwned<CustomerOrder> {
+public class CustOrderTxLn extends ATaxLn implements IOwned<CustOrder> {
 
   /**
    * <p>Customer Order.</p>
    **/
-  private CustomerOrder itsOwner;
+  private CustOrder itsOwner;
 
   /**
    * <p>Getter for itsOwner.</p>
-   * @return CustomerOrder
+   * @return CustOrder
    **/
   @Override
-  public final CustomerOrder getItsOwner() {
+  public final CustOrder getItsOwner() {
     return this.itsOwner;
   }
 
@@ -44,7 +43,7 @@ public class CustomerOrderTaxLine extends ATaxLine
    * @param pItsOwner reference
    **/
   @Override
-  public final void setItsOwner(final CustomerOrder pItsOwner) {
+  public final void setItsOwner(final CustOrder pItsOwner) {
     this.itsOwner = pItsOwner;
   }
 }

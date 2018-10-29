@@ -11,5 +11,6 @@
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
 <comment>Explicit final definition.</comment>
-<entry key="totalItemsisNullable">false</entry>
+<entry key="itIdisNullable">false</entry>
+<entry key="itsOwnerdefinition">bigint</entry>
 </properties>

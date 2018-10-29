@@ -12,4 +12,5 @@
 <properties>
 <comment>Explicit final definition.</comment>
 <entry key="regCustomerisNullable">true</entry>
+<entry key="taxDestisNullable">true</entry>
 </properties>

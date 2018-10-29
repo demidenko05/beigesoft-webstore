@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- Copyright (c) 2018 Beigesoft™
+ Copyright (c) 2017 Beigesoft ™
  
  Licensed under the GNU General Public License (GPL), Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -11,5 +11,6 @@
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
 <comment>Explicit final definition.</comment>
-<entry key="taxDestinationisNullable">true</entry>
+<entry key="itIdisNullable">false</entry>
+<entry key="itsOwnerdefinition">bigint unsigned</entry>
 </properties>

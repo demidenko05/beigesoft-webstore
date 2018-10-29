@@ -27,7 +27,7 @@
 <entry key="org.beigesoft.webstore.persistable.BuyerPriceCategory">buyer,priceCategory</entry>
 <entry key="org.beigesoft.webstore.persistable.GoodsAdviseCategories">goods,adviseCategory</entry>
 <entry key="org.beigesoft.webstore.persistable.SubcatalogsCatalogsGs">subcatalog,itsCatalog</entry>
-<entry key="org.beigesoft.webstore.persistable.ShoppingCart">buyer</entry>
+<entry key="org.beigesoft.webstore.persistable.Cart">buyer</entry>
 <entry key="org.beigesoft.webstore.persistable.I18nSpecificInList">lang,itemId,itsType</entry>
 <entry key="org.beigesoft.webstore.persistable.I18nWebStore">lang</entry>
 <entry key="org.beigesoft.persistable.AI18nName">lang,hasName</entry>

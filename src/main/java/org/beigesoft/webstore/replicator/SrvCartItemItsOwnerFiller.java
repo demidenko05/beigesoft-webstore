@@ -15,13 +15,13 @@ package org.beigesoft.webstore.replicator;
 import java.util.Map;
 
 import org.beigesoft.exception.ExceptionWithCode;
-import org.beigesoft.webstore.persistable.ShoppingCart;
-import org.beigesoft.webstore.persistable.CartItem;
+import org.beigesoft.webstore.persistable.Cart;
+import org.beigesoft.webstore.persistable.CartLn;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
 import org.beigesoft.replicator.service.ISrvEntityFieldFiller;
 
 /**
- * <p>Service to fill ItsOwner (shopping cart) in CartItem.</p>
+ * <p>Service to fill ItsOwner (shopping cart) in CartLn.</p>
  *
  * @author Yury Demidenko
  */
@@ -42,14 +42,14 @@ public class SrvCartItemItsOwnerFiller implements ISrvEntityFieldFiller {
   public final void fill(final Map<String, Object> pAddParam,
     final Object pEntity, final String pFieldName,
       final String pFieldStrValue) throws Exception {
-    if (!CartItem.class.isAssignableFrom(pEntity.getClass())) {
+    if (!CartLn.class.isAssignableFrom(pEntity.getClass())) {
       throw new ExceptionWithCode(ExceptionWithCode
         .CONFIGURATION_MISTAKE, "It's wrong service to fill that field: "
           + pEntity + "/" + pFieldName + "/" + pFieldStrValue);
     }
     try {
-      CartItem cartItem = (CartItem) pEntity;
-      ShoppingCart ownedEntity = new ShoppingCart();
+      CartLn cartItem = (CartLn) pEntity;
+      Cart ownedEntity = new Cart();
       OnlineBuyer buyer = new OnlineBuyer();
       buyer.setItsId(Long.valueOf(pFieldStrValue));
       ownedEntity.setBuyer(buyer);

@@ -25,8 +25,8 @@ import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.accounting.persistable.AccSettings;
-import org.beigesoft.webstore.persistable.ShoppingCart;
-import org.beigesoft.webstore.persistable.CartItem;
+import org.beigesoft.webstore.persistable.Cart;
+import org.beigesoft.webstore.persistable.CartLn;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
@@ -71,19 +71,19 @@ public class PrcDelItemFromCart<RS> implements IProcessor {
   @Override
   public final void process(final Map<String, Object> pAddParam,
     final IRequestData pRequestData) throws Exception {
-    ShoppingCart shoppingCart = this.srvShoppingCart
+    Cart shoppingCart = this.srvShoppingCart
       .getShoppingCart(pAddParam, pRequestData, false);
-    if (shoppingCart == null || shoppingCart.getItsItems() == null) {
+    if (shoppingCart == null || shoppingCart.getItems() == null) {
       throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
         "there_is_no_cart_for_requestor");
     }
     String cartItemItsIdStr = pRequestData.getParameter("cartItemItsId");
     if (cartItemItsIdStr != null) {
       Long cartItemItsId = Long.valueOf(cartItemItsIdStr);
-      CartItem cartItem = null;
-      for (CartItem ci : shoppingCart.getItsItems()) {
+      CartLn cartItem = null;
+      for (CartLn ci : shoppingCart.getItems()) {
         if (ci.getItsId().equals(cartItemItsId)) {
-          if (ci.getIsDisabled()) {
+          if (ci.getDisab()) {
             throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
               "requested_item_disabled");
           }
@@ -95,25 +95,21 @@ public class PrcDelItemFromCart<RS> implements IProcessor {
         throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
           "requested_item_not_found");
       }
-      cartItem.setIsDisabled(true);
+      cartItem.setDisab(true);
       this.getSrvOrm().updateEntity(pAddParam, cartItem);
       String query = lazyGetQueryCartTotals();
       query = query.replace(":CARTID", shoppingCart.getItsId()
         .getItsId().toString());
-      String[] columns = new String[]{"ITSTOTAL", "TOTALITEMS"};
+      String[] columns = new String[]{"ITSTOTAL"};
       Double[] totals = this.getSrvDatabase()
         .evalDoubleResults(query, columns);
       if (totals[0] == null) {
         totals[0] = 0d;
       }
-      if (totals[1] == null) {
-        totals[1] = 0d;
-      }
       AccSettings accSettings = (AccSettings) pAddParam.get("accSettings");
-      shoppingCart.setItsTotal(BigDecimal.valueOf(totals[0]).
+      shoppingCart.setTot(BigDecimal.valueOf(totals[0]).
         setScale(accSettings.getPricePrecision(),
           accSettings.getRoundingMode()));
-      shoppingCart.setTotalItems(totals[1].intValue());
       this.getSrvOrm().updateEntity(pAddParam, shoppingCart);
       pRequestData.setAttribute("shoppingCart", shoppingCart);
       String processorName = pRequestData.getParameter("nmPrcRedirect");

@@ -1,7 +1,7 @@
 package org.beigesoft.webstore.persistable.base;
 
 /*
- * Copyright (c) 2017 Beigesoft ™
+ * Copyright (c) 2017 Beigesoft™
  *
  * Licensed under the GNU General Public License (GPL), Version 2.0
  * (the "License");
@@ -25,7 +25,7 @@ import org.beigesoft.accounting.persistable.Tax;
  *
  * @author Yury Demidenko
  */
-public abstract class ATaxLine extends AHasIdLongVersion {
+public abstract class ATaxLn extends AHasIdLongVersion {
 
   /**
    * <p>Tax.</p>
@@ -35,7 +35,7 @@ public abstract class ATaxLine extends AHasIdLongVersion {
   /**
    * <p>Total taxes.</p>
    **/
-  private BigDecimal itsTotal = BigDecimal.ZERO;
+  private BigDecimal tot = BigDecimal.ZERO;
 
   //Simple getters and setters:
   /**
@@ -55,18 +55,18 @@ public abstract class ATaxLine extends AHasIdLongVersion {
   }
 
   /**
-   * <p>Geter for itsTotal.</p>
+   * <p>Getter for tot.</p>
    * @return BigDecimal
    **/
-  public final BigDecimal getItsTotal() {
-    return this.itsTotal;
+  public final BigDecimal getTot() {
+    return this.tot;
   }
 
   /**
-   * <p>Setter for itsTotal.</p>
-   * @param pItsTotal reference
+   * <p>Setter for tot.</p>
+   * @param pTot reference
    **/
-  public final void setItsTotal(final BigDecimal pItsTotal) {
-    this.itsTotal = pItsTotal;
+  public final void setTot(final BigDecimal pTot) {
+    this.tot = pTot;
   }
 }

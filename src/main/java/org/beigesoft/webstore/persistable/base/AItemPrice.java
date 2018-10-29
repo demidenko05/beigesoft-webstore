@@ -35,7 +35,7 @@ public abstract class
     extends AEditableHasVersion implements IHasId<ID> {
 
   /**
-   * <p>Its price.</p>
+   * <p>Price per unit.</p>
    **/
   private BigDecimal itsPrice;
 
@@ -56,12 +56,6 @@ public abstract class
    * e.g. 4.5 hours, 0.123lb, etc, 0 default.</p>
    **/
   private Integer decPlaces = 0;
-
-  /**
-   * <p>Price per quantity of item, 1 default,
-   * e.g. 12USD per 0.5ft, UOM ft, DP=1.</p>
-   **/
-  private BigDecimal perUnit = BigDecimal.ONE;
 
   /**
    * <p>Quantity step, 1 default,
@@ -157,22 +151,6 @@ public abstract class
    **/
   public final void setDecPlaces(final Integer pDecPlaces) {
     this.decPlaces = pDecPlaces;
-  }
-
-  /**
-   * <p>Getter for perUnit.</p>
-   * @return BigDecimal
-   **/
-  public final BigDecimal getPerUnit() {
-    return this.perUnit;
-  }
-
-  /**
-   * <p>Setter for perUnit.</p>
-   * @param pPerUnit reference
-   **/
-  public final void setPerUnit(final BigDecimal pPerUnit) {
-    this.perUnit = pPerUnit;
   }
 
   /**

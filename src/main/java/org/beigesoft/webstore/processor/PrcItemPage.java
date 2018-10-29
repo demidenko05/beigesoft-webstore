@@ -39,8 +39,8 @@ import org.beigesoft.webstore.persistable.ServicePlace;
 import org.beigesoft.webstore.persistable.ServicePrice;
 import org.beigesoft.webstore.persistable.PriceGoods;
 import org.beigesoft.webstore.persistable.GoodsPlace;
-import org.beigesoft.webstore.persistable.CartItem;
-import org.beigesoft.webstore.persistable.ShoppingCart;
+import org.beigesoft.webstore.persistable.CartLn;
+import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
@@ -140,20 +140,20 @@ public class PrcItemPage<RS> implements IProcessor {
     itemPlaceLst = getSrvOrm().retrieveListWithConditions(pReqVars,
         GoodsPlace.class, " where ITEM=" + itemId);
     if (pRequestData.getAttribute("shoppingCart") == null) {
-      ShoppingCart shoppingCart = this.srvShoppingCart
+      Cart shoppingCart = this.srvShoppingCart
         .getShoppingCart(pReqVars, pRequestData, false);
       if (shoppingCart != null) {
         pRequestData.setAttribute("shoppingCart", shoppingCart);
       }
     }
     if (pRequestData.getAttribute("shoppingCart") != null) {
-      ShoppingCart shoppingCart = (ShoppingCart) pRequestData
+      Cart shoppingCart = (Cart) pRequestData
         .getAttribute("shoppingCart");
-      if (shoppingCart.getItsItems() != null) {
+      if (shoppingCart.getItems() != null) {
         String itemTypeStr = pRequestData.getParameter("itemType");
-        for (CartItem ci : shoppingCart.getItsItems()) {
-          if (!ci.getIsDisabled() && ci.getItemId().equals(itemId)
-            && ci.getItemType().toString().equals(itemTypeStr)) {
+        for (CartLn ci : shoppingCart.getItems()) {
+          if (!ci.getDisab() && ci.getItId().equals(itemId)
+            && ci.getItTyp().toString().equals(itemTypeStr)) {
             pRequestData.setAttribute("cartItem", ci);
             break;
           }
@@ -196,20 +196,20 @@ public class PrcItemPage<RS> implements IProcessor {
     itemPlaceLst = getSrvOrm().retrieveListWithConditions(pReqVars,
         SeGoodsPlace.class, " where ITEM=" + itemId);
     if (pRequestData.getAttribute("shoppingCart") == null) {
-      ShoppingCart shoppingCart = this.srvShoppingCart
+      Cart shoppingCart = this.srvShoppingCart
         .getShoppingCart(pReqVars, pRequestData, false);
       if (shoppingCart != null) {
         pRequestData.setAttribute("shoppingCart", shoppingCart);
       }
     }
     if (pRequestData.getAttribute("shoppingCart") != null) {
-      ShoppingCart shoppingCart = (ShoppingCart) pRequestData
+      Cart shoppingCart = (Cart) pRequestData
         .getAttribute("shoppingCart");
-      if (shoppingCart.getItsItems() != null) {
+      if (shoppingCart.getItems() != null) {
         String itemTypeStr = pRequestData.getParameter("itemType");
-        for (CartItem ci : shoppingCart.getItsItems()) {
-          if (!ci.getIsDisabled() && ci.getItemId().equals(itemId)
-            && ci.getItemType().toString().equals(itemTypeStr)) {
+        for (CartLn ci : shoppingCart.getItems()) {
+          if (!ci.getDisab() && ci.getItId().equals(itemId)
+            && ci.getItTyp().toString().equals(itemTypeStr)) {
             pRequestData.setAttribute("cartItem", ci);
             break;
           }
@@ -252,20 +252,20 @@ public class PrcItemPage<RS> implements IProcessor {
     itemPlaceLst = getSrvOrm().retrieveListWithConditions(pReqVars,
         ServicePlace.class, " where ITEM=" + itemId);
     if (pRequestData.getAttribute("shoppingCart") == null) {
-      ShoppingCart shoppingCart = this.srvShoppingCart
+      Cart shoppingCart = this.srvShoppingCart
         .getShoppingCart(pReqVars, pRequestData, false);
       if (shoppingCart != null) {
         pRequestData.setAttribute("shoppingCart", shoppingCart);
       }
     }
     if (pRequestData.getAttribute("shoppingCart") != null) {
-      ShoppingCart shoppingCart = (ShoppingCart) pRequestData
+      Cart shoppingCart = (Cart) pRequestData
         .getAttribute("shoppingCart");
-      if (shoppingCart.getItsItems() != null) {
+      if (shoppingCart.getItems() != null) {
         String itemTypeStr = pRequestData.getParameter("itemType");
-        for (CartItem ci : shoppingCart.getItsItems()) {
-          if (!ci.getIsDisabled() && ci.getItemId().equals(itemId)
-            && ci.getItemType().toString().equals(itemTypeStr)) {
+        for (CartLn ci : shoppingCart.getItems()) {
+          if (!ci.getDisab() && ci.getItId().equals(itemId)
+            && ci.getItTyp().toString().equals(itemTypeStr)) {
             pRequestData.setAttribute("cartItem", ci);
             break;
           }

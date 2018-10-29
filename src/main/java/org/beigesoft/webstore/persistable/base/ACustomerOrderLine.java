@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 
 import org.beigesoft.model.IOwned;
 import org.beigesoft.persistable.AHasIdLongVersion;
-import org.beigesoft.webstore.persistable.CustomerOrder;
+import org.beigesoft.webstore.persistable.CustOrder;
 import org.beigesoft.webstore.persistable.PickUpPlace;
 
 /**
@@ -28,12 +28,12 @@ import org.beigesoft.webstore.persistable.PickUpPlace;
  * @author Yury Demidenko
  */
 public class ACustomerOrderLine extends AHasIdLongVersion
-  implements IOwned<CustomerOrder> {
+  implements IOwned<CustOrder> {
 
   /**
    * <p>Customer Order.</p>
    **/
-  private CustomerOrder itsOwner;
+  private CustOrder itsOwner;
 
   /**
    * <p>Place where goods is stored or service is performed, not null.</p>
@@ -73,10 +73,10 @@ public class ACustomerOrderLine extends AHasIdLongVersion
 
   /**
    * <p>Getter for itsOwner.</p>
-   * @return CustomerOrder
+   * @return CustOrder
    **/
   @Override
-  public final CustomerOrder getItsOwner() {
+  public final CustOrder getItsOwner() {
     return this.itsOwner;
   }
 
@@ -85,7 +85,7 @@ public class ACustomerOrderLine extends AHasIdLongVersion
    * @param pItsOwner reference
    **/
   @Override
-  public final void setItsOwner(final CustomerOrder pItsOwner) {
+  public final void setItsOwner(final CustOrder pItsOwner) {
     this.itsOwner = pItsOwner;
   }
 

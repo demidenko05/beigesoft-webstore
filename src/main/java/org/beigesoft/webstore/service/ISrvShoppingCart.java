@@ -15,7 +15,7 @@ package org.beigesoft.webstore.service;
 import java.util.Map;
 
 import org.beigesoft.model.IRequestData;
-import org.beigesoft.webstore.persistable.ShoppingCart;
+import org.beigesoft.webstore.persistable.Cart;
 
 /**
  * <p>Abstraction of service that retrieve/create buyer's shopping cart.
@@ -26,14 +26,14 @@ import org.beigesoft.webstore.persistable.ShoppingCart;
 public interface ISrvShoppingCart {
 
   /**
-   * <p>Get/Create ShoppingCart.</p>
+   * <p>Get/Create Cart.</p>
    * @param pAddParam additional param
    * @param pRequestData Request Data
    * @param pIsNeedToCreate Is Need To Create cart
    * @return shopping cart or null
    * @throws Exception - an exception
    **/
-  ShoppingCart getShoppingCart(Map<String, Object> pAddParam,
+  Cart getShoppingCart(Map<String, Object> pAddParam,
     IRequestData pRequestData,
       boolean pIsNeedToCreate) throws Exception;
 }

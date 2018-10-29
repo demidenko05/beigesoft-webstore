@@ -1,7 +1,7 @@
 package org.beigesoft.webstore.persistable;
 
 /*
- * Copyright (c) 2017 Beigesoft ™
+ * Copyright (c) 2018 Beigesoft™
  *
  * Licensed under the GNU General Public License (GPL), Version 2.0
  * (the "License");
@@ -13,29 +13,28 @@ package org.beigesoft.webstore.persistable;
  */
 
 import org.beigesoft.model.IOwned;
-import org.beigesoft.webstore.persistable.base.ATaxLine;
+import org.beigesoft.webstore.persistable.base.ATaxLn;
 
 /**
  * <p>
- * Shoping Cart Tax Line model.
+ * Cart item's tax line for item basis multi-taxes non-aggregate rate.
  * </p>
  *
  * @author Yury Demidenko
  */
-public class CartTaxLine extends ATaxLine
-  implements IOwned<ShoppingCart> {
+public class CartItTxLn extends ATaxLn implements IOwned<CartLn> {
 
   /**
-   * <p>Shopping Cart.</p>
+   * <p>Shopping CartLn.</p>
    **/
-  private ShoppingCart itsOwner;
+  private CartLn itsOwner;
 
   /**
    * <p>Getter for itsOwner.</p>
-   * @return ShoppingCart
+   * @return CartLn
    **/
   @Override
-  public final ShoppingCart getItsOwner() {
+  public final CartLn getItsOwner() {
     return this.itsOwner;
   }
 
@@ -44,7 +43,7 @@ public class CartTaxLine extends ATaxLine
    * @param pItsOwner reference
    **/
   @Override
-  public final void setItsOwner(final ShoppingCart pItsOwner) {
+  public final void setItsOwner(final CartLn pItsOwner) {
     this.itsOwner = pItsOwner;
   }
 }

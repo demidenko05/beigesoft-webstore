@@ -47,8 +47,8 @@ import org.beigesoft.webstore.persistable.ChooseableSpecificsType;
 import org.beigesoft.webstore.persistable.CatalogSpecifics;
 import org.beigesoft.webstore.persistable.CatalogGs;
 import org.beigesoft.webstore.persistable.SubcatalogsCatalogsGs;
-import org.beigesoft.webstore.persistable.ShoppingCart;
-import org.beigesoft.webstore.persistable.CartItem;
+import org.beigesoft.webstore.persistable.Cart;
+import org.beigesoft.webstore.persistable.CartLn;
 import org.beigesoft.webstore.persistable.ItemInList;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
@@ -385,26 +385,26 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
       }
     }
     if (pRequestData.getAttribute("shoppingCart") == null) {
-      ShoppingCart shoppingCart = this.srvShoppingCart
+      Cart shoppingCart = this.srvShoppingCart
         .getShoppingCart(pReqVars, pRequestData, false);
       if (shoppingCart != null) {
         pRequestData.setAttribute("shoppingCart", shoppingCart);
       }
     }
     if (pRequestData.getAttribute("shoppingCart") != null) {
-      ShoppingCart shoppingCart = (ShoppingCart) pRequestData
+      Cart shoppingCart = (Cart) pRequestData
         .getAttribute("shoppingCart");
-      if (shoppingCart.getItsItems() != null) {
-        Map<EShopItemType, Map<Long, CartItem>> cartMap =
-          new HashMap<EShopItemType, Map<Long, CartItem>>();
-        for (CartItem ci : shoppingCart.getItsItems()) {
-          if (!ci.getIsDisabled()) {
-            Map<Long, CartItem> typedMap = cartMap.get(ci.getItemType());
+      if (shoppingCart.getItems() != null) {
+        Map<EShopItemType, Map<Long, CartLn>> cartMap =
+          new HashMap<EShopItemType, Map<Long, CartLn>>();
+        for (CartLn ci : shoppingCart.getItems()) {
+          if (!ci.getDisab()) {
+            Map<Long, CartLn> typedMap = cartMap.get(ci.getItTyp());
             if (typedMap == null) {
-              typedMap = new HashMap<Long, CartItem>();
-              cartMap.put(ci.getItemType(), typedMap);
+              typedMap = new HashMap<Long, CartLn>();
+              cartMap.put(ci.getItTyp(), typedMap);
             }
-            typedMap.put(ci.getItemId(), ci);
+            typedMap.put(ci.getItId(), ci);
           }
         }
         pRequestData.setAttribute("cartMap", cartMap);
