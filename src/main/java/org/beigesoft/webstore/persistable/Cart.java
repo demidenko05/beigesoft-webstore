@@ -25,8 +25,7 @@ import org.beigesoft.accounting.persistable.Currency;
  *
  * @author Yury Demidenko
  */
-public class Cart extends AEditableHasVersion
-  implements IHasId<OnlineBuyer> {
+public class Cart extends AEditableHasVersion implements IHasId<OnlineBuyer> {
 
   /**
    * <p>Buyer, PK.</p>
@@ -41,12 +40,12 @@ public class Cart extends AEditableHasVersion
   /**
    * <p>Total, not null.</p>
    **/
-  private BigDecimal tot;
+  private BigDecimal tot = BigDecimal.ZERO;
 
   /**
    * <p>Total taxes, not null.</p>
    **/
-  private BigDecimal totTx;
+  private BigDecimal totTx = BigDecimal.ZERO;
 
   /**
    * <p>Items.</p>

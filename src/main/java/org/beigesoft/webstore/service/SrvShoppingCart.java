@@ -15,13 +15,14 @@ package org.beigesoft.webstore.service;
 import java.util.Date;
 import java.util.Map;
 import java.util.List;
-import java.math.BigDecimal;
 
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.service.ISrvOrm;
+import org.beigesoft.accounting.persistable.Currency;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
 import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.webstore.persistable.CartLn;
+import org.beigesoft.webstore.persistable.CartTxLn;
 import org.beigesoft.webstore.persistable.TradingSettings;
 
 /**
@@ -89,11 +90,14 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       List<CartLn> cartItems = getSrvOrm()
         .retrieveListForField(pAddParam, ci, "itsOwner");
       shoppingCart.setItems(cartItems);
+      shoppingCart.setTaxes(getSrvOrm().retrieveListWithConditions(pAddParam,
+       CartTxLn.class, "where ITSOWNER=" + shoppingCart.getBuyer().getItsId()));
     } else if (pIsNeedToCreate) {
       shoppingCart = new Cart();
       shoppingCart.setItsId(onlineBuyer);
       shoppingCart.setBuyer(onlineBuyer);
-      shoppingCart.setTot(BigDecimal.ZERO);
+      Currency curr = (Currency) pAddParam.get("wscurr");
+      shoppingCart.setCurr(curr);
       getSrvOrm().insertEntity(pAddParam, shoppingCart);
     }
     return shoppingCart;

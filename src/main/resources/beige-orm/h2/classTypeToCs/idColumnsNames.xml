@@ -35,4 +35,5 @@
 <entry key="org.beigesoft.webstore.persistable.base.AItemPlace">item,pickUpPlace</entry>
 <entry key="org.beigesoft.webstore.persistable.base.AItemSpecifics">item,specifics</entry>
 <entry key="org.beigesoft.webstore.persistable.base.AItemCatalog">item,itsCatalog</entry>
+<entry key="org.beigesoft.webstore.persistable.CurrRate">curr</entry>
 </properties>

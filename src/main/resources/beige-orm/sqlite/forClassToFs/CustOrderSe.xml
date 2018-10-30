@@ -12,5 +12,4 @@
 <properties>
 <comment>Explicit final definition.</comment>
 <entry key="sellerdefinition">integer</entry>
-<entry key="sellerisNullable">true</entry>
 </properties>

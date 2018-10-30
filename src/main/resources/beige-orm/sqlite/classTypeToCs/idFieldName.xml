@@ -20,4 +20,5 @@
 <entry key="org.beigesoft.webstore.persistable.SeSeller">seller</entry>
 <entry key="org.beigesoft.webstore.persistable.Cart">buyer</entry>
 <entry key="org.beigesoft.webstore.persistable.I18nWebStore">lang</entry>
+<entry key="org.beigesoft.webstore.persistable.CurrRate">curr</entry>
 </properties>

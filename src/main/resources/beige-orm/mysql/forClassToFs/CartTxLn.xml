@@ -12,4 +12,6 @@
 <properties>
 <comment>Explicit final definition.</comment>
 <entry key="itsOwnerdefinition">bigint unsigned</entry>
+<entry key="sellerdefinition">bigint unsigned</entry>
+<entry key="sellerisNullable">true</entry>
 </properties>

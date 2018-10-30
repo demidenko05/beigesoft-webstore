@@ -188,6 +188,7 @@
   org.beigesoft.webstore.persistable.SeServicePrice,
   org.beigesoft.webstore.persistable.SeGoodsPlace,
   org.beigesoft.webstore.persistable.SeGoodCatalog,
+  org.beigesoft.webstore.persistable.CurrRate,
   org.beigesoft.webstore.persistable.SeServicePlace</entry>
 <entry key="settingsKeysForClasses">excludeFields</entry>
 <entry key="settingsKeysForFields">isEnabled, ISrvFieldWriter, ISrvEntityFieldFiller</entry>

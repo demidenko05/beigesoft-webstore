@@ -392,8 +392,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
       }
     }
     if (pRequestData.getAttribute("shoppingCart") != null) {
-      Cart shoppingCart = (Cart) pRequestData
-        .getAttribute("shoppingCart");
+      Cart shoppingCart = (Cart) pRequestData.getAttribute("shoppingCart");
       if (shoppingCart.getItems() != null) {
         Map<EShopItemType, Map<Long, CartLn>> cartMap =
           new HashMap<EShopItemType, Map<Long, CartLn>>();
