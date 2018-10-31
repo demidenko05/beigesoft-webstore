@@ -59,13 +59,16 @@
           <li>Cable 3ft - 1</li>
           <li>Wire GH - 23.3ft</li>
         </ul>
-        AItemPrice holds unit of measure to be printed, step of unit (default 1), and number of decimal places (0 default).
+        AItemPrice holds unit of measure to be printed in the catalog, step of unit (default 1), and number of decimal places (0 default).
         E.g.:
         <ul>
           <li>Wire GH 12USD, UOM ft, decimal places 0, step 1</li>
           <li>Wire GHA 12USD, UOM ft, decimal places 1, step 0.5</li>
           <li>Wire GHJ 32USD, UOM 4ft, decimal places 0, step 1</li>
         </ul>
+        Printing default UOM "each" in catalog is excessive, so it should be leave empty in ItemPrice for such items.
+        In the cart, order, invoice it will be assigned phantom variable <b>default UOM "each" ID=1</b> that presents "each",
+        i.e. it's used reserved ID <b>1</b> that must be same for any beigesoft-accounting-oio database.
       </p>
       <p>Pickup place. In case when buyer orders items that are in different places and buyer want to pickup
         them by itself, then it should be different orders (and final paid invoices) for each place.

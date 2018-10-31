@@ -28,13 +28,18 @@ import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.accounting.persistable.AccSettings;
+import org.beigesoft.accounting.persistable.UnitOfMeasure;
 import org.beigesoft.webstore.model.EShopItemType;
+import org.beigesoft.webstore.persistable.base.AItemPrice;
 import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.webstore.persistable.CartLn;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.persistable.BuyerPriceCategory;
 import org.beigesoft.webstore.persistable.PriceGoodsId;
 import org.beigesoft.webstore.persistable.PriceGoods;
+import org.beigesoft.webstore.persistable.ServicePrice;
+import org.beigesoft.webstore.persistable.SeServicePrice;
+import org.beigesoft.webstore.persistable.SeGoodsPrice;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
@@ -82,63 +87,65 @@ public class PrcItemInCart<RS> implements IProcessor {
     final IRequestData pRequestData) throws Exception {
     TradingSettings tradingSettings = (TradingSettings)
       pAddParam.get("tradingSettings");
-    Cart shoppingCart = this.srvShoppingCart
+    Cart cart = this.srvShoppingCart
       .getShoppingCart(pAddParam, pRequestData, true);
-    CartLn cartItem = null;
-    String cartItemItsIdStr = pRequestData.getParameter("cartItemItsId");
-    String cartItemQuantityStr = pRequestData
-      .getParameter("cartItemQuantity");
-    String cartItemAvailableQuantityStr = pRequestData
-      .getParameter("cartItemAvailableQuantity");
-    BigDecimal cartItemQuantity = new BigDecimal(cartItemQuantityStr);
-    BigDecimal cartItemAvailableQuantity =
-      new BigDecimal(cartItemAvailableQuantityStr);
-    String cartItemIdStr = pRequestData.getParameter("cartItemId");
-    String cartItemTypeStr = pRequestData.getParameter("cartItemType");
-    Long cartItemId = Long.valueOf(cartItemIdStr);
-    EShopItemType cartItemType = EShopItemType.class.
-      getEnumConstants()[Integer.parseInt(cartItemTypeStr)];
-    if (cartItemItsIdStr != null) { //change quantity
-      Long cartItemItsId = Long.valueOf(cartItemItsIdStr);
-      cartItem = findCartItemById(shoppingCart, cartItemItsId);
+    CartLn cartLn = null;
+    String lnIdStr = pRequestData.getParameter("lnId");
+    String quantStr = pRequestData.getParameter("quant");
+    String avQuanStr = pRequestData.getParameter("avQuan");
+    BigDecimal quant = new BigDecimal(quantStr);
+    BigDecimal avQuan = new BigDecimal(avQuanStr);
+    String itIdStr = pRequestData.getParameter("itId");
+    String itTypStr = pRequestData.getParameter("itTyp");
+    Long itId = Long.valueOf(itIdStr);
+    EShopItemType itTyp = EShopItemType.class.
+      getEnumConstants()[Integer.parseInt(itTypStr)];
+    if (lnIdStr != null) { //change quantity
+      Long lnId = Long.valueOf(lnIdStr);
+      cartLn = findCartItemById(cart, lnId);
     } else { //add
-      if (shoppingCart.getItems() == null) {
-        shoppingCart.setItems(new ArrayList<CartLn>());
-        cartItem = createCartItem(shoppingCart);
+      String uomIdStr = pRequestData.getParameter("uomId");
+      Long uomId = Long.valueOf(uomIdStr);
+      if (cart.getItems() == null) {
+        cart.setItems(new ArrayList<CartLn>());
+        cartLn = createCartItem(cart);
       } else {
-        for (CartLn ci : shoppingCart.getItems()) {
+        for (CartLn ci : cart.getItems()) {
           //check for duplicate
-          if (!ci.getDisab() && ci.getItTyp().equals(cartItemType)
-            && ci.getItId().equals(cartItemId)) {
-            cartItem = ci;
+          if (!ci.getDisab() && ci.getItTyp().equals(itTyp)
+            && ci.getItId().equals(itId)) {
+            cartLn = ci;
             break;
           }
         }
-        if (cartItem == null) {
-          for (CartLn ci : shoppingCart.getItems()) {
+        if (cartLn == null) {
+          for (CartLn ci : cart.getItems()) {
             if (ci.getDisab()) {
-              cartItem = ci;
-              cartItem.setDisab(false);
+              cartLn = ci;
+              cartLn.setDisab(false);
               break;
             }
           }
         }
-        if (cartItem == null) {
-          cartItem = createCartItem(shoppingCart);
+        if (cartLn == null) {
+          cartLn = createCartItem(cart);
         }
       }
-      cartItem.setItId(cartItemId);
-      cartItem.setItTyp(cartItemType);
+      UnitOfMeasure uom = new UnitOfMeasure();
+      uom.setItsId(uomId);
+      cartLn.setUom(uom);
+      cartLn.setItId(itId);
+      cartLn.setItTyp(itTyp);
       BigDecimal price = null;
       if (tradingSettings.getIsUsePriceForCustomer()) {
         //try to reveal price dedicated for customer:
         List<BuyerPriceCategory> buyerPrCats = this.getSrvOrm()
           .retrieveListWithConditions(pAddParam, BuyerPriceCategory.class,
-            "where BUYER=" + shoppingCart.getBuyer().getItsId());
+            "where BUYER=" + cart.getBuyer().getItsId());
         for (BuyerPriceCategory buyerPrCat : buyerPrCats) {
-          if (cartItemType.equals(EShopItemType.GOODS)) {
+          if (itTyp.equals(EShopItemType.GOODS)) {
             InvItem goods = new InvItem();
-            goods.setItsId(cartItemId);
+            goods.setItsId(itId);
             PriceGoodsId gpId = new PriceGoodsId();
             gpId.setItem(goods);
             gpId.setPriceCategory(buyerPrCat.getPriceCategory());
@@ -148,7 +155,7 @@ public class PrcItemInCart<RS> implements IProcessor {
               retrieveEntity(pAddParam, goodsPrice);
             if (goodsPrice != null) {
               price = goodsPrice.getItsPrice();
-              cartItem.setItsName(goodsPrice.getItem().getItsName());
+              cartLn.setItsName(goodsPrice.getItem().getItsName());
               break;
             }
           }
@@ -157,40 +164,45 @@ public class PrcItemInCart<RS> implements IProcessor {
       }
       if (price == null) {
         //retrieve price for all:
-        if (cartItemType.equals(EShopItemType.GOODS)) {
-          List<PriceGoods> goodsPrices = this.getSrvOrm().
-            retrieveListWithConditions(pAddParam, PriceGoods.class,
-              "where GOODS=" + cartItemId);
-          if (goodsPrices.size() == 0) {
-            throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
-              "requested_item_has_no_price");
-          }
-          if (goodsPrices.size() > 1) {
-            throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
-              "requested_item_has_several_prices");
-          }
-          price = goodsPrices.get(0).getItsPrice();
-          cartItem.setItsName(goodsPrices.get(0).getItem().getItsName());
+        Class<?> itepPriceCl;
+        if (itTyp.equals(EShopItemType.GOODS)) {
+          itepPriceCl = PriceGoods.class;
+        } else if (itTyp.equals(EShopItemType.SERVICE)) {
+          itepPriceCl = ServicePrice.class;
+        } else if (itTyp.equals(EShopItemType.SESERVICE)) {
+          itepPriceCl = SeServicePrice.class;
         } else {
-            throw new ExceptionWithCode(ExceptionWithCode.NOT_YET_IMPLEMENTED,
-              "add_service_se_not_impl");
-          //TODO Services, SE G/S
+          itepPriceCl = SeGoodsPrice.class;
         }
+        @SuppressWarnings("unchecked")
+        List<AItemPrice<?,?>> itPrices = (List<AItemPrice<?,?>>)
+          this.getSrvOrm().retrieveListWithConditions(pAddParam, itepPriceCl,
+            "where ITEM=" + itId);
+        if (itPrices.size() == 0) {
+          throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
+            "requested_item_has_no_price");
+        }
+        if (itPrices.size() > 1) {
+          throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
+            "requested_item_has_several_prices");
+        }
+        price = itPrices.get(0).getItsPrice();
+        cartLn.setItsName(itPrices.get(0).getItem().getItsName());
       }
-      cartItem.setPrice(price);
+      cartLn.setPrice(price);
     }
-    cartItem.setTotTx(BigDecimal.ZERO);
-    cartItem.setQuant(cartItemQuantity);
-    cartItem.setAvQuan(cartItemAvailableQuantity);
-    cartItem.setSubt(cartItem.getPrice().multiply(cartItem.getQuant()));
-    cartItem.setTot(cartItem.getSubt().add(cartItem.getTotTx()));
-    if (cartItem.getIsNew()) {
-      this.getSrvOrm().insertEntity(pAddParam, cartItem);
+    cartLn.setTotTx(BigDecimal.ZERO);
+    cartLn.setQuant(quant);
+    cartLn.setAvQuan(avQuan);
+    cartLn.setSubt(cartLn.getPrice().multiply(cartLn.getQuant()));
+    cartLn.setTot(cartLn.getSubt().add(cartLn.getTotTx()));
+    if (cartLn.getIsNew()) {
+      this.getSrvOrm().insertEntity(pAddParam, cartLn);
     } else {
-      this.getSrvOrm().updateEntity(pAddParam, cartItem);
+      this.getSrvOrm().updateEntity(pAddParam, cartLn);
     }
     String query = lazyGetQueryCartTotals();
-    query = query.replace(":CARTID", shoppingCart.getItsId()
+    query = query.replace(":CARTID", cart.getItsId()
       .getItsId().toString());
     String[] columns = new String[]{"ITSTOTAL"};
     Double[] totals = this.getSrvDatabase()
@@ -199,11 +211,11 @@ public class PrcItemInCart<RS> implements IProcessor {
       totals[0] = 0d;
     }
     AccSettings accSettings = (AccSettings) pAddParam.get("accSettings");
-    shoppingCart.setTot(BigDecimal.valueOf(totals[0]).
+    cart.setTot(BigDecimal.valueOf(totals[0]).
       setScale(accSettings.getPricePrecision(), accSettings.getRoundingMode()));
-    this.getSrvOrm().updateEntity(pAddParam, shoppingCart);
-    pRequestData.setAttribute("shoppingCart", shoppingCart);
-    String processorName = pRequestData.getParameter("nmPrcRedirect");
+    this.getSrvOrm().updateEntity(pAddParam, cart);
+    pRequestData.setAttribute("cart", cart);
+    String processorName = pRequestData.getParameter("nmPrcRed");
     IProcessor proc = this.processorsFactory.lazyGet(pAddParam, processorName);
     proc.process(pAddParam, pRequestData);
   }
@@ -217,22 +229,22 @@ public class PrcItemInCart<RS> implements IProcessor {
    **/
   public final CartLn findCartItemById(final Cart pShoppingCart,
     final Long pCartItemItsId) throws Exception {
-    CartLn cartItem = null;
+    CartLn cartLn = null;
     for (CartLn ci : pShoppingCart.getItems()) {
       if (ci.getItsId().equals(pCartItemItsId)) {
         if (ci.getDisab()) {
           throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
             "requested_item_disabled");
         }
-        cartItem = ci;
+        cartLn = ci;
         break;
       }
     }
-    if (cartItem == null) {
+    if (cartLn == null) {
       throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
         "requested_item_not_found");
     }
-    return cartItem;
+    return cartLn;
   }
 
   /**
@@ -240,14 +252,13 @@ public class PrcItemInCart<RS> implements IProcessor {
    * @param pShoppingCart cart
    * @return cart item
    **/
-  public final CartLn createCartItem(
-    final Cart pShoppingCart) {
-    CartLn cartItem = new CartLn();
-    cartItem.setIsNew(true);
-    cartItem.setDisab(false);
-    cartItem.setItsOwner(pShoppingCart);
-    pShoppingCart.getItems().add(cartItem);
-    return cartItem;
+  public final CartLn createCartItem(final Cart pShoppingCart) {
+    CartLn cartLn = new CartLn();
+    cartLn.setIsNew(true);
+    cartLn.setDisab(false);
+    cartLn.setItsOwner(pShoppingCart);
+    pShoppingCart.getItems().add(cartLn);
+    return cartLn;
   }
 
   /**

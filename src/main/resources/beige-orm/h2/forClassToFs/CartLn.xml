@@ -15,4 +15,5 @@
 <entry key="itsOwnerdefinition">bigint</entry>
 <entry key="sellerdefinition">bigint</entry>
 <entry key="sellerisNullable">true</entry>
+<entry key="txDscisNullable">true</entry>
 </properties>

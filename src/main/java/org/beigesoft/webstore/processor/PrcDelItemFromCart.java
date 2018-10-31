@@ -77,12 +77,12 @@ public class PrcDelItemFromCart<RS> implements IProcessor {
       throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
         "there_is_no_cart_for_requestor");
     }
-    String cartItemItsIdStr = pRequestData.getParameter("cartItemItsId");
-    if (cartItemItsIdStr != null) {
-      Long cartItemItsId = Long.valueOf(cartItemItsIdStr);
+    String lnIdStr = pRequestData.getParameter("lnId");
+    if (lnIdStr != null) {
+      Long lnId = Long.valueOf(lnIdStr);
       CartLn cartItem = null;
       for (CartLn ci : shoppingCart.getItems()) {
-        if (ci.getItsId().equals(cartItemItsId)) {
+        if (ci.getItsId().equals(lnId)) {
           if (ci.getDisab()) {
             throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
               "requested_item_disabled");

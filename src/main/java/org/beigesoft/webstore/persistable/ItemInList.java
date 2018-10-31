@@ -144,7 +144,11 @@ public class ItemInList extends AHasNameIdLongVersion {
   private Integer detailsMethod;
 
   /**
-   * <p>Unit Of Measure, optional, e.g. per night or per hour.</p>
+   * <p>Unit Of Measure, optional, e.g. per night or per hour.
+   * It's used to print non-default UOM in catalog, e.g. 2USD per hour.
+   * If item has no unit of measure, then default UOM "each"
+   * will be used for other purposes, e.g. in the shopping cart.
+   * </p>
    **/
   private UnitOfMeasure unitOfMeasure;
 

@@ -115,7 +115,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       final IRequestData pRequestData) throws Exception {
     OnlineBuyer onlineBuyer = new OnlineBuyer();
     onlineBuyer.setIsNew(true);
-    onlineBuyer.setItsName("newbe" + new Date());
+    onlineBuyer.setItsName("newbe" + new Date().getTime());
     getSrvOrm().insertEntity(pAddParam, onlineBuyer);
     return onlineBuyer;
   }
