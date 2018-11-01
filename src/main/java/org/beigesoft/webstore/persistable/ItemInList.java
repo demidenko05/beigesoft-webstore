@@ -1,7 +1,7 @@
 package org.beigesoft.webstore.persistable;
 
 /*
- * Copyright (c) 2017 Beigesoft ™
+ * Copyright (c) 2017 Beigesoft™
  *
  * Licensed under the GNU General Public License (GPL), Version 2.0
  * (the "License");
@@ -20,9 +20,10 @@ import org.beigesoft.persistable.AHasNameIdLongVersion;
 import org.beigesoft.accounting.persistable.UnitOfMeasure;
 
 /**
- * <pre>
+ * <p>
  * Model of goods or service in list for improving performance.
- * </pre>
+ * This is actually cache of data from several tables gathered in one table.
+ * </p>
  *
  * @author Yury Demidenko
  */
@@ -151,6 +152,13 @@ public class ItemInList extends AHasNameIdLongVersion {
    * </p>
    **/
   private UnitOfMeasure unitOfMeasure;
+
+  /**
+   * <p>Quantity step, 1 default,
+   * e.g. 12USD per 0.5ft, UOM ft, ST=0.5, so
+   * buyer can order 0.5/1.0/1.5/2.0/etc. units of item.</p>
+   **/
+  private BigDecimal unStep = BigDecimal.ONE;
 
   //Simple getters and setters:
   /**
@@ -487,5 +495,21 @@ public class ItemInList extends AHasNameIdLongVersion {
    **/
   public final void setUnitOfMeasure(final UnitOfMeasure pUnitOfMeasure) {
     this.unitOfMeasure = pUnitOfMeasure;
+  }
+
+  /**
+   * <p>Getter for unStep.</p>
+   * @return BigDecimal
+   **/
+  public final BigDecimal getUnStep() {
+    return this.unStep;
+  }
+
+  /**
+   * <p>Setter for unStep.</p>
+   * @param pUnStep reference
+   **/
+  public final void setUnStep(final BigDecimal pUnStep) {
+    this.unStep = pUnStep;
   }
 }

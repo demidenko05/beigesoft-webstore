@@ -59,16 +59,22 @@
           <li>Cable 3ft - 1</li>
           <li>Wire GH - 23.3ft</li>
         </ul>
-        AItemPrice holds unit of measure to be printed in the catalog, step of unit (default 1), and number of decimal places (0 default).
+        AItemPrice holds unit of measure to be printed in the catalog and step of unit (default 1).
         E.g.:
         <ul>
-          <li>Wire GH 12USD, UOM ft, decimal places 0, step 1</li>
-          <li>Wire GHA 12USD, UOM ft, decimal places 1, step 0.5</li>
-          <li>Wire GHJ 32USD, UOM 4ft, decimal places 0, step 1</li>
+          <li>Wire GH 12USD, UOM ft, step 1 -> 1, 2, 3, etc.</li>
+          <li>Wire GHA 12USD, UOM ft, step 0.5 -> 0.5, 1, 1.5, etc.</li>
+          <li>Wire GHJ 32USD, UOM 4ft, step 1, -> 4, 8, 12, etc.</li>
         </ul>
         Printing default UOM "each" in catalog is excessive, so it should be leave empty in ItemPrice for such items.
         In the cart, order, invoice it will be assigned phantom variable <b>default UOM "each" ID=1</b> that presents "each",
         i.e. it's used reserved ID <b>1</b> that must be same for any beigesoft-accounting-oio database.
+        Database holds quantity with 4 decimal  places (configured with Beige-ORM XML files).
+        Accounting settings "quantity precision" holds number of decimal placed (less or equals 4) to which decimal number will be rounded and trailing zeros will be printed in invoice.
+        There is no need to print trailing zeros in web-store's catalog or cart, so quantity <b>1.0</b> will be printed as <b>1</b>.
+        If there is need to use and print in invoice (or catalog) different quantity precision for different goods, then item should has property <b>decimal places</b>.
+        "Item price " property "unit step" can be used to reveal decimal places, e.g. "step 1.0 -> 0 DP", "step 0.25 -> 2 DP" and print trailing zeros in catalog and cart.
+        HTML widget "input quantity" uses "unit step" to increasing, decreasing and rounding "item's quantity".
       </p>
       <p>Pickup place. In case when buyer orders items that are in different places and buyer want to pickup
         them by itself, then it should be different orders (and final paid invoices) for each place.

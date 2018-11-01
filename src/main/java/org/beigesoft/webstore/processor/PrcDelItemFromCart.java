@@ -112,7 +112,7 @@ public class PrcDelItemFromCart<RS> implements IProcessor {
           accSettings.getRoundingMode()));
       this.getSrvOrm().updateEntity(pAddParam, shoppingCart);
       pRequestData.setAttribute("shoppingCart", shoppingCart);
-      String processorName = pRequestData.getParameter("nmPrcRedirect");
+      String processorName = pRequestData.getParameter("nmPrcRed");
       IProcessor proc = this.processorsFactory
         .lazyGet(pAddParam, processorName);
       proc.process(pAddParam, pRequestData);

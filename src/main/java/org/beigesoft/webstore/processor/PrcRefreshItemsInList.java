@@ -388,6 +388,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
       itemInList = createItemInList(pReqVars, pItemPrice.getItem());
     }
     itemInList.setItsPrice(pItemPrice.getItsPrice());
+    itemInList.setUnStep(pItemPrice.getUnStep());
     itemInList.setPreviousPrice(pItemPrice.getPreviousPrice());
     itemInList.setUnitOfMeasure(pItemPrice.getUnitOfMeasure());
     if (itemInList.getIsNew()) {

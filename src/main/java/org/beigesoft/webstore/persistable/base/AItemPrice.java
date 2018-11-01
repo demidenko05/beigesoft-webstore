@@ -52,17 +52,11 @@ public abstract class
   private UnitOfMeasure unitOfMeasure;
 
   /**
-   * <p>Number of decimal places, it's used together with UOM,
-   * e.g. 4.5 hours, 0.123lb, etc, 0 default.</p>
-   **/
-  private Integer decPlaces = 0;
-
-  /**
    * <p>Quantity step, 1 default,
-   * e.g. 12USD per 0.5ft, UOM ft, DP=1, ST=0.5, so
+   * e.g. 12USD per 0.5ft, UOM ft, ST=0.5, so
    * buyer can order 0.5/1.0/1.5/2.0/etc. units of item.</p>
    **/
-  private BigDecimal uStep = BigDecimal.ONE;
+  private BigDecimal unStep = BigDecimal.ONE;
 
   /**
    * <p>Setter for pPriceCategory.</p>
@@ -138,34 +132,18 @@ public abstract class
   }
 
   /**
-   * <p>Getter for decPlaces.</p>
-   * @return Integer
-   **/
-  public final Integer getDecPlaces() {
-    return this.decPlaces;
-  }
-
-  /**
-   * <p>Setter for decPlaces.</p>
-   * @param pDecPlaces reference
-   **/
-  public final void setDecPlaces(final Integer pDecPlaces) {
-    this.decPlaces = pDecPlaces;
-  }
-
-  /**
-   * <p>Getter for uStep.</p>
+   * <p>Getter for unStep.</p>
    * @return BigDecimal
    **/
-  public final BigDecimal getUStep() {
-    return this.uStep;
+  public final BigDecimal getUnStep() {
+    return this.unStep;
   }
 
   /**
-   * <p>Setter for uStep.</p>
-   * @param pUStep reference
+   * <p>Setter for unStep.</p>
+   * @param pUnStep reference
    **/
-  public final void setUStep(final BigDecimal pUStep) {
-    this.uStep = pUStep;
+  public final void setUnStep(final BigDecimal pUnStep) {
+    this.unStep = pUnStep;
   }
 }

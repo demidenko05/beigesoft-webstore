@@ -29,6 +29,7 @@ import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.accounting.persistable.AccSettings;
 import org.beigesoft.accounting.persistable.UnitOfMeasure;
+import org.beigesoft.accounting.persistable.ServiceToSale;
 import org.beigesoft.webstore.model.EShopItemType;
 import org.beigesoft.webstore.persistable.base.AItemPrice;
 import org.beigesoft.webstore.persistable.Cart;
@@ -38,8 +39,13 @@ import org.beigesoft.webstore.persistable.BuyerPriceCategory;
 import org.beigesoft.webstore.persistable.PriceGoodsId;
 import org.beigesoft.webstore.persistable.PriceGoods;
 import org.beigesoft.webstore.persistable.ServicePrice;
+import org.beigesoft.webstore.persistable.ServicePriceId;
+import org.beigesoft.webstore.persistable.SeService;
 import org.beigesoft.webstore.persistable.SeServicePrice;
+import org.beigesoft.webstore.persistable.SeServicePriceId;
+import org.beigesoft.webstore.persistable.SeGoods;
 import org.beigesoft.webstore.persistable.SeGoodsPrice;
+import org.beigesoft.webstore.persistable.SeGoodsPriceId;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
@@ -78,17 +84,17 @@ public class PrcItemInCart<RS> implements IProcessor {
 
   /**
    * <p>Process entity request.</p>
-   * @param pAddParam additional param
+   * @param pReqVars request scoped vars
    * @param pRequestData Request Data
    * @throws Exception - an exception
    **/
   @Override
-  public final void process(final Map<String, Object> pAddParam,
+  public final void process(final Map<String, Object> pReqVars,
     final IRequestData pRequestData) throws Exception {
-    TradingSettings tradingSettings = (TradingSettings)
-      pAddParam.get("tradingSettings");
+    TradingSettings ts = (TradingSettings)
+      pReqVars.get("tradingSettings");
     Cart cart = this.srvShoppingCart
-      .getShoppingCart(pAddParam, pRequestData, true);
+      .getShoppingCart(pReqVars, pRequestData, true);
     CartLn cartLn = null;
     String lnIdStr = pRequestData.getParameter("lnId");
     String quantStr = pRequestData.getParameter("quant");
@@ -136,60 +142,14 @@ public class PrcItemInCart<RS> implements IProcessor {
       cartLn.setUom(uom);
       cartLn.setItId(itId);
       cartLn.setItTyp(itTyp);
-      BigDecimal price = null;
-      if (tradingSettings.getIsUsePriceForCustomer()) {
-        //try to reveal price dedicated for customer:
-        List<BuyerPriceCategory> buyerPrCats = this.getSrvOrm()
-          .retrieveListWithConditions(pAddParam, BuyerPriceCategory.class,
-            "where BUYER=" + cart.getBuyer().getItsId());
-        for (BuyerPriceCategory buyerPrCat : buyerPrCats) {
-          if (itTyp.equals(EShopItemType.GOODS)) {
-            InvItem goods = new InvItem();
-            goods.setItsId(itId);
-            PriceGoodsId gpId = new PriceGoodsId();
-            gpId.setItem(goods);
-            gpId.setPriceCategory(buyerPrCat.getPriceCategory());
-            PriceGoods goodsPrice = new PriceGoods();
-            goodsPrice.setItsId(gpId);
-            goodsPrice = this.getSrvOrm().
-              retrieveEntity(pAddParam, goodsPrice);
-            if (goodsPrice != null) {
-              price = goodsPrice.getItsPrice();
-              cartLn.setItsName(goodsPrice.getItem().getItsName());
-              break;
-            }
-          }
-          //TODO Services, SE G/S
-        }
+      AItemPrice<?, ?> itPrice = revialItemPrice(pReqVars, ts, cart,
+        itTyp, itId);
+      cartLn.setItsName(itPrice.getItem().getItsName());
+      BigDecimal qosr = quant.remainder(itPrice.getUnStep());
+      if (qosr.compareTo(BigDecimal.ZERO) != 0) {
+        quant = quant.subtract(qosr);
       }
-      if (price == null) {
-        //retrieve price for all:
-        Class<?> itepPriceCl;
-        if (itTyp.equals(EShopItemType.GOODS)) {
-          itepPriceCl = PriceGoods.class;
-        } else if (itTyp.equals(EShopItemType.SERVICE)) {
-          itepPriceCl = ServicePrice.class;
-        } else if (itTyp.equals(EShopItemType.SESERVICE)) {
-          itepPriceCl = SeServicePrice.class;
-        } else {
-          itepPriceCl = SeGoodsPrice.class;
-        }
-        @SuppressWarnings("unchecked")
-        List<AItemPrice<?,?>> itPrices = (List<AItemPrice<?,?>>)
-          this.getSrvOrm().retrieveListWithConditions(pAddParam, itepPriceCl,
-            "where ITEM=" + itId);
-        if (itPrices.size() == 0) {
-          throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
-            "requested_item_has_no_price");
-        }
-        if (itPrices.size() > 1) {
-          throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
-            "requested_item_has_several_prices");
-        }
-        price = itPrices.get(0).getItsPrice();
-        cartLn.setItsName(itPrices.get(0).getItem().getItsName());
-      }
-      cartLn.setPrice(price);
+      cartLn.setPrice(itPrice.getItsPrice());
     }
     cartLn.setTotTx(BigDecimal.ZERO);
     cartLn.setQuant(quant);
@@ -197,10 +157,11 @@ public class PrcItemInCart<RS> implements IProcessor {
     cartLn.setSubt(cartLn.getPrice().multiply(cartLn.getQuant()));
     cartLn.setTot(cartLn.getSubt().add(cartLn.getTotTx()));
     if (cartLn.getIsNew()) {
-      this.getSrvOrm().insertEntity(pAddParam, cartLn);
+      this.getSrvOrm().insertEntity(pReqVars, cartLn);
     } else {
-      this.getSrvOrm().updateEntity(pAddParam, cartLn);
+      this.getSrvOrm().updateEntity(pReqVars, cartLn);
     }
+    //TODO total from already loaded cart:
     String query = lazyGetQueryCartTotals();
     query = query.replace(":CARTID", cart.getItsId()
       .getItsId().toString());
@@ -210,14 +171,119 @@ public class PrcItemInCart<RS> implements IProcessor {
     if (totals[0] == null) {
       totals[0] = 0d;
     }
-    AccSettings accSettings = (AccSettings) pAddParam.get("accSettings");
+    AccSettings accSettings = (AccSettings) pReqVars.get("accSettings");
     cart.setTot(BigDecimal.valueOf(totals[0]).
       setScale(accSettings.getPricePrecision(), accSettings.getRoundingMode()));
-    this.getSrvOrm().updateEntity(pAddParam, cart);
+    this.getSrvOrm().updateEntity(pReqVars, cart);
     pRequestData.setAttribute("cart", cart);
     String processorName = pRequestData.getParameter("nmPrcRed");
-    IProcessor proc = this.processorsFactory.lazyGet(pAddParam, processorName);
-    proc.process(pAddParam, pRequestData);
+    IProcessor proc = this.processorsFactory.lazyGet(pReqVars, processorName);
+    proc.process(pReqVars, pRequestData);
+  }
+
+  /**
+   * <p>Reveals item's price descriptor.</p>
+   * @param pReqVars request scoped vars
+   * @param pTs TradingSettings
+   * @param pCart cart
+   * @param pItType Item Type
+   * @param pItId Item ID
+   * @return item's price descriptor or exception
+   * @throws Exception - an exception
+   **/
+  public final AItemPrice<?, ?> revialItemPrice(
+    final Map<String, Object> pReqVars, final TradingSettings pTs,
+      final Cart pCart, final EShopItemType pItType,
+        final Long pItId) throws Exception {
+    AItemPrice<?, ?> itPrice = null;
+    if (pTs.getIsUsePriceForCustomer()) {
+      //try to reveal price dedicated to customer:
+      List<BuyerPriceCategory> buyerPrCats = this.getSrvOrm()
+        .retrieveListWithConditions(pReqVars, BuyerPriceCategory.class,
+          "where BUYER=" + pCart.getBuyer().getItsId());
+      for (BuyerPriceCategory buyerPrCat : buyerPrCats) {
+        if (pItType.equals(EShopItemType.GOODS)) {
+          InvItem item = new InvItem();
+          item.setItsId(pItId);
+          PriceGoodsId pIpId = new PriceGoodsId();
+          pIpId.setItem(item);
+          pIpId.setPriceCategory(buyerPrCat.getPriceCategory());
+          PriceGoods itPr = new PriceGoods();
+          itPr.setItsId(pIpId);
+          itPr = this.getSrvOrm().retrieveEntity(pReqVars, itPr);
+          if (itPr != null) {
+            itPrice = itPr;
+            break;
+          }
+        } else if (pItType.equals(EShopItemType.SERVICE)) {
+          ServiceToSale item = new ServiceToSale();
+          item.setItsId(pItId);
+          ServicePriceId pIpId = new ServicePriceId();
+          pIpId.setItem(item);
+          pIpId.setPriceCategory(buyerPrCat.getPriceCategory());
+          ServicePrice itPr = new ServicePrice();
+          itPr.setItsId(pIpId);
+          itPr = this.getSrvOrm().retrieveEntity(pReqVars, itPr);
+          if (itPr != null) {
+            itPrice = itPr;
+            break;
+          }
+        } else if (pItType.equals(EShopItemType.SESERVICE)) {
+          SeService item = new SeService();
+          item.setItsId(pItId);
+          SeServicePriceId pIpId = new SeServicePriceId();
+          pIpId.setItem(item);
+          pIpId.setPriceCategory(buyerPrCat.getPriceCategory());
+          SeServicePrice itPr = new SeServicePrice();
+          itPr.setItsId(pIpId);
+          itPr = this.getSrvOrm().retrieveEntity(pReqVars, itPr);
+          if (itPr != null) {
+            itPrice = itPr;
+            break;
+          }
+        } else {
+          SeGoods item = new SeGoods();
+          item.setItsId(pItId);
+          SeGoodsPriceId pIpId = new SeGoodsPriceId();
+          pIpId.setItem(item);
+          pIpId.setPriceCategory(buyerPrCat.getPriceCategory());
+          SeGoodsPrice itPr = new SeGoodsPrice();
+          itPr.setItsId(pIpId);
+          itPr = this.getSrvOrm().retrieveEntity(pReqVars, itPr);
+          if (itPr != null) {
+            itPrice = itPr;
+            break;
+          }
+        }
+      }
+    }
+    if (itPrice == null) {
+      //retrieve price for all:
+      Class<?> itepPriceCl;
+      if (pItType.equals(EShopItemType.GOODS)) {
+        itepPriceCl = PriceGoods.class;
+      } else if (pItType.equals(EShopItemType.SERVICE)) {
+        itepPriceCl = ServicePrice.class;
+      } else if (pItType.equals(EShopItemType.SESERVICE)) {
+        itepPriceCl = SeServicePrice.class;
+      } else {
+        itepPriceCl = SeGoodsPrice.class;
+      }
+      @SuppressWarnings("unchecked")
+      List<AItemPrice<?, ?>> itPrices = (List<AItemPrice<?, ?>>)
+        this.getSrvOrm().retrieveListWithConditions(pReqVars, itepPriceCl,
+          "where ITEM=" + pItId);
+      if (itPrices.size() == 0) {
+        throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
+          "requested_item_has_no_price");
+      }
+      if (itPrices.size() > 1) {
+        throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
+          "requested_item_has_several_prices");
+      }
+      itPrice = itPrices.get(0);
+    }
+    return itPrice;
   }
 
   /**

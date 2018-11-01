@@ -82,6 +82,9 @@ public class BaseTest {
     assertTrue(tc1l.getSubcatalogs().size() == 2);
     assertEquals(3, subcgs.size());
     assertEquals(3, fltCat.getItemsAll().size());
+    BigDecimal quant = new BigDecimal("2.28");
+    BigDecimal uStep = new BigDecimal("0.25");
+    BigDecimal qosr = quant.remainder(uStep);
+    assertEquals(qosr.compareTo(new BigDecimal("0.03")), 0);
   }
-
 }
