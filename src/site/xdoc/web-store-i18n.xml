@@ -21,7 +21,7 @@
          <li>decimal and decimal group separators</li>
        </ul>
        But sometimes user want to change only language. User also can prefer other decimal separators (not from bundle).
-       Consequently using three cookies "lang", "dseparator" and "dgseparator" is the best choice.
+       Consequently using three cookies "lang", "decSep" and "decGrSep" is the best choice.
       </p>
       <p>It can be extended with storing preferences in database for registered users.</p>
       <p>Persistable model org.beigesoft.persistable.AI18nFeature:
@@ -57,7 +57,7 @@
           <li>country - Countries</li>
           <li>decimalSep - DecimalSeparator</li>
           <li>decimalGroupSep - DecimalGroupSeparator</li>
-          <li>digitsInGroup - Integer, digits in group e.g. 2 for "1 21 23,90", default 3</li>
+          <li>digInGr - Integer, digits in group e.g. 2 for "1 21 23,90", default 3</li>
           <li>isDefault - Boolean, false default</li>
         </ul>
         Pair[lang, country] is PK. This model holds default preferences for countries in the database and user preferences for its request.
@@ -67,12 +67,12 @@
       <p>
         At the first client request javax.servlet.ServletRequest.getLocale() gets preferred client locale (language and country)
         then program responds with cookies filled from the same LangPreferences or default if there is no such localization (messages for this language).
-        Program also sets request variables lang, dseparator, dgseparator, languages, decimalGroupSeparators and decimalSeparators to JSP that will handles language, separator view and form to change user preferences.
-        Program also sets request variables dseparatorv, dgseparatorv where "space" is substituted with " ".
+        Program also sets request variables lang, decSep, decGrSep, languages, decGrSeps and decSeps to JSP that will handles language, separator view and form to change user preferences.
+        Program also sets request variables decSepv, decGrSepv where "space" is substituted with " ".
         For further requests langPreferences will be filled with cookies that user can change.
         In browser decimal separators is handled by JQuery plugin "autoNumeric.js" then form sends exactly formatted value,
         e.g. "12'123,13", where "'" group separator and "," decimal one.
-        Converter CnvTfsBigDecimal will replace separators (according reqVars["dseparatorv"], etc.) then passes standard value ("13123.13" in this case) to the constructor.
+        Converter CnvTfsBigDecimal will replace separators (according reqVars["decSepv"], etc.) then passes standard value ("13123.13" in this case) to the constructor.
       </p>
       <p>Service transactional org.beigesoft.handler.HndlI18nRequest handles server-side logic above. It caches lists of LangPreferences, DecimalGroupSeparator, DecimalSeparator, Languages and implements IHandlerDataChanged,
         so a service that changes any entity (LangPreferences, Languages...) should invoke listeners to refresh cache.
@@ -245,37 +245,35 @@ left join (
       <p>
         <h4>All request scoped I18N and other variables (include Accounting and Web-Store) that passed to JSP in reqVars:</h4>
         <ul>
-          <li>localeCurrent - current request scoped locale to I18N of JSTL e.g. "fmt:formatDate" and standard Java services.</li>
-          <li>dseparator - String, decimal separator e.g. "."</li>
-          <li>dseparatorv - String, decimal separator reformed e.g. "."</li>
-          <li>dgseparator - String, decimal group separator e.g. "space"</li>
-          <li>dgseparatorv - String, decimal group separator reformed e.g. " "</li>
-          <li>digitsInGroup - Integer, digits in group e.g. 2 for "1 21 23,90"</li>
+          <li>localeCurr - current request scoped locale to I18N of JSTL e.g. "fmt:formatDate" and standard Java services.</li>
+          <li>decSep - String, decimal separator e.g. "."</li>
+          <li>decSepv - String, decimal separator reformed e.g. "."</li>
+          <li>decGrSep - String, decimal group separator e.g. "space"</li>
+          <li>decGrSepv - String, decimal group separator reformed e.g. " "</li>
+          <li>digInGr - Integer, digits in group e.g. 2 for "1 21 23,90"</li>
           <li>lang - String, language code e.g. "en"</li>
           <li>langDef - String, default language code e.g. "en"</li>
           <li>languages - List&lt;Languages&gt; languages list</li>
-          <li>decimalSeparators - List&lt;DecimalSeparator&gt; decimal separators list</li>
-          <li>decimalGroupSeparators - List&lt;DecimalGroupSeparator&gt; decimal separators list</li>
+          <li>decSeps - List&lt;DecimalSeparator&gt; decimal separators list</li>
+          <li>decGrSeps - List&lt;DecimalGroupSeparator&gt; decimal separators list</li>
           <li>countryFlag - String, country flag code, may be omitted, e.g. "us" for language "en"</li>
           <li><b>Real values is implemented by accounting (if where is no farther sub-handler then they will be set to default):</b></li>
-          <li>quantityPrecision - Integer, quantity precision (decimal places after dot) default "2" for "1 243.34"</li>
-          <li>pricePrecision - Integer, price precision (decimal places after dot) default "2" for "1 243.34"</li>
-          <li>costPrecision - Integer, cost precision (decimal places after dot) default "4" for "1 243.3491"</li>
+          <li>quantityDp - Integer, quantity precision (decimal places after dot) default "2" for "1 243.34"</li>
+          <li>priceDp - Integer, price precision (decimal places after dot) default "2" for "1 243.34"</li>
+          <li>costDp - Integer, cost precision (decimal places after dot) default "4" for "1 243.3491"</li>
           <li><i>to set precision and rounding mode by JavaScript for elements with class - ".autoNum[precision]":</i></li>
-          <li>RSisUsePrecision0/1/2/3/4 - Boolean, if uses precision (decimal places after dot), true by default.</li>
-          <li>RSmRound - String, rounding mode in autonumeric standard, "S" - Half-Up (default), "s" - Half-Down, "B" - Half-EVEN, "U" - Up, "D" - Down, "C" - celling, "F" - floor.</li>
           <li><i>may be null (empty/omitted):</i></li>
           <li>isIncludedSalesTaxForSales - Boolean if included sales taxes in price for sales, for implementing/highlighting total without/with taxes logic</li>
           <li>isIncludedSalesTaxPurchases - Boolean if included sales taxes in price for purchases, for implementing/highlighting total without/with taxes logic</li>
           <li>curSign - default currency sign, e.g. "USD" or "$"</li>
           <li><b>Accounting additions (made by accounting sub-handler org.beigesoft.accounting.service.HndlAccVarsRequest):</b></li>
-          <li>accSettings - AccSettings</li>
-          <li>balancePrecision - Integer, balance precision (decimal places after dot) e.g. "2" for "1 243.34"</li>
+          <li>accSet - AccSettings</li>
+          <li>reportDp - Integer, report precision (decimal places after dot) e.g. "2" for "1 243.34"</li>
           <li>i18nAccounting - I18nAccounting in current lang if lang != langDef</li>
           <li>i18nCurrency - I18nCurrency in current lang if lang != langDef</li>
           <li><b>Web-Store additions (made by web-store sub-handler org.beigesoft.webstore.service.HndlTradeVarsRequest):</b></li>
-          <li>tradingSettings - TradingSettings</li>
-          <li>settingsAdd - SettingsAdd</li>
+          <li>tradSet - TradingSettings</li>
+          <li>setAdd - SettingsAdd</li>
           <li>utlTradeJsp - Helper that is used in JSP. E.g. it makes catalog by given CatalogGs, List&lt;I18nCatalogGs&gt; and language.</li>
           <li><b>If TradingSettings.useAdvancedI18n:</b></li>
           <li>i18nWebStoreList - List&lt;I18nWebStore&gt; in all languages if lang != langDef</li>

@@ -86,5 +86,9 @@ public class BaseTest {
     BigDecimal uStep = new BigDecimal("0.25");
     BigDecimal qosr = quant.remainder(uStep);
     assertEquals(qosr.compareTo(new BigDecimal("0.03")), 0);
+    quant = new BigDecimal("10.00");
+    uStep = new BigDecimal("0.01");
+    qosr = quant.remainder(uStep);
+    assertEquals(qosr.compareTo(new BigDecimal("0.0")), 0);
   }
 }
