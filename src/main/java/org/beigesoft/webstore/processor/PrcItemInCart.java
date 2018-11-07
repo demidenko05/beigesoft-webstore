@@ -92,7 +92,7 @@ public class PrcItemInCart<RS> implements IProcessor {
   public final void process(final Map<String, Object> pReqVars,
     final IRequestData pRequestData) throws Exception {
     TradingSettings ts = (TradingSettings)
-      pReqVars.get("tradingSettings");
+      pReqVars.get("tradSet");
     Cart cart = this.srvShoppingCart
       .getShoppingCart(pReqVars, pRequestData, true);
     CartLn cartLn = null;

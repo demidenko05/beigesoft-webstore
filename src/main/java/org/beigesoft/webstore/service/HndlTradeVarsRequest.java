@@ -1,7 +1,7 @@
 package org.beigesoft.webstore.service;
 
 /*
- * Copyright (c) 2018 Beigesoft ™
+ * Copyright (c) 2018 Beigesoft™
  *
  * Licensed under the GNU General Public License (GPL), Version 2.0
  * (the "License");
@@ -93,8 +93,8 @@ public class HndlTradeVarsRequest<RS> implements IHandlerRequestDch {
     final IRequestData pRequestData) throws Exception {
     TradingSettings ts = srvTradingSettings
       .lazyGetTradingSettings(pReqVars);
-    pReqVars.put("tradingSettings", ts);
-    pReqVars.put("settingsAdd", srvSettingsAdd.lazyGetSettingsAdd(pReqVars));
+    pReqVars.put("tradSet", ts);
+    pReqVars.put("setAdd", srvSettingsAdd.lazyGetSettingsAdd(pReqVars));
     pRequestData.setAttribute("utlTradeJsp", this.utlTradeJsp);
     List<CurrRate> curRatesTmp = null;
     if (ts.getUseAdvancedI18n()) {
@@ -191,7 +191,7 @@ public class HndlTradeVarsRequest<RS> implements IHandlerRequestDch {
       }
     }
     if (wscurr == null) {
-      AccSettings as = (AccSettings) pReqVars.get("accSettings");
+      AccSettings as = (AccSettings) pReqVars.get("accSet");
       wscurr = as.getCurrency();
       pRequestData.setCookieValue("wscurr", wscurr.getItsId().toString());
     }

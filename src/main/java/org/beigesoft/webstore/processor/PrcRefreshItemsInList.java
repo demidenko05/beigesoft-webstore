@@ -102,7 +102,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
     final IRequestData pRequestData) throws Exception {
     retrieveStartData(pReqVars);
     SettingsAdd settingsAdd = (SettingsAdd) pReqVars.get("settingsAdd");
-    TradingSettings tradingSettings = (TradingSettings) pReqVars.get("tradingSettings");
+    TradingSettings tradSet = (TradingSettings) pReqVars.get("tradSet");
     GoodsInListLuv goodsInListLuv = (GoodsInListLuv) pReqVars.get("goodsInListLuv");
     pReqVars.remove("goodsInListLuv");
     String refreshAll = pRequestData.getParameter("refreshAll");
@@ -112,7 +112,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
     } else {
       goodsSpecificsLst = retrieveItemSpecificsLst(pReqVars, goodsInListLuv.getGoodsSpecificLuv(), GoodsSpecifics.class);
     }
-    updateForItemSpecificsList(pReqVars, goodsSpecificsLst, settingsAdd, goodsInListLuv, tradingSettings, I18nInvItem.class, EShopItemType.GOODS);
+    updateForItemSpecificsList(pReqVars, goodsSpecificsLst, settingsAdd, goodsInListLuv, tradSet, I18nInvItem.class, EShopItemType.GOODS);
     pRequestData.setAttribute("totalUpdatedGdSp", goodsSpecificsLst.size());
     goodsSpecificsLst = null;
     List<PriceGoods> goodsPriceLst;
@@ -139,7 +139,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
     } else {
       serviceSpecificsLst = retrieveItemSpecificsLst(pReqVars, goodsInListLuv.getServiceSpecificLuv(), ServiceSpecifics.class);
     }
-    updateForItemSpecificsList(pReqVars, serviceSpecificsLst, settingsAdd, goodsInListLuv, tradingSettings, I18nServiceToSale.class, EShopItemType.SERVICE);
+    updateForItemSpecificsList(pReqVars, serviceSpecificsLst, settingsAdd, goodsInListLuv, tradSet, I18nServiceToSale.class, EShopItemType.SERVICE);
     pRequestData.setAttribute("totalUpdatedServSp", serviceSpecificsLst.size());
     serviceSpecificsLst = null;
     List<ServicePrice> servicePriceLst;
@@ -166,7 +166,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
     } else {
       seGoodSpecificsLst = retrieveItemSpecificsLst(pReqVars, goodsInListLuv.getSeGoodSpecificLuv(), SeGoodsSpecifics.class);
     }
-    updateForItemSpecificsList(pReqVars, seGoodSpecificsLst, settingsAdd, goodsInListLuv, tradingSettings, I18nSeGoods.class, EShopItemType.SEGOODS);
+    updateForItemSpecificsList(pReqVars, seGoodSpecificsLst, settingsAdd, goodsInListLuv, tradSet, I18nSeGoods.class, EShopItemType.SEGOODS);
     pRequestData.setAttribute("totalUpdatedSeGoodSp", seGoodSpecificsLst.size());
     seGoodSpecificsLst = null;
     List<SeGoodsPrice> seGoodPriceLst;

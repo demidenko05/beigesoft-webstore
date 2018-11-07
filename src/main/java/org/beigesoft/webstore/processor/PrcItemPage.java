@@ -289,7 +289,7 @@ public class PrcItemPage<RS> implements IProcessor {
   public final <T extends AItemPrice<?, ?>> T retrieveItemPrice(
     final Map<String, Object> pReqVars, final Long pItemId,
       final Class<T> pItemPriceCl) throws Exception {
-    TradingSettings ts = (TradingSettings) pReqVars.get("tradingSettings");
+    TradingSettings ts = (TradingSettings) pReqVars.get("tradSet");
     if (ts.getIsUsePriceForCustomer()) {
       throw new Exception(
         "Method price depends of customer's category not yet implemented!");
@@ -352,10 +352,10 @@ public class PrcItemPage<RS> implements IProcessor {
     htmTmFldNms.add("itsId");
     htmTmFldNms.add("htmlTemplate");
     pReqVars.put("HtmlTemplateneededFields", htmTmFldNms);
-    TradingSettings tradingSettings = (TradingSettings)
-      pReqVars.get("tradingSettings");
+    TradingSettings tradSet = (TradingSettings)
+      pReqVars.get("tradSet");
     List<T> result = null;
-    if (tradingSettings.getUseAdvancedI18n()) {
+    if (tradSet.getUseAdvancedI18n()) {
       String lang = (String) pReqVars.get("lang");
       String langDef = (String) pReqVars.get("langDef");
       if (!lang.equals(langDef)) {

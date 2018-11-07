@@ -113,7 +113,7 @@ public class PrcAssignItemsToCatalog<RS> implements IProcessor {
     String whereStr = sbWhere.toString();
     Integer rowCount = this.srvOrm.evalRowCountWhere(pAddParam, pItemClass,
         whereStr);
-    TradingSettings ts = (TradingSettings) pAddParam.get("tradingSettings");
+    TradingSettings ts = (TradingSettings) pAddParam.get("tradSet");
     if (rowCount > ts.getMaxQuantityOfBulkItems()) {
       throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
         "filtered_list_size_exceed_max_bulk");

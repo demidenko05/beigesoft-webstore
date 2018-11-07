@@ -190,15 +190,15 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   public final void process(final Map<String, Object> pReqVars,
     final IRequestData pRequestData) throws Exception {
     pRequestData.setAttribute("catalogs", lazyRetrieveCatalogs(pReqVars));
-    TradingSettings tradingSettings = (TradingSettings)
-      pReqVars.get("tradingSettings");
+    TradingSettings tradSet = (TradingSettings)
+      pReqVars.get("tradSet");
     String catalogIdStr = pRequestData.getParameter("catalogId");
     Long catId = null;
     if (catalogIdStr != null) {
       catId = Long.valueOf(catalogIdStr);
     }
-    if (catId == null && tradingSettings.getCatalogOnStart() != null) {
-      catId = tradingSettings.getCatalogOnStart().getItsId();
+    if (catId == null && tradSet.getCatalogOnStart() != null) {
+      catId = tradSet.getCatalogOnStart().getItsId();
     }
     if (catId != null) {
       // either selected by user catalog or "on start" must be
@@ -209,11 +209,11 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
         this.logger.warn(pReqVars, PrcWebstorePage.class,
           "Can't find catalog #" + catId);
       } else {
-        if (tradingSettings.getIsUsePriceForCustomer()) {
+        if (tradSet.getIsUsePriceForCustomer()) {
           throw new Exception(
             "Method price depends of customer's category not yet implemented!");
         }
-        if (tradingSettings.getIsUseAuction()) {
+        if (tradSet.getIsUseAuction()) {
           throw new Exception(
             "Auctioning not yet implemented!");
         }
@@ -228,7 +228,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
         String queryg = null;
         String querys = null;
         String queryseg = null;
-        if (tradingSettings.getUseAdvancedI18n()) {
+        if (tradSet.getUseAdvancedI18n()) {
           String lang = (String) pReqVars.get("lang");
           String langDef = (String) pReqVars.get("langDef");
           if (!lang.equals(langDef)) {
@@ -354,7 +354,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
           } else {
             page = 1;
           }
-          Integer itemsPerPage = tradingSettings.getItemsPerPage();
+          Integer itemsPerPage = tradSet.getItemsPerPage();
           int totalPages = this.srvPage.evalPageCount(rowCount, itemsPerPage);
           if (page > totalPages) {
             page = totalPages;
