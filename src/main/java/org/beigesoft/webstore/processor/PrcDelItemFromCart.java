@@ -106,7 +106,7 @@ public class PrcDelItemFromCart<RS> implements IProcessor {
       if (totals[0] == null) {
         totals[0] = 0d;
       }
-      AccSettings accSettings = (AccSettings) pAddParam.get("accSettings");
+      AccSettings accSettings = (AccSettings) pAddParam.get("accSet");
       shoppingCart.setTot(BigDecimal.valueOf(totals[0]).
         setScale(accSettings.getPricePrecision(),
           accSettings.getRoundingMode()));

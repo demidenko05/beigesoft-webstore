@@ -99,8 +99,10 @@ public class PrcItemInCart<RS> implements IProcessor {
     String lnIdStr = pRequestData.getParameter("lnId");
     String quantStr = pRequestData.getParameter("quant");
     String avQuanStr = pRequestData.getParameter("avQuan");
+    String unStepStr = pRequestData.getParameter("unStep");
     BigDecimal quant = new BigDecimal(quantStr);
     BigDecimal avQuan = new BigDecimal(avQuanStr);
+    BigDecimal unStep = new BigDecimal(unStepStr);
     String itIdStr = pRequestData.getParameter("itId");
     String itTypStr = pRequestData.getParameter("itTyp");
     Long itId = Long.valueOf(itIdStr);
@@ -154,6 +156,7 @@ public class PrcItemInCart<RS> implements IProcessor {
     cartLn.setTotTx(BigDecimal.ZERO);
     cartLn.setQuant(quant);
     cartLn.setAvQuan(avQuan);
+    cartLn.setUnStep(unStep);
     cartLn.setSubt(cartLn.getPrice().multiply(cartLn.getQuant()));
     cartLn.setTot(cartLn.getSubt().add(cartLn.getTotTx()));
     if (cartLn.getIsNew()) {
@@ -171,7 +174,7 @@ public class PrcItemInCart<RS> implements IProcessor {
     if (totals[0] == null) {
       totals[0] = 0d;
     }
-    AccSettings accSettings = (AccSettings) pReqVars.get("accSettings");
+    AccSettings accSettings = (AccSettings) pReqVars.get("accSet");
     cart.setTot(BigDecimal.valueOf(totals[0]).
       setScale(accSettings.getPricePrecision(), accSettings.getRoundingMode()));
     this.getSrvOrm().updateEntity(pReqVars, cart);

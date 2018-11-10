@@ -105,6 +105,13 @@ public class CartLn extends AHasNameIdLongVersion implements IOwned<Cart> {
   private InvItemTaxCategory txCat;
 
   /**
+   * <p>Quantity step, 1 default,
+   * e.g. 12USD per 0.5ft, UOM ft, ST=0.5, so
+   * buyer can order 0.5/1.0/1.5/2.0/etc. units of item.</p>
+   **/
+  private BigDecimal unStep = BigDecimal.ONE;
+
+  /**
    * <p>Getter for itsOwner.</p>
    * @return Cart
    **/
@@ -329,5 +336,21 @@ public class CartLn extends AHasNameIdLongVersion implements IOwned<Cart> {
    **/
   public final void setTxCat(final InvItemTaxCategory pTxCat) {
     this.txCat = pTxCat;
+  }
+
+  /**
+   * <p>Getter for unStep.</p>
+   * @return BigDecimal
+   **/
+  public final BigDecimal getUnStep() {
+    return this.unStep;
+  }
+
+  /**
+   * <p>Setter for unStep.</p>
+   * @param pUnStep reference
+   **/
+  public final void setUnStep(final BigDecimal pUnStep) {
+    this.unStep = pUnStep;
   }
 }

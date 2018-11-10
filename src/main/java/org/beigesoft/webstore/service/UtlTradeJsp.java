@@ -1,7 +1,7 @@
 package org.beigesoft.webstore.service;
 
 /*
- * Copyright (c) 2018 Beigesoft ™
+ * Copyright (c) 2018 Beigesoft™
  *
  * Licensed under the GNU General Public License (GPL), Version 2.0
  * (the "License");
@@ -47,7 +47,7 @@ public class UtlTradeJsp {
   public final String itemSpecificsStr(
     final Map<String, Object> pReqVars,
       final List<AItemSpecifics<?, ?>> pItemSpecLst) {
-    SettingsAdd settingsAdd = (SettingsAdd) pReqVars.get("settingsAdd");
+    SettingsAdd settingsAdd = (SettingsAdd) pReqVars.get("setAdd");
     StringBuffer sb = new StringBuffer();
     boolean wasGrStart = false;
     SpecificsOfItemGroup specificsOfItemGroupWas = null;
