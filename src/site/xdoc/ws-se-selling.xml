@@ -82,6 +82,7 @@
         <ul>
           <li>AHasNameIdLongVersion fields, S.E. Seller can import it with ID from his database.</li>
           <li>seller - SeSeller, not null</li>
+          <li>taxCat - InvItemTaxCategory, optional, Origin tax category</li>
         </ul>
       </p>
       
@@ -90,6 +91,7 @@
         <ul>
           <li>AHasNameIdLongVersion fields</li>
           <li>seller - SeSeller, not null</li>
+          <li>taxCat - InvItemTaxCategory, optional, Origin or destination tax category</li>
         </ul>
       </p>
       

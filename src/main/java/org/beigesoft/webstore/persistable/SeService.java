@@ -12,12 +12,13 @@ package org.beigesoft.webstore.persistable;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
+import java.util.List;
+
 import org.beigesoft.persistable.AHasNameIdLongVersion;
+import org.beigesoft.accounting.persistable.InvItemTaxCategory;
 
 /**
- * <pre>
- * Model of SeService.
- * </pre>
+ * <p>Model of S.E.Service.</pre>
  *
  * @author Yury Demidenko
  */
@@ -28,6 +29,16 @@ public class SeService extends AHasNameIdLongVersion
    * <p>Seller.</p>
    **/
   private SeSeller seller;
+
+  /**
+   * <p>Origin tax category e.g. "NY: tax1 10%, tax2 5%".</p>
+   **/
+  private InvItemTaxCategory txCat;
+
+  /**
+   * <p>Destination taxes categories and rules.</p>
+   **/
+  private List<DestTaxSeServiceLn> destTaxes;
 
   /**
    * <p>Getter for seller.</p>
@@ -45,5 +56,38 @@ public class SeService extends AHasNameIdLongVersion
   @Override
   public final void setSeller(final SeSeller pSeller) {
     this.seller = pSeller;
+  }
+
+  //Simple getters and setters:
+  /**
+   * <p>Getter for txCat.</p>
+   * @return InvItemTaxCategory
+   **/
+  public final InvItemTaxCategory getTxCat() {
+    return this.txCat;
+  }
+
+  /**
+   * <p>Setter for txCat.</p>
+   * @param pTxCat reference
+   **/
+  public final void setTxCat(final InvItemTaxCategory pTxCat) {
+    this.txCat = pTxCat;
+  }
+
+  /**
+   * <p>Getter for destTaxes.</p>
+   * @return List<DestTaxSeServiceLn>
+   **/
+  public final List<DestTaxSeServiceLn> getDestTaxes() {
+    return this.destTaxes;
+  }
+
+  /**
+   * <p>Setter for destTaxes.</p>
+   * @param pDestTaxes reference
+   **/
+  public final void setDestTaxes(final List<DestTaxSeServiceLn> pDestTaxes) {
+    this.destTaxes = pDestTaxes;
   }
 }

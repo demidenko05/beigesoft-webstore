@@ -47,7 +47,8 @@ public abstract class
   private BigDecimal previousPrice;
 
   /**
-   * <p>Unit Of Measure, optional, e.g. per night or per hour.</p>
+   * <p>Unit Of Measure, optional, e.g. per night or per hour,
+   * NULL means "#1 each".</p>
    **/
   private UnitOfMeasure unitOfMeasure;
 

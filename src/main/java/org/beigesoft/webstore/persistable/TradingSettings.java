@@ -131,6 +131,11 @@ public class TradingSettings extends AHasIdLongVersion {
    **/
   private EPaymentMethod defaultPaymentMethod = EPaymentMethod.ONLINE;
 
+  /**
+   * <p>If taxes excluded, default FALSE (included).</p>
+   **/
+  private Boolean txExcl;
+
   //Simple getters and setters:
   /**
    * <p>Getter for isUseGoodsAdvising.</p>
@@ -428,5 +433,21 @@ public class TradingSettings extends AHasIdLongVersion {
    **/
   public final void setUseAdvancedI18n(final Boolean pUseAdvancedI18n) {
     this.useAdvancedI18n = pUseAdvancedI18n;
+  }
+
+  /**
+   * <p>Getter for txExcl.</p>
+   * @return Boolean
+   **/
+  public final Boolean getTxExcl() {
+    return this.txExcl;
+  }
+
+  /**
+   * <p>Setter for txExcl.</p>
+   * @param pTxExcl reference
+   **/
+  public final void setTxExcl(final Boolean pTxExcl) {
+    this.txExcl = pTxExcl;
   }
 }

@@ -164,6 +164,8 @@
   org.beigesoft.webstore.persistable.SeSeller,
   org.beigesoft.webstore.persistable.SeGoods,
   org.beigesoft.webstore.persistable.SeService,
+  org.beigesoft.webstore.persistable.DestTaxSeGoodsLn,
+  org.beigesoft.webstore.persistable.DestTaxSeServiceLn,
   org.beigesoft.webstore.persistable.PickUpPlace,
   org.beigesoft.webstore.persistable.GoodsInListLuv,
   org.beigesoft.webstore.persistable.SettingsAdd,

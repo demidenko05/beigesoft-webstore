@@ -95,11 +95,11 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     } else if (pIsNeedToCreate) {
       shoppingCart = new Cart();
       shoppingCart.setItsId(onlineBuyer);
-      shoppingCart.setBuyer(onlineBuyer);
       Currency curr = (Currency) pAddParam.get("wscurr");
       shoppingCart.setCurr(curr);
       getSrvOrm().insertEntity(pAddParam, shoppingCart);
     }
+    shoppingCart.setBuyer(onlineBuyer);
     return shoppingCart;
   }
 

@@ -29,11 +29,14 @@ import org.beigesoft.persistable.DecimalGroupSeparator;
 import org.beigesoft.orm.factory.FctBnEntitiesProcessors;
 import org.beigesoft.webstore.service.IFindSeSeller;
 import org.beigesoft.accounting.persistable.UnitOfMeasure;
+import org.beigesoft.accounting.persistable.InvItemTaxCategory;
 import org.beigesoft.webstore.persistable.SeGoods;
+import org.beigesoft.webstore.persistable.DestTaxSeGoodsLn;
 import org.beigesoft.webstore.persistable.SeGoodsPlace;
 import org.beigesoft.webstore.persistable.SeGoodsPrice;
 import org.beigesoft.webstore.persistable.SeGoodsSpecifics;
 import org.beigesoft.webstore.persistable.SeService;
+import org.beigesoft.webstore.persistable.DestTaxSeServiceLn;
 import org.beigesoft.webstore.persistable.SeServicePlace;
 import org.beigesoft.webstore.persistable.SeServicePrice;
 import org.beigesoft.webstore.persistable.SeServiceSpecifics;
@@ -126,6 +129,7 @@ public class FctBnSeSelEntityProcs<RS>
     this.sharedEntities.add(UnitOfMeasure.class);
     this.sharedEntities.add(PriceCategory.class);
     this.sharedEntities.add(ChooseableSpecifics.class);
+    this.sharedEntities.add(InvItemTaxCategory.class);
     this.seEntities = new HashSet<Class<?>>();
     this.seEntities.add(SeGoods.class);
     this.seEntities.add(SeGoodsPlace.class);
@@ -137,6 +141,8 @@ public class FctBnSeSelEntityProcs<RS>
     this.seEntities.add(SeServiceSpecifics.class);
     this.seEntities.add(I18nSeGoods.class);
     this.seEntities.add(I18nSeService.class);
+    this.seEntities.add(DestTaxSeGoodsLn.class);
+    this.seEntities.add(DestTaxSeServiceLn.class);
   }
 
   /**
