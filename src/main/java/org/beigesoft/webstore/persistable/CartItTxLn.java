@@ -30,6 +30,19 @@ public class CartItTxLn extends ATaxLn implements IOwned<CartLn> {
   private CartLn itsOwner;
 
   /**
+   * <p>Cart ID (to improve performance).</p>
+   **/
+  private Long cartId;
+
+  /**
+   * <p>Do not show in cart, it's for performance,
+   * old purchased cart emptied with this flag,
+   * when buyer add new goods to cart then it's used any disabled
+   * line (if exist) otherwise new line will be created.</p>
+   **/
+  private Boolean disab;
+
+  /**
    * <p>Getter for itsOwner.</p>
    * @return CartLn
    **/
@@ -45,5 +58,38 @@ public class CartItTxLn extends ATaxLn implements IOwned<CartLn> {
   @Override
   public final void setItsOwner(final CartLn pItsOwner) {
     this.itsOwner = pItsOwner;
+  }
+
+  //SGS:
+  /**
+   * <p>Getter for disab.</p>
+   * @return Boolean
+   **/
+  public final Boolean getDisab() {
+    return this.disab;
+  }
+
+  /**
+   * <p>Setter for disab.</p>
+   * @param pDisab reference
+   **/
+  public final void setDisab(final Boolean pDisab) {
+    this.disab = pDisab;
+  }
+
+  /**
+   * <p>Getter for cartId.</p>
+   * @return Long
+   **/
+  public final Long getCartId() {
+    return this.cartId;
+  }
+
+  /**
+   * <p>Setter for cartId.</p>
+   * @param pCartId reference
+   **/
+  public final void setCartId(final Long pCartId) {
+    this.cartId = pCartId;
   }
 }

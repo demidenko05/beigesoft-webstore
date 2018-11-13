@@ -14,15 +14,14 @@ package org.beigesoft.webstore.persistable;
 
 import java.util.List;
 
-import org.beigesoft.persistable.AHasNameIdLongVersion;
-import org.beigesoft.accounting.persistable.InvItemTaxCategory;
+import org.beigesoft.accounting.persistable.base.AItem;
 
 /**
- * <p>Model of S.E.Service.</pre>
+ * <p>Model of S.E.Service.</p>
  *
  * @author Yury Demidenko
  */
-public class SeService extends AHasNameIdLongVersion
+public class SeService extends AItem<SeService, DestTaxSeServiceLn>
   implements IHasSeSeller<Long> {
 
   /**
@@ -31,14 +30,9 @@ public class SeService extends AHasNameIdLongVersion
   private SeSeller seller;
 
   /**
-   * <p>Origin tax category e.g. "NY: tax1 10%, tax2 5%".</p>
-   **/
-  private InvItemTaxCategory txCat;
-
-  /**
    * <p>Destination taxes categories and rules.</p>
    **/
-  private List<DestTaxSeServiceLn> destTaxes;
+  private List<DestTaxSeServiceLn> destinationTaxes;
 
   /**
    * <p>Getter for seller.</p>
@@ -58,36 +52,22 @@ public class SeService extends AHasNameIdLongVersion
     this.seller = pSeller;
   }
 
-  //Simple getters and setters:
-  /**
-   * <p>Getter for txCat.</p>
-   * @return InvItemTaxCategory
-   **/
-  public final InvItemTaxCategory getTxCat() {
-    return this.txCat;
-  }
-
-  /**
-   * <p>Setter for txCat.</p>
-   * @param pTxCat reference
-   **/
-  public final void setTxCat(final InvItemTaxCategory pTxCat) {
-    this.txCat = pTxCat;
-  }
-
   /**
    * <p>Getter for destTaxes.</p>
    * @return List<DestTaxSeServiceLn>
    **/
-  public final List<DestTaxSeServiceLn> getDestTaxes() {
-    return this.destTaxes;
+  @Override
+  public final List<DestTaxSeServiceLn> getDestinationTaxes() {
+    return this.destinationTaxes;
   }
 
   /**
    * <p>Setter for destTaxes.</p>
    * @param pDestTaxes reference
    **/
-  public final void setDestTaxes(final List<DestTaxSeServiceLn> pDestTaxes) {
-    this.destTaxes = pDestTaxes;
+  @Override
+  public final void setDestinationTaxes(
+    final List<DestTaxSeServiceLn> pDestTaxes) {
+    this.destinationTaxes = pDestTaxes;
   }
 }

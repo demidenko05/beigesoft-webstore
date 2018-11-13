@@ -16,24 +16,35 @@ import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
 import java.math.BigDecimal;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
+import java.math.RoundingMode;
 
 import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.model.IRequestData;
+import org.beigesoft.model.IRecordSet;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.service.ISrvOrm;
+import org.beigesoft.service.ISrvNumberToString;
 import org.beigesoft.factory.IFactoryAppBeansByName;
+import org.beigesoft.accounting.model.ETaxType;
 import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.accounting.persistable.AccSettings;
 import org.beigesoft.accounting.persistable.UnitOfMeasure;
 import org.beigesoft.accounting.persistable.ServiceToSale;
+import org.beigesoft.accounting.persistable.AccSettings;
+import org.beigesoft.accounting.persistable.DebtorCreditor;
+import org.beigesoft.accounting.persistable.InvItemTaxCategoryLine;
+import org.beigesoft.accounting.persistable.InvItemTaxCategory;
+import org.beigesoft.accounting.persistable.DestTaxGoodsLn;
+import org.beigesoft.accounting.persistable.DestTaxServSelLn;
+import org.beigesoft.accounting.persistable.base.AItem;
+import org.beigesoft.accounting.persistable.base.ADestTaxItemLn;
 import org.beigesoft.webstore.model.EShopItemType;
 import org.beigesoft.webstore.persistable.base.AItemPrice;
 import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.webstore.persistable.CartLn;
+import org.beigesoft.webstore.persistable.CartItTxLn;
+import org.beigesoft.webstore.persistable.CartTxLn;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.persistable.BuyerPriceCategory;
 import org.beigesoft.webstore.persistable.PriceGoodsId;
@@ -43,9 +54,12 @@ import org.beigesoft.webstore.persistable.ServicePriceId;
 import org.beigesoft.webstore.persistable.SeService;
 import org.beigesoft.webstore.persistable.SeServicePrice;
 import org.beigesoft.webstore.persistable.SeServicePriceId;
+import org.beigesoft.webstore.persistable.CurrRate;
 import org.beigesoft.webstore.persistable.SeGoods;
 import org.beigesoft.webstore.persistable.SeGoodsPrice;
 import org.beigesoft.webstore.persistable.SeGoodsPriceId;
+import org.beigesoft.webstore.persistable.DestTaxSeGoodsLn;
+import org.beigesoft.webstore.persistable.DestTaxSeServiceLn;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
@@ -56,11 +70,6 @@ import org.beigesoft.webstore.service.ISrvShoppingCart;
  * @author Yury Demidenko
  */
 public class PrcItemInCart<RS> implements IProcessor {
-
-  /**
-   * <p>Query cart totals.</p>
-   **/
-  private String queryCartTotals;
 
   /**
    * <p>Database service.</p>
@@ -81,6 +90,11 @@ public class PrcItemInCart<RS> implements IProcessor {
    * <p>Processors factory.</p>
    **/
   private IFactoryAppBeansByName<IProcessor> processorsFactory;
+
+  /**
+   * <p>Service print number.</p>
+   **/
+  private ISrvNumberToString srvNumberToString;
 
   /**
    * <p>Process entity request.</p>
@@ -106,6 +120,7 @@ public class PrcItemInCart<RS> implements IProcessor {
     String itIdStr = pRequestData.getParameter("itId");
     String itTypStr = pRequestData.getParameter("itTyp");
     Long itId = Long.valueOf(itIdStr);
+    AccSettings as = (AccSettings) pReqVars.get("as");
     EShopItemType itTyp = EShopItemType.class.
       getEnumConstants()[Integer.parseInt(itTypStr)];
     if (lnIdStr != null) { //change quantity
@@ -144,7 +159,7 @@ public class PrcItemInCart<RS> implements IProcessor {
       cartLn.setUom(uom);
       cartLn.setItId(itId);
       cartLn.setItTyp(itTyp);
-      AItemPrice<?, ?> itPrice = revialItemPrice(pReqVars, ts, cart,
+      AItemPrice<?, ?> itPrice = revealItemPrice(pReqVars, ts, cart,
         itTyp, itId);
       cartLn.setItsName(itPrice.getItem().getItsName());
       BigDecimal qosr = quant.remainder(itPrice.getUnStep());
@@ -152,36 +167,268 @@ public class PrcItemInCart<RS> implements IProcessor {
         quant = quant.subtract(qosr);
       }
       cartLn.setPrice(itPrice.getItsPrice());
+      if (!as.getCurrency().getItsId().equals(cart.getCurr().getItsId())) {
+        List<CurrRate> currRates = (List<CurrRate>) pReqVars.get("currRates");
+        for (CurrRate cr: currRates) {
+          if (cr.getCurr().getItsId().equals(cart.getCurr().getItsId())) {
+            cartLn.setPrice(cartLn.getPrice().multiply(cr.getRate())
+              .setScale(as.getPricePrecision(), as.getRoundingMode()));
+            break;
+          }
+        }
+      }
     }
-    cartLn.setTotTx(BigDecimal.ZERO);
     cartLn.setQuant(quant);
     cartLn.setAvQuan(avQuan);
     cartLn.setUnStep(unStep);
-    cartLn.setSubt(cartLn.getPrice().multiply(cartLn.getQuant()));
-    cartLn.setTot(cartLn.getSubt().add(cartLn.getTotTx()));
-    if (cartLn.getIsNew()) {
-      this.getSrvOrm().insertEntity(pReqVars, cartLn);
+    BigDecimal amount = cartLn.getPrice().multiply(cartLn.getQuant()).
+      setScale(as.getPricePrecision(), as.getRoundingMode());
+    if (ts.getTxExcl()) {
+      cartLn.setSubt(amount);
     } else {
-      this.getSrvOrm().updateEntity(pReqVars, cartLn);
+      cartLn.setTot(amount);
     }
-    //TODO total from already loaded cart:
-    String query = lazyGetQueryCartTotals();
-    query = query.replace(":CARTID", cart.getItsId()
-      .getItsId().toString());
-    String[] columns = new String[]{"ITSTOTAL"};
-    Double[] totals = this.getSrvDatabase()
-      .evalDoubleResults(query, columns);
-    if (totals[0] == null) {
-      totals[0] = 0d;
-    }
-    AccSettings accSettings = (AccSettings) pReqVars.get("accSet");
-    cart.setTot(BigDecimal.valueOf(totals[0]).
-      setScale(accSettings.getPricePrecision(), accSettings.getRoundingMode()));
-    this.getSrvOrm().updateEntity(pReqVars, cart);
+    boolean[] isTxbItbAggr = makeItemTax(pReqVars, ts, cartLn, as);
+    makeCartTotals(pReqVars, ts, cart, as, isTxbItbAggr);
     pRequestData.setAttribute("cart", cart);
     String processorName = pRequestData.getParameter("nmPrcRed");
     IProcessor proc = this.processorsFactory.lazyGet(pReqVars, processorName);
     proc.process(pReqVars, pRequestData);
+  }
+
+  /**
+   * <p>Refresh cart totals.</p>
+   * @param pReqVars request scoped vars
+   * @param pTs TradingSettings
+   * @param pCart cart
+   * @param pAs Accounting Settings
+   * @param pIsTxbItbAggr boolean array isTaxable, isItemBasis, isAggrOnlyRate
+   * @throws Exception - an exception.
+   **/
+  public final void makeCartTotals(final Map<String, Object> pReqVars,
+    final TradingSettings pTs, final Cart pCart, final AccSettings pAs,
+      final boolean[] pIsTxbItbAggr) throws Exception {
+    pReqVars.put("CartTxLnitsOwnerdeepLevel", 1);
+    List<CartTxLn> ctls = getSrvOrm().retrieveListWithConditions(
+        pReqVars, CartTxLn.class, "where CARTID="
+          + pCart.getBuyer().getItsId());
+    pReqVars.remove("CartTxLnitsOwnerdeepLevel");
+    if (pIsTxbItbAggr[0]) {
+      if (ctls.size() > 0) {
+        for (CartTxLn ctl : ctls) {
+          ctl.setDisab(false);
+        }
+      }
+      if (pIsTxbItbAggr[1] && !pIsTxbItbAggr[2]) { //item basis non-aggregate
+        String query = "select sum(TOT) as TOTALTAX, TAX as TAXID from"
+          + " CARTITTXLN where DISAB=0 and CARTID="
+            + pCart.getBuyer().getItsId() + " group by TAX;";
+        IRecordSet<RS> recordSet = null;
+        try {
+          recordSet = getSrvDatabase().retrieveRecords(query);
+          if (recordSet.moveToFirst()) {
+            do {
+              Double taxd = recordSet.getDouble("TOTALTAX");
+              Long txId = recordSet.getLong("TAXID");
+            } while (recordSet.moveToNext());
+          }
+        } finally {
+          if (recordSet != null) {
+            recordSet.close();
+          }
+        }
+      } else if (pIsTxbItbAggr[1] && pIsTxbItbAggr[2]) { //item basis aggregate
+      } else { //invoice basis
+      }
+    } else {
+      if (ctls.size() > 0) {
+        for (CartTxLn ctl : ctls) {
+          ctl.setDisab(true);
+          getSrvOrm().updateEntity(pReqVars, ctl);
+        }
+      }
+      pReqVars.put("CartItTxLnitsOwnerdeepLevel", 1);
+      List<CartItTxLn> citls = getSrvOrm().retrieveListWithConditions(
+          pReqVars, CartItTxLn.class, " where DISAB=0 and CARTID="
+            + pCart.getBuyer().getItsId());
+      pReqVars.remove("CartItTxLnitsOwnerdeepLevel");
+      if (citls.size() > 0) {
+        for (CartItTxLn citl : citls) {
+          citl.setDisab(true);
+          getSrvOrm().updateEntity(pReqVars, citl);
+        }
+      }
+    }
+    getSrvOrm().updateEntity(pReqVars, pCart);
+  }
+
+  /**
+   * <p>Makes item's tax and cart totals.</p>
+   * @param pReqVars request scoped vars
+   * @param pTs TradingSettings
+   * @param pCartLn cart line
+   * @param pAs Accounting Settings
+   * @return boolean array isTaxable, isItemBasis, isAggrOnlyRate 
+   * @throws Exception - an exception, e.g. if item has destination taxes
+   * and buyer has ZIP, but its destination tax is empty.
+   **/
+  public final boolean[] makeItemTax(final Map<String, Object> pReqVars,
+    final TradingSettings pTs, final CartLn pCartLn,
+      final AccSettings pAs) throws Exception {
+    DebtorCreditor cust = pCartLn.getItsOwner().getBuyer().getRegCustomer();
+    if (cust == null) {
+      cust = new DebtorCreditor();
+      cust.setRegZip(pCartLn.getItsOwner().getBuyer().getRegZip());
+      cust.setTaxDestination(pCartLn.getItsOwner().getBuyer().getTaxDest());
+    }
+    boolean[] isTxbItbAggr = new boolean[3];
+    isTxbItbAggr[0] = pAs.getIsExtractSalesTaxFromSales()
+      && !cust.getIsForeigner();
+    //using user passed values:
+    BigDecimal totalTaxes = BigDecimal.ZERO;
+    BigDecimal bd100 = new BigDecimal("100.00");
+    List<CartItTxLn> itls = null;
+    isTxbItbAggr[1] = !pAs.getSalTaxIsInvoiceBase();
+    isTxbItbAggr[2] = pAs.getSalTaxUseAggregItBas();
+    pCartLn.setTxCat(null);
+    if (isTxbItbAggr[0]) {
+      Class<?> itemCl;
+      Class<?> dstTxItLnCl;
+      if (pCartLn.getItTyp().equals(EShopItemType.GOODS)) {
+        itemCl = InvItem.class;
+        dstTxItLnCl = DestTaxGoodsLn.class;
+      } else if (pCartLn.getItTyp().equals(EShopItemType.SERVICE)) {
+        itemCl = ServiceToSale.class;
+        dstTxItLnCl = DestTaxServSelLn.class;
+      } else if (pCartLn.getItTyp().equals(EShopItemType.SESERVICE)) {
+        itemCl = SeService.class;
+        dstTxItLnCl = DestTaxSeServiceLn.class;
+      } else {
+        itemCl = SeGoods.class;
+        dstTxItLnCl = DestTaxSeGoodsLn.class;
+      }
+      AItem<?, ?> item = (AItem<?, ?>) getSrvOrm()
+        .retrieveEntityById(pReqVars, itemCl, pCartLn.getItId());
+      pCartLn.setTxCat(item.getTaxCategory());
+      RoundingMode rm = pAs.getSalTaxRoundMode();
+      if (cust.getTaxDestination() != null) {
+        //override tax method:
+        isTxbItbAggr[1] = !cust.getTaxDestination().getSalTaxIsInvoiceBase();
+        isTxbItbAggr[2] = cust.getTaxDestination().getSalTaxUseAggregItBas();
+        rm = cust.getTaxDestination().getSalTaxRoundMode();
+        pReqVars.put(dstTxItLnCl.getSimpleName() + "itsOwnerdeepLevel", 1);
+        List<ADestTaxItemLn<?>> dtls = (List<ADestTaxItemLn<?>>) getSrvOrm()
+          .retrieveListWithConditions(pReqVars, dstTxItLnCl,
+            "where ITSOWNER=" + pCartLn.getItId());
+        pReqVars.remove(dstTxItLnCl.getSimpleName() + "itsOwnerdeepLevel");
+        for (ADestTaxItemLn<?> dtl : dtls) {
+          if (dtl.getTaxDestination().getItsId().equals(cust
+            .getTaxDestination().getItsId())) {
+            pCartLn.setTxCat(dtl.getTaxCategory()); //it may be null
+            break;
+          }
+        }
+      }
+      if (pCartLn.getTxCat() != null && isTxbItbAggr[1]) {
+        if (!isTxbItbAggr[2]) {
+          if (!pTs.getTxExcl()) {
+            throw new ExceptionWithCode(ExceptionWithCode.WRONG_PARAMETER,
+              "price_inc_tax_multi_not_imp");
+          }
+          itls = new ArrayList<CartItTxLn>();
+          pReqVars.put("InvItemTaxCategoryLineitsOwnerdeepLevel", 1);
+          List<InvItemTaxCategoryLine> itcls = getSrvOrm()
+            .retrieveListWithConditions(pReqVars,
+              InvItemTaxCategoryLine.class, "where ITSOWNER="
+                + pCartLn.getTxCat().getItsId());
+          pReqVars.remove("InvItemTaxCategoryLineitsOwnerdeepLevel");
+          StringBuffer sb = new StringBuffer();
+          int i = 0;
+          for (InvItemTaxCategoryLine itcl : itcls) {
+           if (ETaxType.SALES_TAX_OUTITEM.equals(itcl.getTax().getItsType())
+          || ETaxType.SALES_TAX_INITEM.equals(itcl.getTax().getItsType())) {
+              if (i++ > 0) {
+                sb.append(", ");
+              }
+              BigDecimal addTx = pCartLn.getSubt().multiply(itcl
+            .getItsPercentage()).divide(bd100, pAs.getPricePrecision(), rm);
+              totalTaxes = totalTaxes.add(addTx);
+              CartItTxLn itl = new CartItTxLn();
+              itl.setIsNew(true);
+              itl.setTot(addTx);
+              itl.setTax(itcl.getTax());
+              itls.add(itl);
+              sb.append(itl.getTax().getItsName() + " " + prn(pReqVars, addTx));
+            }
+          }
+          pCartLn.setTxDsc(sb.toString());
+        } else {
+          if (!pTs.getTxExcl()) {
+        totalTaxes = pCartLn.getTot().subtract(pCartLn.getTot()
+    .divide(BigDecimal.ONE.add(pCartLn.getTxCat().getAggrOnlyPercent()
+  .divide(bd100)), pAs.getPricePrecision(), rm));
+          } else {
+        totalTaxes = pCartLn.getSubt().multiply(pCartLn.getTxCat()
+          .getAggrOnlyPercent()).divide(bd100, pAs.getPricePrecision(), rm);
+          }
+        pCartLn.setTxDsc(pCartLn.getTxCat().getItsName());
+        }
+      } else if (pCartLn.getTxCat() != null) {
+        pCartLn.setTxDsc(pCartLn.getTxCat().getItsName());
+      }
+    }
+    pCartLn.setTotTx(totalTaxes);
+    if (pTs.getTxExcl()) {
+      pCartLn.setTot(pCartLn.getSubt().add(pCartLn.getTotTx()));
+    } else {
+      pCartLn.setSubt(pCartLn.getTot().subtract(pCartLn.getTotTx()));
+    }
+    List<CartLn> cartLns = pCartLn.getItsOwner().getItems();
+    if (pCartLn.getIsNew()) {
+      this.getSrvOrm().insertEntity(pReqVars, pCartLn);
+      cartLns.add(pCartLn);
+    } else {
+      this.getSrvOrm().updateEntity(pReqVars, pCartLn);
+      for (int i = 0; i < cartLns.size(); i++) {
+        if (cartLns.get(i).getItId().equals(pCartLn.getItId())
+          && cartLns.get(i).getItTyp().equals(pCartLn.getItTyp())) {
+          cartLns.set(i, pCartLn);
+          break;
+        }
+      }
+    }
+    if (itls != null) {
+      pReqVars.put("CartItTxLnitsOwnerdeepLevel", 1);
+      List<CartItTxLn> itlsr = getSrvOrm().retrieveListWithConditions(
+          pReqVars, CartItTxLn.class, " where DISAB=1 and CARTID="
+            + pCartLn.getItsOwner().getBuyer().getItsId());
+      pReqVars.remove("CartItTxLnitsOwnerdeepLevel");
+      for (CartItTxLn itl : itls) {
+        CartItTxLn itlr = null;
+        if (itlsr.size() > 0) {
+          for (CartItTxLn itlrt : itlsr) {
+            if (itlr.getDisab()) {
+              itlr= itlrt;
+              itlr.setDisab(false);
+              break;
+            }
+          }
+        }
+        if (itlr == null) {
+          itl.setItsOwner(pCartLn);
+          itl.setCartId(pCartLn.getItsOwner().getBuyer().getItsId());
+          getSrvOrm().insertEntity(pReqVars, itl);
+          itl.setIsNew(false);
+        } else {
+          itlr.setTax(itl.getTax());
+          itlr.setTot(itl.getTot());
+          itlr.setItsOwner(pCartLn);
+          itlr.setCartId(pCartLn.getItsOwner().getBuyer().getItsId());
+          getSrvOrm().updateEntity(pReqVars, itlr);
+        }
+      }
+    }
+    return isTxbItbAggr;
   }
 
   /**
@@ -194,7 +441,7 @@ public class PrcItemInCart<RS> implements IProcessor {
    * @return item's price descriptor or exception
    * @throws Exception - an exception
    **/
-  public final AItemPrice<?, ?> revialItemPrice(
+  public final AItemPrice<?, ?> revealItemPrice(
     final Map<String, Object> pReqVars, final TradingSettings pTs,
       final Cart pCart, final EShopItemType pItType,
         final Long pItId) throws Exception {
@@ -331,55 +578,21 @@ public class PrcItemInCart<RS> implements IProcessor {
   }
 
   /**
-   * <p>Load string file (usually SQL query).</p>
-   * @param pFileName file name
-   * @return String usually SQL query
-   * @throws IOException - IO exception
-   **/
-  public final String loadString(final String pFileName)
-        throws IOException {
-    URL urlFile = PrcItemInCart.class
-      .getResource(pFileName);
-    if (urlFile != null) {
-      InputStream inputStream = null;
-      try {
-        inputStream = PrcItemInCart.class
-          .getResourceAsStream(pFileName);
-        byte[] bArray = new byte[inputStream.available()];
-        inputStream.read(bArray, 0, inputStream.available());
-        return new String(bArray, "UTF-8");
-      } finally {
-        if (inputStream != null) {
-          inputStream.close();
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * <p>Lazy Get queryCartTotals.</p>
+   * <p>Simple delegator to print number.</p>
+   * @param pReqVars additional param
+   * @param pVal value
    * @return String
-   * @throws Exception - an exception
    **/
-  public final String
-    lazyGetQueryCartTotals() throws Exception {
-    if (this.queryCartTotals == null) {
-      String flName = "/webstore/cartTotals.sql";
-      this.queryCartTotals = loadString(flName);
-    }
-    return this.queryCartTotals;
+  public final String prn(final Map<String, Object> pReqVars,
+    final BigDecimal pVal) {
+    return this.srvNumberToString.print(pVal.toString(),
+      (String) pReqVars.get("decSepv"), //TODO default I18N
+        (String) pReqVars.get("decGrSepv"),
+          (Integer) pReqVars.get("priceDp"),
+            (Integer) pReqVars.get("digInGr"));
   }
 
   //Simple getters and setters:
-  /**
-   * <p>Setter for queryCartTotals.</p>
-   * @param pQueryCartTotals reference
-   **/
-  public final void setQueryCartTotals(final String pQueryCartTotals) {
-    this.queryCartTotals = pQueryCartTotals;
-  }
-
   /**
    * <p>Getter for srvDatabase.</p>
    * @return ISrvDatabase<RS>
@@ -394,6 +607,23 @@ public class PrcItemInCart<RS> implements IProcessor {
    **/
   public final void setSrvDatabase(final ISrvDatabase<RS> pSrvDatabase) {
     this.srvDatabase = pSrvDatabase;
+  }
+
+  /**
+   * <p>Getter for srvNumberToString.</p>
+   * @return ISrvNumberToString
+   **/
+  public final ISrvNumberToString getSrvNumberToString() {
+    return this.srvNumberToString;
+  }
+
+  /**
+   * <p>Setter for srvNumberToString.</p>
+   * @param pSrvNumberToString reference
+   **/
+  public final void setSrvNumberToString(
+    final ISrvNumberToString pSrvNumberToString) {
+    this.srvNumberToString = pSrvNumberToString;
   }
 
   /**

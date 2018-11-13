@@ -82,9 +82,9 @@ public class UtlTradeJsp {
           val1 = gs.getStringValue1();
         } else if (gs.getSpecifics().getItsType().equals(ESpecificsItemType.BIGDECIMAL)) {
           val1 = srvNumberToString.print(gs.getNumericValue1().toString(),
-            (String) pReqVars.get("dseparatorv"), (String) pReqVars
-              .get("dgseparatorv"), Integer.valueOf(gs.getLongValue1()
-                .intValue()), (Integer) pReqVars.get("digitsInGroup"));
+            (String) pReqVars.get("decSepv"), (String) pReqVars
+              .get("decGrSepv"), Integer.valueOf(gs.getLongValue1()
+                .intValue()), (Integer) pReqVars.get("digInGr"));
           if (gs.getStringValue1() != null) {
             val2 = gs.getStringValue1();
           }

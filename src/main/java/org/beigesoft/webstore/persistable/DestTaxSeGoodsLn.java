@@ -12,10 +12,7 @@ package org.beigesoft.webstore.persistable;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import org.beigesoft.model.IOwned;
-import org.beigesoft.persistable.AHasIdLongVersion;
-import org.beigesoft.accounting.persistable.InvItemTaxCategory;
-import org.beigesoft.accounting.persistable.TaxDestination;
+import org.beigesoft.accounting.persistable.base.ADestTaxItemLn;
 
 /**
  * <p>
@@ -24,23 +21,12 @@ import org.beigesoft.accounting.persistable.TaxDestination;
  *
  * @author Yury Demidenko
  */
-public class DestTaxSeGoodsLn extends AHasIdLongVersion
-  implements IOwned<SeGoods> {
+public class DestTaxSeGoodsLn extends ADestTaxItemLn<SeGoods> {
 
   /**
    * <p>Owner.</p>
    **/
   private SeGoods itsOwner;
-
-  /**
-   * <p>Tax destination, not null.</p>
-   **/
-  private TaxDestination txDest;
-
-  /**
-   * <p>Tax category, null if no taxes applies for this place.</p>
-   **/
-  private InvItemTaxCategory txCat;
 
   /**
    * <p>Geter for itsOwner.</p>
@@ -58,38 +44,5 @@ public class DestTaxSeGoodsLn extends AHasIdLongVersion
   @Override
   public final void setItsOwner(final SeGoods pItsOwner) {
     this.itsOwner = pItsOwner;
-  }
-
-  //Simple getters and setters:
-  /**
-   * <p>Getter for txDest.</p>
-   * @return TaxDestination
-   **/
-  public final TaxDestination getTxDest() {
-    return this.txDest;
-  }
-
-  /**
-   * <p>Setter for txDest.</p>
-   * @param pTxDest reference
-   **/
-  public final void setTxDest(final TaxDestination pTxDest) {
-    this.txDest = pTxDest;
-  }
-
-  /**
-   * <p>Getter for txCat.</p>
-   * @return InvItemTaxCategory
-   **/
-  public final InvItemTaxCategory getTxCat() {
-    return this.txCat;
-  }
-
-  /**
-   * <p>Setter for txCat.</p>
-   * @param pTxCat reference
-   **/
-  public final void setTxCat(final InvItemTaxCategory pTxCat) {
-    this.txCat = pTxCat;
   }
 }

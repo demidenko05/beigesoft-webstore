@@ -14,15 +14,14 @@ package org.beigesoft.webstore.persistable;
 
 import java.util.List;
 
-import org.beigesoft.persistable.AHasNameIdLongVersion;
-import org.beigesoft.accounting.persistable.InvItemTaxCategory;
+import org.beigesoft.accounting.persistable.base.AItem;
 
 /**
  * <p>Model of S.E. Goods.</p>
  *
  * @author Yury Demidenko
  */
-public class SeGoods extends AHasNameIdLongVersion
+public class SeGoods extends AItem<SeGoods, DestTaxSeGoodsLn>
   implements IHasSeSeller<Long> {
 
   /**
@@ -31,14 +30,9 @@ public class SeGoods extends AHasNameIdLongVersion
   private SeSeller seller;
 
   /**
-   * <p>Origin tax category e.g. "NY: tax1 10%, tax2 5%".</p>
-   **/
-  private InvItemTaxCategory txCat;
-
-  /**
    * <p>Destination taxes categories and rules.</p>
    **/
-  private List<DestTaxSeGoodsLn> destTaxes;
+  private List<DestTaxSeGoodsLn> destinationTaxes;
 
   /**
    * <p>Getter for seller.</p>
@@ -58,36 +52,23 @@ public class SeGoods extends AHasNameIdLongVersion
     this.seller = pSeller;
   }
 
-  //Simple getters and setters:
-  /**
-   * <p>Getter for txCat.</p>
-   * @return InvItemTaxCategory
-   **/
-  public final InvItemTaxCategory getTxCat() {
-    return this.txCat;
-  }
-
-  /**
-   * <p>Setter for txCat.</p>
-   * @param pTxCat reference
-   **/
-  public final void setTxCat(final InvItemTaxCategory pTxCat) {
-    this.txCat = pTxCat;
-  }
 
   /**
    * <p>Getter for destTaxes.</p>
    * @return List<DestTaxSeGoodsLn>
    **/
-  public final List<DestTaxSeGoodsLn> getDestTaxes() {
-    return this.destTaxes;
+  @Override
+  public final List<DestTaxSeGoodsLn> getDestinationTaxes() {
+    return this.destinationTaxes;
   }
 
   /**
    * <p>Setter for destTaxes.</p>
    * @param pDestTaxes reference
    **/
-  public final void setDestTaxes(final List<DestTaxSeGoodsLn> pDestTaxes) {
-    this.destTaxes = pDestTaxes;
+  @Override
+  public final void setDestinationTaxes(
+    final List<DestTaxSeGoodsLn> pDestTaxes) {
+    this.destinationTaxes = pDestTaxes;
   }
 }

@@ -44,6 +44,14 @@ public class CartTxLn extends ATaxLn implements IOwned<Cart> {
   private BigDecimal taxab = BigDecimal.ZERO;
 
   /**
+   * <p>Do not show in cart, it's for performance,
+   * old purchased cart emptied with this flag,
+   * when buyer add new goods to cart then it's used any disabled
+   * line (if exist) otherwise new line will be created.</p>
+   **/
+  private Boolean disab;
+
+  /**
    * <p>Getter for itsOwner.</p>
    * @return Cart
    **/
@@ -62,6 +70,22 @@ public class CartTxLn extends ATaxLn implements IOwned<Cart> {
   }
 
   //SGS:
+  /**
+   * <p>Getter for disab.</p>
+   * @return Boolean
+   **/
+  public final Boolean getDisab() {
+    return this.disab;
+  }
+
+  /**
+   * <p>Setter for disab.</p>
+   * @param pDisab reference
+   **/
+  public final void setDisab(final Boolean pDisab) {
+    this.disab = pDisab;
+  }
+
   /**
    * <p>Getter for seller.</p>
    * @return SeSeller
