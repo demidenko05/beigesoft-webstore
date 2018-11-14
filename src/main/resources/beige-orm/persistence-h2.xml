@@ -172,6 +172,7 @@
   org.beigesoft.webstore.persistable.Cart,
   org.beigesoft.webstore.persistable.CartLn,
   org.beigesoft.webstore.persistable.CartTxLn,
+  org.beigesoft.webstore.persistable.CartItTxLn,
   org.beigesoft.webstore.persistable.CustOrder,
   org.beigesoft.webstore.persistable.CustOrderGdLn,
   org.beigesoft.webstore.persistable.CustOrderSrvLn,

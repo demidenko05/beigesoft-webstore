@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.ArrayList;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 
 import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.model.IRequestData;
@@ -37,6 +40,7 @@ import org.beigesoft.accounting.persistable.InvItemTaxCategoryLine;
 import org.beigesoft.accounting.persistable.InvItemTaxCategory;
 import org.beigesoft.accounting.persistable.DestTaxGoodsLn;
 import org.beigesoft.accounting.persistable.DestTaxServSelLn;
+import org.beigesoft.accounting.persistable.TaxDestination;
 import org.beigesoft.accounting.persistable.base.AItem;
 import org.beigesoft.accounting.persistable.base.ADestTaxItemLn;
 import org.beigesoft.webstore.model.EShopItemType;
@@ -95,6 +99,21 @@ public class PrcItemInCart<RS> implements IProcessor {
    * <p>Service print number.</p>
    **/
   private ISrvNumberToString srvNumberToString;
+
+  /**
+   * <p>Query taxes invoice basis.</p>
+   **/
+  private String quTxInvBas;
+
+  /**
+   * <p>Query taxes item basis non-aggregate.</p>
+   **/
+  private String quTxItBas;
+
+  /**
+   * <p>Query taxes item basis aggregate.</p>
+   **/
+  private String quTxItBasAggr;
 
   /**
    * <p>Process entity request.</p>
@@ -188,8 +207,8 @@ public class PrcItemInCart<RS> implements IProcessor {
     } else {
       cartLn.setTot(amount);
     }
-    boolean[] isTxbItbAggr = makeItemTax(pReqVars, ts, cartLn, as);
-    makeCartTotals(pReqVars, ts, cart, as, isTxbItbAggr);
+    TaxDestination txRules = makeItemTax(pReqVars, ts, cartLn, as);
+    makeCartTotals(pReqVars, ts, cart, as, txRules);
     pRequestData.setAttribute("cart", cart);
     String processorName = pRequestData.getParameter("nmPrcRed");
     IProcessor proc = this.processorsFactory.lazyGet(pReqVars, processorName);
@@ -202,34 +221,43 @@ public class PrcItemInCart<RS> implements IProcessor {
    * @param pTs TradingSettings
    * @param pCart cart
    * @param pAs Accounting Settings
-   * @param pIsTxbItbAggr boolean array isTaxable, isItemBasis, isAggrOnlyRate
+   * @param pTxRules NULL if not taxable
    * @throws Exception - an exception.
    **/
   public final void makeCartTotals(final Map<String, Object> pReqVars,
     final TradingSettings pTs, final Cart pCart, final AccSettings pAs,
-      final boolean[] pIsTxbItbAggr) throws Exception {
+      final TaxDestination pTxRules) throws Exception {
     pReqVars.put("CartTxLnitsOwnerdeepLevel", 1);
     List<CartTxLn> ctls = getSrvOrm().retrieveListWithConditions(
         pReqVars, CartTxLn.class, "where CARTID="
           + pCart.getBuyer().getItsId());
     pReqVars.remove("CartTxLnitsOwnerdeepLevel");
-    if (pIsTxbItbAggr[0]) {
+    if (pTxRules != null) {
       if (ctls.size() > 0) {
         for (CartTxLn ctl : ctls) {
           ctl.setDisab(false);
         }
       }
-      if (pIsTxbItbAggr[1] && !pIsTxbItbAggr[2]) { //item basis non-aggregate
-        String query = "select sum(TOT) as TOTALTAX, TAX as TAXID from"
-          + " CARTITTXLN where DISAB=0 and CARTID="
-            + pCart.getBuyer().getItsId() + " group by TAX;";
+      //data storage for item basis aggregate rate and invoice basis,
+      //and for farther making total/subtotal in invoice lines
+      //for invoice basis:
+      //List<CartLn> lnsDt = new ArrayList<CartLn>();
+      //data storages for item basis with non-aggregate rate:
+      List<Long> taxesLst = null;
+      List<Double> dbResults = null;
+      if (!pTxRules.getSalTaxIsInvoiceBase()
+        && !pTxRules.getSalTaxUseAggregItBas()) { //item basis non-aggregate
+        String query = lazyGetQuTxItBas()
+          .replace(":CARTID", pCart.getBuyer().getItsId().toString());
+        dbResults = new ArrayList<Double>();
+        taxesLst = new ArrayList<Long>();
         IRecordSet<RS> recordSet = null;
         try {
           recordSet = getSrvDatabase().retrieveRecords(query);
           if (recordSet.moveToFirst()) {
             do {
-              Double taxd = recordSet.getDouble("TOTALTAX");
-              Long txId = recordSet.getLong("TAXID");
+              dbResults.add(recordSet.getDouble("TOTALTAX"));
+              taxesLst.add(recordSet.getLong("TAXID"));
             } while (recordSet.moveToNext());
           }
         } finally {
@@ -237,9 +265,29 @@ public class PrcItemInCart<RS> implements IProcessor {
             recordSet.close();
           }
         }
-      } else if (pIsTxbItbAggr[1] && pIsTxbItbAggr[2]) { //item basis aggregate
+      }/* else if (!pTxRules.getSalTaxIsInvoiceBase()
+        && pTxRules.getSalTaxUseAggregItBas()) { //item basis aggregate
       } else { //invoice basis
       }
+      if (taxesLst != null) {
+        for (int i = 0; i < taxesLst.size(); i++) {
+          //item basis, non-aggregate rate, taxes excluded
+          Tax tax = new Tax();
+          tax.setItsId(taxesLst.get(i));
+          SalesInvoiceTaxLine itl;
+          ctl = findCreateTaxLine(pReqVars, ctls, null, tax.getItsId());
+          ctl.setItsOwner(pCart);
+          ctl.setTax(tax);
+          ctl.setTot(BigDecimal.valueOf(dbResults.get(i))
+            .setScale(pAs.getPricePrecision(), txRules.getSalTaxRoundMode()));
+          if (itl.getIsNew()) {
+            getSrvOrm().insertEntity(pReqVars, itl);
+            itl.setIsNew(false);
+          } else {
+            getSrvOrm().updateEntity(pReqVars, itl);
+          }
+        }
+      }*/
     } else {
       if (ctls.size() > 0) {
         for (CartTxLn ctl : ctls) {
@@ -268,11 +316,11 @@ public class PrcItemInCart<RS> implements IProcessor {
    * @param pTs TradingSettings
    * @param pCartLn cart line
    * @param pAs Accounting Settings
-   * @return boolean array isTaxable, isItemBasis, isAggrOnlyRate 
+   * @return tax rules, NULL if not taxable 
    * @throws Exception - an exception, e.g. if item has destination taxes
    * and buyer has ZIP, but its destination tax is empty.
    **/
-  public final boolean[] makeItemTax(final Map<String, Object> pReqVars,
+  public final TaxDestination makeItemTax(final Map<String, Object> pReqVars,
     final TradingSettings pTs, final CartLn pCartLn,
       final AccSettings pAs) throws Exception {
     DebtorCreditor cust = pCartLn.getItsOwner().getBuyer().getRegCustomer();
@@ -281,17 +329,19 @@ public class PrcItemInCart<RS> implements IProcessor {
       cust.setRegZip(pCartLn.getItsOwner().getBuyer().getRegZip());
       cust.setTaxDestination(pCartLn.getItsOwner().getBuyer().getTaxDest());
     }
-    boolean[] isTxbItbAggr = new boolean[3];
-    isTxbItbAggr[0] = pAs.getIsExtractSalesTaxFromSales()
-      && !cust.getIsForeigner();
+    TaxDestination txRules = null;
+    if (pAs.getIsExtractSalesTaxFromSales() && !cust.getIsForeigner()) {
+      txRules = new TaxDestination();
+      txRules.setSalTaxIsInvoiceBase(pAs.getSalTaxIsInvoiceBase());
+      txRules.setSalTaxUseAggregItBas(pAs.getSalTaxUseAggregItBas());
+      txRules.setSalTaxRoundMode(pAs.getSalTaxRoundMode());
+    }
     //using user passed values:
     BigDecimal totalTaxes = BigDecimal.ZERO;
     BigDecimal bd100 = new BigDecimal("100.00");
     List<CartItTxLn> itls = null;
-    isTxbItbAggr[1] = !pAs.getSalTaxIsInvoiceBase();
-    isTxbItbAggr[2] = pAs.getSalTaxUseAggregItBas();
     pCartLn.setTxCat(null);
-    if (isTxbItbAggr[0]) {
+    if (txRules != null) {
       Class<?> itemCl;
       Class<?> dstTxItLnCl;
       if (pCartLn.getItTyp().equals(EShopItemType.GOODS)) {
@@ -310,12 +360,9 @@ public class PrcItemInCart<RS> implements IProcessor {
       AItem<?, ?> item = (AItem<?, ?>) getSrvOrm()
         .retrieveEntityById(pReqVars, itemCl, pCartLn.getItId());
       pCartLn.setTxCat(item.getTaxCategory());
-      RoundingMode rm = pAs.getSalTaxRoundMode();
       if (cust.getTaxDestination() != null) {
         //override tax method:
-        isTxbItbAggr[1] = !cust.getTaxDestination().getSalTaxIsInvoiceBase();
-        isTxbItbAggr[2] = cust.getTaxDestination().getSalTaxUseAggregItBas();
-        rm = cust.getTaxDestination().getSalTaxRoundMode();
+        txRules = cust.getTaxDestination();
         pReqVars.put(dstTxItLnCl.getSimpleName() + "itsOwnerdeepLevel", 1);
         List<ADestTaxItemLn<?>> dtls = (List<ADestTaxItemLn<?>>) getSrvOrm()
           .retrieveListWithConditions(pReqVars, dstTxItLnCl,
@@ -329,8 +376,8 @@ public class PrcItemInCart<RS> implements IProcessor {
           }
         }
       }
-      if (pCartLn.getTxCat() != null && isTxbItbAggr[1]) {
-        if (!isTxbItbAggr[2]) {
+      if (pCartLn.getTxCat() != null && !txRules.getSalTaxIsInvoiceBase()) {
+        if (!txRules.getSalTaxUseAggregItBas()) {
           if (!pTs.getTxExcl()) {
             throw new ExceptionWithCode(ExceptionWithCode.WRONG_PARAMETER,
               "price_inc_tax_multi_not_imp");
@@ -351,7 +398,8 @@ public class PrcItemInCart<RS> implements IProcessor {
                 sb.append(", ");
               }
               BigDecimal addTx = pCartLn.getSubt().multiply(itcl
-            .getItsPercentage()).divide(bd100, pAs.getPricePrecision(), rm);
+                .getItsPercentage()).divide(bd100, pAs.getPricePrecision(),
+                  txRules.getSalTaxRoundMode());
               totalTaxes = totalTaxes.add(addTx);
               CartItTxLn itl = new CartItTxLn();
               itl.setIsNew(true);
@@ -366,10 +414,11 @@ public class PrcItemInCart<RS> implements IProcessor {
           if (!pTs.getTxExcl()) {
         totalTaxes = pCartLn.getTot().subtract(pCartLn.getTot()
     .divide(BigDecimal.ONE.add(pCartLn.getTxCat().getAggrOnlyPercent()
-  .divide(bd100)), pAs.getPricePrecision(), rm));
+  .divide(bd100)), pAs.getPricePrecision(), txRules.getSalTaxRoundMode()));
           } else {
-        totalTaxes = pCartLn.getSubt().multiply(pCartLn.getTxCat()
-          .getAggrOnlyPercent()).divide(bd100, pAs.getPricePrecision(), rm);
+            totalTaxes = pCartLn.getSubt().multiply(pCartLn.getTxCat()
+          .getAggrOnlyPercent()).divide(bd100, pAs.getPricePrecision(),
+        txRules.getSalTaxRoundMode());
           }
         pCartLn.setTxDsc(pCartLn.getTxCat().getItsName());
         }
@@ -407,7 +456,7 @@ public class PrcItemInCart<RS> implements IProcessor {
         CartItTxLn itlr = null;
         if (itlsr.size() > 0) {
           for (CartItTxLn itlrt : itlsr) {
-            if (itlr.getDisab()) {
+            if (itlrt.getDisab()) {
               itlr= itlrt;
               itlr.setDisab(false);
               break;
@@ -428,7 +477,7 @@ public class PrcItemInCart<RS> implements IProcessor {
         }
       }
     }
-    return isTxbItbAggr;
+    return txRules;
   }
 
   /**
@@ -592,6 +641,66 @@ public class PrcItemInCart<RS> implements IProcessor {
             (Integer) pReqVars.get("digInGr"));
   }
 
+  /**
+   * <p>Lazy Getter for quTxInvBas.</p>
+   * @return String
+   * @throws IOException - IO exception
+   **/
+  public final String lazyGetQuTxInvBas() throws IOException {
+    if (this.quTxInvBas == null) {
+      this.quTxInvBas = loadString("/webstore/cartTxInvBas.sql");
+    }
+    return this.quTxInvBas;
+  }
+
+  /**
+   * <p>Lazy Getter for quTxItBas.</p>
+   * @return String
+   * @throws IOException - IO exception
+   **/
+  public final String lazyGetQuTxItBas() throws IOException {
+    if (this.quTxItBas == null) {
+      this.quTxItBas = loadString("/webstore/cartTxItBas.sql");
+    }
+    return this.quTxItBas;
+  }
+
+  /**
+   * <p>Lazy Getter for quTxItBasAggr.</p>
+   * @return String
+   * @throws IOException - IO exception
+   **/
+  public final String lazyGetQuTxItBasAggr() throws IOException {
+    if (this.quTxItBasAggr == null) {
+      this.quTxItBasAggr = loadString("/webstore/cartTxItBasAggr.sql");
+    }
+    return this.quTxItBasAggr;
+  }
+
+  /**
+   * <p>Load string file (usually SQL query).</p>
+   * @param pFileName file name
+   * @return String usually SQL query
+   * @throws IOException - IO exception
+   **/
+  public final String loadString(final String pFileName) throws IOException {
+    URL urlFile = PrcItemInCart.class.getResource(pFileName);
+    if (urlFile != null) {
+      InputStream inputStream = null;
+      try {
+        inputStream = PrcItemInCart.class.getResourceAsStream(pFileName);
+        byte[] bArray = new byte[inputStream.available()];
+        inputStream.read(bArray, 0, inputStream.available());
+        return new String(bArray, "UTF-8");
+      } finally {
+        if (inputStream != null) {
+          inputStream.close();
+        }
+      }
+    }
+    return null;
+  }
+
   //Simple getters and setters:
   /**
    * <p>Getter for srvDatabase.</p>
@@ -654,6 +763,7 @@ public class PrcItemInCart<RS> implements IProcessor {
    * <p>Setter for srvShoppingCart.</p>
    * @param pSrvShoppingCart reference
    **/
+
   public final void setSrvShoppingCart(
     final ISrvShoppingCart pSrvShoppingCart) {
     this.srvShoppingCart = pSrvShoppingCart;
@@ -674,5 +784,29 @@ public class PrcItemInCart<RS> implements IProcessor {
   public final void setProcessorsFactory(
     final IFactoryAppBeansByName<IProcessor> pProcessorsFactory) {
     this.processorsFactory = pProcessorsFactory;
+  }
+
+  /**
+   * <p>Setter for quTxInvBas.</p>
+   * @param pQuTxInvBas reference
+   **/
+  public final void setQuTxInvBas(final String pQuTxInvBas) {
+    this.quTxInvBas = pQuTxInvBas;
+  }
+
+  /**
+   * <p>Setter for quTxItBas.</p>
+   * @param pQuTxItBas reference
+   **/
+  public final void setQuTxItBas(final String pQuTxItBas) {
+    this.quTxItBas = pQuTxItBas;
+  }
+
+  /**
+   * <p>Setter for quTxItBasAggr.</p>
+   * @param pQuTxItBasAggr reference
+   **/
+  public final void setQuTxItBasAggr(final String pQuTxItBasAggr) {
+    this.quTxItBasAggr = pQuTxItBasAggr;
   }
 }

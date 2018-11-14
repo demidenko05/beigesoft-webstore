@@ -101,7 +101,7 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
   public final void process(final Map<String, Object> pReqVars,
     final IRequestData pRequestData) throws Exception {
     retrieveStartData(pReqVars);
-    SettingsAdd settingsAdd = (SettingsAdd) pReqVars.get("settingsAdd");
+    SettingsAdd settingsAdd = (SettingsAdd) pReqVars.get("setAdd");
     TradingSettings tradSet = (TradingSettings) pReqVars.get("tradSet");
     GoodsInListLuv goodsInListLuv = (GoodsInListLuv) pReqVars.get("goodsInListLuv");
     pReqVars.remove("goodsInListLuv");
