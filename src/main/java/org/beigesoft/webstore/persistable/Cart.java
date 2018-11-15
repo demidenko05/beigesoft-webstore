@@ -38,6 +38,11 @@ public class Cart extends AEditableHasVersion implements IHasId<OnlineBuyer> {
   private Currency curr;
 
   /**
+   * <p>Subtotal, not null.</p>
+   **/
+  private BigDecimal subt = BigDecimal.ZERO;
+
+  /**
    * <p>Total, not null.</p>
    **/
   private BigDecimal tot = BigDecimal.ZERO;
@@ -170,5 +175,21 @@ public class Cart extends AEditableHasVersion implements IHasId<OnlineBuyer> {
    **/
   public final void setTaxes(final List<CartTxLn> pTaxes) {
     this.taxes = pTaxes;
+  }
+
+  /**
+   * <p>Getter for subt.</p>
+   * @return BigDecimal
+   **/
+  public final BigDecimal getSubt() {
+    return this.subt;
+  }
+
+  /**
+   * <p>Setter for subt.</p>
+   * @param pSubt reference
+   **/
+  public final void setSubt(final BigDecimal pSubt) {
+    this.subt = pSubt;
   }
 }

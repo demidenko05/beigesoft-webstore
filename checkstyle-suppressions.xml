@@ -12,7 +12,7 @@
   <suppress checks="LineLength"
     files="PrcRefreshItemsInList|UtlTradeJsp|FctBnTradeEntitiesProcessors"/>
   <suppress checks="MethodLength"
-    files="PrcRefreshItemsInList|PrcWebstorePage|GoodsPriceListRetriever|ServicePriceListRetriever"/>
+    files="PrcRefreshItemsInList|PrcWebstorePage|GoodsPriceListRetriever|ServicePriceListRetriever|PrcItemInCart"/>
   <suppress checks="ParameterNumber"
     files="PrcRefreshItemsInList"/>
 </suppressions>

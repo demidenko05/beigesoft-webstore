@@ -30,6 +30,13 @@ public class CartItTxLn extends ATaxLn implements IOwned<CartLn> {
   private CartLn itsOwner;
 
   /**
+   * <p>SeSeller ID which items presents in cart,
+   * NULL means web-store owner's items.
+   * It duplicates owner's seller for performance purposes.</p>
+   **/
+  private Long sellerId;
+
+  /**
    * <p>Cart ID (to improve performance).</p>
    **/
   private Long cartId;
@@ -91,5 +98,21 @@ public class CartItTxLn extends ATaxLn implements IOwned<CartLn> {
    **/
   public final void setCartId(final Long pCartId) {
     this.cartId = pCartId;
+  }
+
+  /**
+   * <p>Getter for sellerId.</p>
+   * @return Long
+   **/
+  public final Long getSellerId() {
+    return this.sellerId;
+  }
+
+  /**
+   * <p>Setter for sellerId.</p>
+   * @param pSellerId reference
+   **/
+  public final void setSellerId(final Long pSellerId) {
+    this.sellerId = pSellerId;
   }
 }

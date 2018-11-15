@@ -170,6 +170,7 @@
   org.beigesoft.webstore.persistable.GoodsInListLuv,
   org.beigesoft.webstore.persistable.SettingsAdd,
   org.beigesoft.webstore.persistable.Cart,
+  org.beigesoft.webstore.persistable.CartTot,
   org.beigesoft.webstore.persistable.CartLn,
   org.beigesoft.webstore.persistable.CartTxLn,
   org.beigesoft.webstore.persistable.CartItTxLn,

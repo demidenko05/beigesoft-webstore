@@ -11,7 +11,6 @@
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
 <comment>Explicit final definition.</comment>
-<entry key="itIdisNullable">false</entry>
 <entry key="itsOwnerdefinition">integer</entry>
 <entry key="sellerdefinition">integer</entry>
 <entry key="sellerisNullable">true</entry>

@@ -46,14 +46,14 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
 
   /**
    * <p>Get/Create Cart.</p>
-   * @param pAddParam additional param
+   * @param pReqVars additional param
    * @param pRequestData Request Data
    * @param pIsNeedToCreate Is Need To Create cart
    * @return shopping cart or null
    * @throws Exception - an exception
    **/
   @Override
-  public final Cart getShoppingCart(final Map<String, Object> pAddParam,
+  public final Cart getShoppingCart(final Map<String, Object> pReqVars,
     final IRequestData pRequestData,
       final boolean pIsNeedToCreate) throws Exception {
     Long buyerId = null;
@@ -64,10 +64,10 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     OnlineBuyer onlineBuyer;
     if (buyerId == null) {
       TradingSettings tradingSettings = srvTradingSettings
-        .lazyGetTradingSettings(pAddParam);
+        .lazyGetTradingSettings(pReqVars);
       if (pIsNeedToCreate
         || tradingSettings.getIsCreateOnlineUserOnFirstVisit()) {
-        onlineBuyer = createOnlineBuyer(pAddParam, pRequestData);
+        onlineBuyer = createOnlineBuyer(pReqVars, pRequestData);
         pRequestData.setCookieValue("cBuyerId", onlineBuyer.getItsId()
           .toString());
       } else {
@@ -75,30 +75,36 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       }
     } else {
       onlineBuyer = getSrvOrm()
-        .retrieveEntityById(pAddParam, OnlineBuyer.class, buyerId);
+        .retrieveEntityById(pReqVars, OnlineBuyer.class, buyerId);
       if (onlineBuyer == null) { // deleted for any reason, so create new:
-        onlineBuyer = createOnlineBuyer(pAddParam, pRequestData);
+        onlineBuyer = createOnlineBuyer(pReqVars, pRequestData);
         pRequestData.setCookieValue("cBuyerId", onlineBuyer.getItsId()
           .toString());
       }
     }
     Cart shoppingCart = getSrvOrm()
-      .retrieveEntityById(pAddParam, Cart.class, onlineBuyer);
+      .retrieveEntityById(pReqVars, Cart.class, onlineBuyer);
     if (shoppingCart != null) {
       CartLn ci = new CartLn();
       ci.setItsOwner(shoppingCart);
+      pReqVars.put("CartLnitsOwnerdeepLevel", 1);
       List<CartLn> cartItems = getSrvOrm()
-        .retrieveListForField(pAddParam, ci, "itsOwner");
+        .retrieveListForField(pReqVars, ci, "itsOwner");
       shoppingCart.setItems(cartItems);
-      shoppingCart.setTaxes(getSrvOrm().retrieveListWithConditions(pAddParam,
-       CartTxLn.class, "where ITSOWNER=" + shoppingCart.getBuyer().getItsId()));
+      pReqVars.remove("CartLnitsOwnerdeepLevel");
+      pReqVars.put("CartTxLnitsOwnerdeepLevel", 1);
+      List<CartTxLn> ctls = getSrvOrm().retrieveListWithConditions(
+          pReqVars, CartTxLn.class, "where CARTID="
+            + shoppingCart.getBuyer().getItsId());
+      pReqVars.remove("CartTxLnitsOwnerdeepLevel");
+      shoppingCart.setTaxes(ctls);
     } else if (pIsNeedToCreate) {
       shoppingCart = new Cart();
       shoppingCart.setItsId(onlineBuyer);
-      getSrvOrm().insertEntity(pAddParam, shoppingCart);
+      getSrvOrm().insertEntity(pReqVars, shoppingCart);
     }
     if (shoppingCart != null) {
-      Currency curr = (Currency) pAddParam.get("wscurr");
+      Currency curr = (Currency) pReqVars.get("wscurr");
       shoppingCart.setCurr(curr);
       shoppingCart.setBuyer(onlineBuyer);
     }
@@ -107,18 +113,18 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
 
   /**
    * <p>Create OnlineBuyer.</p>
-   * @param pAddParam additional param
+   * @param pReqVars additional param
    * @param pRequestData Request Data
    * @return shopping cart or null
    * @throws Exception - an exception
    **/
   public final OnlineBuyer createOnlineBuyer(
-    final Map<String, Object> pAddParam,
+    final Map<String, Object> pReqVars,
       final IRequestData pRequestData) throws Exception {
     OnlineBuyer onlineBuyer = new OnlineBuyer();
     onlineBuyer.setIsNew(true);
     onlineBuyer.setItsName("newbe" + new Date().getTime());
-    getSrvOrm().insertEntity(pAddParam, onlineBuyer);
+    getSrvOrm().insertEntity(pReqVars, onlineBuyer);
     return onlineBuyer;
   }
 

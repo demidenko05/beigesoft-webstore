@@ -15,7 +15,9 @@ package org.beigesoft.webstore.processor;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.math.RoundingMode;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,13 +32,14 @@ import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvNumberToString;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.accounting.model.ETaxType;
+import org.beigesoft.accounting.model.CmprTaxCatLnRate;
 import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.accounting.persistable.AccSettings;
 import org.beigesoft.accounting.persistable.UnitOfMeasure;
 import org.beigesoft.accounting.persistable.ServiceToSale;
-import org.beigesoft.accounting.persistable.AccSettings;
 import org.beigesoft.accounting.persistable.DebtorCreditor;
 import org.beigesoft.accounting.persistable.InvItemTaxCategoryLine;
+import org.beigesoft.accounting.persistable.Tax;
 import org.beigesoft.accounting.persistable.InvItemTaxCategory;
 import org.beigesoft.accounting.persistable.DestTaxGoodsLn;
 import org.beigesoft.accounting.persistable.DestTaxServSelLn;
@@ -64,6 +67,7 @@ import org.beigesoft.webstore.persistable.SeGoodsPrice;
 import org.beigesoft.webstore.persistable.SeGoodsPriceId;
 import org.beigesoft.webstore.persistable.DestTaxSeGoodsLn;
 import org.beigesoft.webstore.persistable.DestTaxSeServiceLn;
+import org.beigesoft.webstore.persistable.SeSeller;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
@@ -227,87 +231,280 @@ public class PrcItemInCart<RS> implements IProcessor {
   public final void makeCartTotals(final Map<String, Object> pReqVars,
     final TradingSettings pTs, final Cart pCart, final AccSettings pAs,
       final TaxDestination pTxRules) throws Exception {
-    pReqVars.put("CartTxLnitsOwnerdeepLevel", 1);
-    List<CartTxLn> ctls = getSrvOrm().retrieveListWithConditions(
-        pReqVars, CartTxLn.class, "where CARTID="
-          + pCart.getBuyer().getItsId());
-    pReqVars.remove("CartTxLnitsOwnerdeepLevel");
     if (pTxRules != null) {
-      if (ctls.size() > 0) {
-        for (CartTxLn ctl : ctls) {
-          ctl.setDisab(false);
-        }
+      for (CartTxLn ctl : pCart.getTaxes()) {
+        ctl.setDisab(false);
       }
-      //data storage for item basis aggregate rate and invoice basis,
-      //and for farther making total/subtotal in invoice lines
-      //for invoice basis:
-      //List<CartLn> lnsDt = new ArrayList<CartLn>();
-      //data storages for item basis with non-aggregate rate:
-      List<Long> taxesLst = null;
-      List<Double> dbResults = null;
+      //data storage for any tax method,
+      //for invoice basis it's used for farther adjusting invoice lines,
+      //for item basis non-aggregate itId holds tax ID:
+      List<CartLn> lnsDt = new ArrayList<CartLn>();
+      String query;
       if (!pTxRules.getSalTaxIsInvoiceBase()
-        && !pTxRules.getSalTaxUseAggregItBas()) { //item basis non-aggregate
-        String query = lazyGetQuTxItBas()
-          .replace(":CARTID", pCart.getBuyer().getItsId().toString());
-        dbResults = new ArrayList<Double>();
-        taxesLst = new ArrayList<Long>();
-        IRecordSet<RS> recordSet = null;
-        try {
-          recordSet = getSrvDatabase().retrieveRecords(query);
-          if (recordSet.moveToFirst()) {
-            do {
-              dbResults.add(recordSet.getDouble("TOTALTAX"));
-              taxesLst.add(recordSet.getLong("TAXID"));
-            } while (recordSet.moveToNext());
-          }
-        } finally {
-          if (recordSet != null) {
-            recordSet.close();
-          }
-        }
-      }/* else if (!pTxRules.getSalTaxIsInvoiceBase()
-        && pTxRules.getSalTaxUseAggregItBas()) { //item basis aggregate
-      } else { //invoice basis
+        && !pTxRules.getSalTaxUseAggregItBas()) {
+        //item basis non-aggregate, taxes excluded:
+        query = lazyGetQuTxItBas();
+      } else if (!pTxRules.getSalTaxIsInvoiceBase()
+        && pTxRules.getSalTaxUseAggregItBas()) { //item basis aggregate:
+        query = lazyGetQuTxItBasAggr();
+      } else { //invoice basis:
+        query = lazyGetQuTxInvBas();
       }
-      if (taxesLst != null) {
-        for (int i = 0; i < taxesLst.size(); i++) {
-          //item basis, non-aggregate rate, taxes excluded
+      query = query.replace(":CARTID", pCart.getBuyer().getItsId().toString());
+      IRecordSet<RS> recordSet = null;
+      try {
+        recordSet = getSrvDatabase().retrieveRecords(query);
+        if (recordSet.moveToFirst()) {
+          do {
+            Long txId = recordSet.getLong("TAXID");
+            Long sellerId = recordSet.getLong("SELLER");
+            if (!pTxRules.getSalTaxIsInvoiceBase()
+              && !pTxRules.getSalTaxUseAggregItBas()) {
+              //item basis non-aggregate, taxes excluded:
+              CartLn ctl = new CartLn();
+              lnsDt.add(ctl);
+              ctl.setTotTx(BigDecimal.valueOf(recordSet.getDouble("TOTALTAX")));
+              ctl.setItId(txId);
+              if (sellerId != null) {
+                DebtorCreditor ds = new DebtorCreditor();
+                ds.setItsId(sellerId);
+                SeSeller se = new SeSeller();
+                se.setItsId(ds);
+                ctl.setSeller(se);
+              }
+            } else {
+              Double percent = recordSet.getDouble("ITSPERCENTAGE");
+              Long tcId = recordSet.getLong("TAXCATID");
+              if (!pTxRules.getSalTaxIsInvoiceBase()
+                && pTxRules.getSalTaxUseAggregItBas()) { //item basis aggregate
+                Long clId = recordSet.getLong("CLID");
+                CartLn tdl = makeTdLine(lnsDt, clId, tcId, txId, percent,
+                  pAs, sellerId);
+                tdl.setTotTx(BigDecimal.valueOf(recordSet
+                  .getDouble("TOTALTAXES"))
+                    .setScale(pAs.getPricePrecision(), RoundingMode.HALF_UP));
+              } else { //invoice basis
+                CartLn tdl = makeTdLine(lnsDt, tcId, tcId, txId, percent,
+                  pAs, sellerId);
+                tdl.setTot(BigDecimal.valueOf(recordSet
+                  .getDouble("ITSTOTAL"))
+                    .setScale(pAs.getPricePrecision(), RoundingMode.HALF_UP));
+                tdl.setSubt(BigDecimal.valueOf(recordSet
+                  .getDouble("SUBTOTAL"))
+                    .setScale(pAs.getPricePrecision(), RoundingMode.HALF_UP));
+              }
+            }
+          } while (recordSet.moveToNext());
+        }
+      } finally {
+        if (recordSet != null) {
+          recordSet.close();
+        }
+      }
+      if (!pTxRules.getSalTaxIsInvoiceBase()
+        && !pTxRules.getSalTaxUseAggregItBas()) {
+        //item basis non-aggregate, taxes excluded:
+        for (CartLn dtl : lnsDt) {
           Tax tax = new Tax();
-          tax.setItsId(taxesLst.get(i));
-          SalesInvoiceTaxLine itl;
-          ctl = findCreateTaxLine(pReqVars, ctls, null, tax.getItsId());
-          ctl.setItsOwner(pCart);
-          ctl.setTax(tax);
-          ctl.setTot(BigDecimal.valueOf(dbResults.get(i))
-            .setScale(pAs.getPricePrecision(), txRules.getSalTaxRoundMode()));
-          if (itl.getIsNew()) {
-            getSrvOrm().insertEntity(pReqVars, itl);
-            itl.setIsNew(false);
+          tax.setItsId(dtl.getItId());
+          CartTxLn ctl = findCreateTaxLine(pReqVars, pCart, tax.getItsId(),
+            dtl.getSeller());
+          ctl.setTot(dtl.getTotTx()
+            .setScale(pAs.getPricePrecision(), pTxRules.getSalTaxRoundMode()));
+          if (ctl.getIsNew()) {
+            getSrvOrm().insertEntity(pReqVars, ctl);
+            ctl.setIsNew(false);
           } else {
-            getSrvOrm().updateEntity(pReqVars, itl);
+            getSrvOrm().updateEntity(pReqVars, ctl);
           }
         }
-      }*/
-    } else {
-      if (ctls.size() > 0) {
-        for (CartTxLn ctl : ctls) {
-          ctl.setDisab(true);
-          getSrvOrm().updateEntity(pReqVars, ctl);
+      } else {
+        BigDecimal bd100 = new BigDecimal("100.00");
+        Comparator<InvItemTaxCategoryLine> cmpr = Collections
+          .reverseOrder(new CmprTaxCatLnRate());
+        for (CartLn dtl : lnsDt) {
+          int ti = 0;
+          //total taxes for tax category for updating cart lines:
+          BigDecimal invBasTaxTot = null;
+          //aggregate rate line scoped storages:
+          BigDecimal taxAggegated = null;
+          BigDecimal taxAggrAccum = BigDecimal.ZERO;
+          if (pTxRules.getSalTaxUseAggregItBas()) {
+            Collections.sort(dtl.getTxCat().getTaxes(), cmpr);
+          }
+          for (InvItemTaxCategoryLine itcl : dtl.getTxCat().getTaxes()) {
+            ti++;
+            if (taxAggegated == null && pTxRules.getSalTaxUseAggregItBas()) {
+             if (pTxRules.getSalTaxIsInvoiceBase() && !pTs.getTxExcl()) {
+               //invoice basis, aggregate/only rate, taxes included
+                taxAggegated = dtl.getTot().subtract(dtl.getTot().divide(
+              BigDecimal.ONE.add(dtl.getTxCat().getAggrOnlyPercent().divide(
+            bd100)), pAs.getPricePrecision(), pTxRules.getSalTaxRoundMode()));
+              } else if (!pTxRules.getSalTaxIsInvoiceBase()) {
+               //item basis, aggregate/only rate
+                taxAggegated = dtl.getTotTx();
+              }
+            }
+            if (pTxRules.getSalTaxIsInvoiceBase()) {
+              //total taxes for tax category for updating invoice lines:
+              invBasTaxTot = dtl.getTotTx();
+            }
+            if (pTxRules.getSalTaxIsInvoiceBase() && !pTs.getTxExcl()
+              && pTxRules.getSalTaxUseAggregItBas()) {
+             if (dtl.getTxCat().getTaxes().size() == 1
+                || ti < dtl.getTxCat().getTaxes().size()) {
+                dtl.setTotTx(taxAggegated.multiply(itcl.getItsPercentage())
+              .divide(dtl.getTxCat().getAggrOnlyPercent(),
+            pAs.getPricePrecision(), pTxRules.getSalTaxRoundMode()));
+                taxAggrAccum = taxAggrAccum.add(dtl.getTotTx());
+              } else { //the rest:
+                dtl.setTotTx(taxAggegated.subtract(taxAggrAccum));
+              }
+            } else if (pTxRules.getSalTaxIsInvoiceBase() && pTs.getTxExcl()) {
+              dtl.setTotTx(dtl.getSubt().multiply(itcl
+                .getItsPercentage()).divide(bd100, pAs
+                  .getPricePrecision(), pTxRules.getSalTaxRoundMode()));
+            } else if (!pTxRules.getSalTaxIsInvoiceBase()
+              && pTxRules.getSalTaxUseAggregItBas()) {
+              if (dtl.getTxCat().getTaxes().size() == 1
+                || ti < dtl.getTxCat().getTaxes().size()) {
+                dtl.setTotTx(taxAggegated.multiply(itcl
+              .getItsPercentage()).divide(dtl.getTxCat()
+            .getAggrOnlyPercent(), pAs.getPricePrecision(),
+          pTxRules.getSalTaxRoundMode()));
+                taxAggrAccum = taxAggrAccum.add(dtl.getTotTx());
+              } else {
+                dtl.setTotTx(taxAggegated.subtract(taxAggrAccum));
+              }
+            } else {
+              throw new Exception("Algorithm error!!!");
+            }
+            CartTxLn ctl = findCreateTaxLine(pReqVars, pCart,
+              itcl.getTax().getItsId(), dtl.getSeller());
+            //makeCtl(pReqVars, ctl, dtl, pTxRules, pTs);
+            if (pTxRules.getSalTaxIsInvoiceBase()) {
+              //total taxes for tax category for updating invoice lines:
+              dtl.setTotTx(invBasTaxTot.add(dtl.getTotTx()));
+            }
+          }
         }
+      }
+    } else {
+      for (CartTxLn ctl : pCart.getTaxes()) {
+        ctl.setDisab(true);
+        getSrvOrm().updateEntity(pReqVars, ctl);
       }
       pReqVars.put("CartItTxLnitsOwnerdeepLevel", 1);
       List<CartItTxLn> citls = getSrvOrm().retrieveListWithConditions(
           pReqVars, CartItTxLn.class, " where DISAB=0 and CARTID="
             + pCart.getBuyer().getItsId());
       pReqVars.remove("CartItTxLnitsOwnerdeepLevel");
-      if (citls.size() > 0) {
-        for (CartItTxLn citl : citls) {
-          citl.setDisab(true);
-          getSrvOrm().updateEntity(pReqVars, citl);
-        }
+      for (CartItTxLn citl : citls) {
+        citl.setDisab(true);
+        getSrvOrm().updateEntity(pReqVars, citl);
       }
     }
     getSrvOrm().updateEntity(pReqVars, pCart);
+  }
+
+  /**
+   * <p>Make cart line that stores taxes data in lines set
+   * for invoice basis or item basis aggregate rate.</p>
+   * @param pTdLns TD lines
+   * @param pTdlId line ID
+   * @param pCatId tax category ID
+   * @param pTaxId tax ID
+   * @param pPercent tax rate
+   * @param pAs AS
+   * @param pSellerId Seller ID
+   * @return line
+   **/
+  public final CartLn makeTdLine(final List<CartLn> pTdLns, final Long pTdlId,
+    final Long pCatId,  final Long pTaxId, final Double pPercent,
+      final AccSettings pAs, final Long pSellerId) {
+    CartLn tdLn = null;
+    for (CartLn tdl : pTdLns) {
+      if (tdl.getItsId().equals(pTdlId)
+        && (pSellerId == null && tdl.getSeller() == null
+        || pSellerId != null && tdl.getSeller() != null
+          && tdl.getSeller().getItsId().getItsId().equals(pSellerId))) {
+        tdLn = tdl;
+      }
+    }
+    if (tdLn == null) {
+      tdLn = new CartLn();
+      tdLn.setItsId(pTdlId);
+      InvItemTaxCategory tc = new InvItemTaxCategory();
+      tc.setItsId(pCatId);
+      tc.setTaxes(new ArrayList<InvItemTaxCategoryLine>());
+      tdLn.setTxCat(tc);
+      if (pSellerId != null) {
+        DebtorCreditor ds = new DebtorCreditor();
+        ds.setItsId(pSellerId);
+        SeSeller se = new SeSeller();
+        se.setItsId(ds);
+        tdLn.setSeller(se);
+      }
+      pTdLns.add(tdLn);
+    }
+    InvItemTaxCategoryLine itcl = new InvItemTaxCategoryLine();
+    Tax tax = new Tax();
+    tax.setItsId(pTaxId);
+    itcl.setTax(tax);
+    itcl.setItsPercentage(BigDecimal.valueOf(pPercent)
+      .setScale(pAs.getTaxPrecision(), RoundingMode.HALF_UP));
+    tdLn.getTxCat().getTaxes().add(itcl);
+    tdLn.getTxCat().setAggrOnlyPercent(tdLn.getTxCat()
+      .getAggrOnlyPercent().add(itcl.getItsPercentage()));
+    return tdLn;
+  }
+
+  /**
+   * <p>Finds enabled line with same tax and seller or any disabled tax line
+   * or creates one.</p>
+   * @param pReqVars additional param
+   * @param pCart cart
+   * @param pTaxId tax ID
+   * @param pSeller seller
+   * @return line
+   **/
+  public final CartTxLn findCreateTaxLine(final Map<String, Object> pReqVars,
+    final Cart pCart, final Long pTaxId, final SeSeller pSeller) {
+    CartTxLn ctl = null;
+    //find enabled line to add amount
+    for (CartTxLn tl : pCart.getTaxes()) {
+      if (!tl.getDisab() && tl.getTax().getItsId().equals(pTaxId)
+        && (pSeller == null && tl.getSeller() == null
+          || pSeller != null && tl.getSeller() != null && pSeller.getItsId()
+            .getItsId().equals(tl.getSeller().getItsId().getItsId()))) {
+        ctl = tl;
+        break;
+      }
+    }
+    if (ctl == null) {
+      //find disabled line to initialize new tax
+      for (CartTxLn tl : pCart.getTaxes()) {
+        if (tl.getDisab()) {
+          ctl = tl;
+          Tax tax = new Tax();
+          tax.setItsId(pTaxId);
+          ctl.setTax(tax);
+          ctl.setSeller(pSeller);
+          break;
+        }
+      }
+    }
+    if (ctl == null) {
+      ctl = new CartTxLn();
+      ctl.setItsOwner(pCart);
+      ctl.setIsNew(true);
+      Tax tax = new Tax();
+      tax.setItsId(pTaxId);
+      ctl.setTax(tax);
+      ctl.setSeller(pSeller);
+      pCart.getTaxes().add(ctl);
+    }
+    return ctl;
   }
 
   /**
@@ -316,7 +513,7 @@ public class PrcItemInCart<RS> implements IProcessor {
    * @param pTs TradingSettings
    * @param pCartLn cart line
    * @param pAs Accounting Settings
-   * @return tax rules, NULL if not taxable 
+   * @return tax rules, NULL if not taxable
    * @throws Exception - an exception, e.g. if item has destination taxes
    * and buyer has ZIP, but its destination tax is empty.
    **/
@@ -449,7 +646,7 @@ public class PrcItemInCart<RS> implements IProcessor {
     if (itls != null) {
       pReqVars.put("CartItTxLnitsOwnerdeepLevel", 1);
       List<CartItTxLn> itlsr = getSrvOrm().retrieveListWithConditions(
-          pReqVars, CartItTxLn.class, " where DISAB=1 and CARTID="
+          pReqVars, CartItTxLn.class, "where DISAB=1 and CARTID="
             + pCartLn.getItsOwner().getBuyer().getItsId());
       pReqVars.remove("CartItTxLnitsOwnerdeepLevel");
       for (CartItTxLn itl : itls) {
@@ -457,7 +654,7 @@ public class PrcItemInCart<RS> implements IProcessor {
         if (itlsr.size() > 0) {
           for (CartItTxLn itlrt : itlsr) {
             if (itlrt.getDisab()) {
-              itlr= itlrt;
+              itlr = itlrt;
               itlr.setDisab(false);
               break;
             }
