@@ -8,11 +8,11 @@
   <suppress checks="MagicNumberCheck"
     files="PrcRefreshItemsInList|PrcItemPage|PrcWebstorePage|HndlSeSellerReq|GoodsPriceListRetriever|ServicePriceListRetriever"/>
   <suppress checks="MagicNumberCheck"
-    files="PrcItSpecEmbFlSave|HndlWebAdminReq|SeSellerFilter|PrcSeGdSpecEmbFlSave|PrcSeSrvSpecEmbFlSave"/>
+    files="PrcItSpecEmbFlSave|HndlWebAdminReq|SeSellerFilter|PrcSeGdSpecEmbFlSave|PrcSeSrvSpecEmbFlSave|SrvShoppingCart"/>
   <suppress checks="LineLength"
     files="PrcRefreshItemsInList|UtlTradeJsp|FctBnTradeEntitiesProcessors"/>
   <suppress checks="MethodLength"
-    files="PrcRefreshItemsInList|PrcWebstorePage|GoodsPriceListRetriever|ServicePriceListRetriever|PrcItemInCart"/>
+    files="PrcRefreshItemsInList|PrcWebstorePage|GoodsPriceListRetriever|ServicePriceListRetriever|SrvShoppingCart"/>
   <suppress checks="ParameterNumber"
     files="PrcRefreshItemsInList"/>
 </suppressions>

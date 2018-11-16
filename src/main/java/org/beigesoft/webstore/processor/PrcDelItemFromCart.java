@@ -13,20 +13,17 @@ package org.beigesoft.webstore.processor;
  */
 
 import java.util.Map;
-import java.math.BigDecimal;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 
 import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.service.IProcessor;
-import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.accounting.persistable.AccSettings;
+import org.beigesoft.accounting.persistable.TaxDestination;
 import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.webstore.persistable.CartLn;
+import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
@@ -36,16 +33,6 @@ import org.beigesoft.webstore.service.ISrvShoppingCart;
  * @author Yury Demidenko
  */
 public class PrcDelItemFromCart<RS> implements IProcessor {
-
-  /**
-   * <p>Query cart totals.</p>
-   **/
-  private String queryCartTotals;
-
-  /**
-   * <p>Database service.</p>
-   **/
-  private ISrvDatabase<RS> srvDatabase;
 
   /**
    * <p>ORM service.</p>
@@ -64,130 +51,56 @@ public class PrcDelItemFromCart<RS> implements IProcessor {
 
   /**
    * <p>Process entity request.</p>
-   * @param pAddParam additional param
+   * @param pReqVars request scoped vars
    * @param pRequestData Request Data
    * @throws Exception - an exception
    **/
   @Override
-  public final void process(final Map<String, Object> pAddParam,
+  public final void process(final Map<String, Object> pReqVars,
     final IRequestData pRequestData) throws Exception {
-    Cart shoppingCart = this.srvShoppingCart
-      .getShoppingCart(pAddParam, pRequestData, false);
-    if (shoppingCart == null || shoppingCart.getItems() == null) {
+    Cart cart = this.srvShoppingCart
+      .getShoppingCart(pReqVars, pRequestData, false);
+    if (cart == null || cart.getItems() == null) {
       throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
         "there_is_no_cart_for_requestor");
     }
     String lnIdStr = pRequestData.getParameter("lnId");
     if (lnIdStr != null) {
       Long lnId = Long.valueOf(lnIdStr);
-      CartLn cartItem = null;
-      for (CartLn ci : shoppingCart.getItems()) {
+      CartLn cartLn = null;
+      for (CartLn ci : cart.getItems()) {
         if (ci.getItsId().equals(lnId)) {
           if (ci.getDisab()) {
             throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
               "requested_item_disabled");
           }
-          cartItem = ci;
+          cartLn = ci;
           break;
         }
       }
-      if (cartItem == null) {
+      if (cartLn == null) {
         throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
           "requested_item_not_found");
       }
-      cartItem.setDisab(true);
-      this.getSrvOrm().updateEntity(pAddParam, cartItem);
-      String query = lazyGetQueryCartTotals();
-      query = query.replace(":CARTID", shoppingCart.getItsId()
-        .getItsId().toString());
-      String[] columns = new String[]{"ITSTOTAL"};
-      Double[] totals = this.getSrvDatabase()
-        .evalDoubleResults(query, columns);
-      if (totals[0] == null) {
-        totals[0] = 0d;
-      }
-      AccSettings accSettings = (AccSettings) pAddParam.get("accSet");
-      shoppingCart.setTot(BigDecimal.valueOf(totals[0]).
-        setScale(accSettings.getPricePrecision(),
-          accSettings.getRoundingMode()));
-      this.getSrvOrm().updateEntity(pAddParam, shoppingCart);
-      pRequestData.setAttribute("shoppingCart", shoppingCart);
+      cartLn.setDisab(true);
+      this.getSrvOrm().updateEntity(pReqVars, cartLn);
+      AccSettings as = (AccSettings) pReqVars.get("accSet");
+      TradingSettings ts = (TradingSettings) pReqVars.get("tradSet");
+      TaxDestination txRules = this.srvShoppingCart.revealTaxRules(pReqVars,
+        cart, as);
+      this.srvShoppingCart.makeCartTotals(pReqVars, ts, cartLn, as, txRules);
+      pRequestData.setAttribute("cart", cart);
       String processorName = pRequestData.getParameter("nmPrcRed");
       IProcessor proc = this.processorsFactory
-        .lazyGet(pAddParam, processorName);
-      proc.process(pAddParam, pRequestData);
+        .lazyGet(pReqVars, processorName);
+      proc.process(pReqVars, pRequestData);
     } else {
       throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
         "there_is_no_cart_item_id");
     }
   }
 
-  /**
-   * <p>Load string file (usually SQL query).</p>
-   * @param pFileName file name
-   * @return String usually SQL query
-   * @throws IOException - IO exception
-   **/
-  public final String loadString(final String pFileName)
-        throws IOException {
-    URL urlFile = PrcDelItemFromCart.class
-      .getResource(pFileName);
-    if (urlFile != null) {
-      InputStream inputStream = null;
-      try {
-        inputStream = PrcDelItemFromCart.class
-          .getResourceAsStream(pFileName);
-        byte[] bArray = new byte[inputStream.available()];
-        inputStream.read(bArray, 0, inputStream.available());
-        return new String(bArray, "UTF-8");
-      } finally {
-        if (inputStream != null) {
-          inputStream.close();
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * <p>Lazy Get queryCartTotals.</p>
-   * @return String
-   * @throws Exception - an exception
-   **/
-  public final String
-    lazyGetQueryCartTotals() throws Exception {
-    if (this.queryCartTotals == null) {
-      String flName = "/webstore/cartTotals.sql";
-      this.queryCartTotals = loadString(flName);
-    }
-    return this.queryCartTotals;
-  }
-
   //Simple getters and setters:
-  /**
-   * <p>Setter for queryCartTotals.</p>
-   * @param pQueryCartTotals reference
-   **/
-  public final void setQueryCartTotals(final String pQueryCartTotals) {
-    this.queryCartTotals = pQueryCartTotals;
-  }
-
-  /**
-   * <p>Getter for srvDatabase.</p>
-   * @return ISrvDatabase<RS>
-   **/
-  public final ISrvDatabase<RS> getSrvDatabase() {
-    return this.srvDatabase;
-  }
-
-  /**
-   * <p>Setter for srvDatabase.</p>
-   * @param pSrvDatabase reference
-   **/
-  public final void setSrvDatabase(final ISrvDatabase<RS> pSrvDatabase) {
-    this.srvDatabase = pSrvDatabase;
-  }
-
   /**
    * <p>Geter for srvOrm.</p>
    * @return ISrvOrm<RS>

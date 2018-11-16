@@ -1,3 +1,3 @@
-select sum(TOT) as TOTALTAX, SELLERID as SELLER, TAX as TAXID
-from CARTITTXLN where DISAB=0 and CARTID=:CARTID
-group by SELLER, TAX;
+select TAX as TAXID, sum(TOT) as TOTALTAX
+from CARTITTXLN where DISAB=0 and SELLERID:CONDSEL and CARTID=:CARTID
+group by TAX;
