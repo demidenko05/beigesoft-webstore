@@ -185,6 +185,32 @@ public class PrcItemInCart<RS> implements IProcessor {
           .retrieveEntityById(pReqVars, itemCl, cartLn.getItId());
         if (txRules != null) {
           cartLn.setTxCat(item.getTaxCategory());
+          if (ts.getTxDests() && cartLn.getItsOwner().getBuyer()
+            .getRegCustomer().getTaxDestination() != null) {
+            Class<?> dstTxItLnCl;
+            if (cartLn.getItTyp().equals(EShopItemType.GOODS)) {
+              dstTxItLnCl = DestTaxGoodsLn.class;
+            } else if (cartLn.getItTyp().equals(EShopItemType.SERVICE)) {
+              dstTxItLnCl = DestTaxServSelLn.class;
+            } else if (cartLn.getItTyp().equals(EShopItemType.SESERVICE)) {
+              dstTxItLnCl = DestTaxSeServiceLn.class;
+            } else {
+              dstTxItLnCl = DestTaxSeGoodsLn.class;
+            }
+            //override tax method:
+            pReqVars.put(dstTxItLnCl.getSimpleName() + "itsOwnerdeepLevel", 1);
+            List<ADestTaxItemLn<?>> dtls = (List<ADestTaxItemLn<?>>) getSrvOrm()
+              .retrieveListWithConditions(pReqVars, dstTxItLnCl,
+                "where ITSOWNER=" + cartLn.getItId());
+            pReqVars.remove(dstTxItLnCl.getSimpleName() + "itsOwnerdeepLevel");
+            for (ADestTaxItemLn<?> dtl : dtls) {
+              if (dtl.getTaxDestination().getItsId().equals(cartLn.getItsOwner()
+                .getBuyer().getRegCustomer().getTaxDestination().getItsId())) {
+                cartLn.setTxCat(dtl.getTaxCategory()); //it may be null
+                break;
+              }
+            }
+          }
         }
         if (isSeSeller) {
           IHasSeSeller<Long> seitem = (IHasSeSeller<Long>) item;
@@ -202,7 +228,7 @@ public class PrcItemInCart<RS> implements IProcessor {
     } else {
       cartLn.setTot(amount);
     }
-    makeItemTax(pReqVars, ts, cartLn, as, txRules);
+    makeItTxAndTot(pReqVars, ts, cartLn, as, txRules);
     this.srvShoppingCart.makeCartTotals(pReqVars, ts, cartLn, as, txRules);
     pRequestData.setAttribute("cart", cart);
     String processorName = pRequestData.getParameter("nmPrcRed");
@@ -211,7 +237,7 @@ public class PrcItemInCart<RS> implements IProcessor {
   }
 
   /**
-   * <p>Makes item's tax.</p>
+   * <p>Makes item's tax and tot.</p>
    * @param pReqVars request scoped vars
    * @param pTs TradingSettings
    * @param pCartLn cart line
@@ -220,7 +246,7 @@ public class PrcItemInCart<RS> implements IProcessor {
    * @throws Exception - an exception, e.g. if item has destination taxes
    * and buyer has ZIP, but its destination tax is empty.
    **/
-  public final void makeItemTax(final Map<String, Object> pReqVars,
+  public final void makeItTxAndTot(final Map<String, Object> pReqVars,
     final TradingSettings pTs, final CartLn pCartLn,
       final AccSettings pAs, final TaxDestination pTxRules) throws Exception {
     //using user passed values:
@@ -228,34 +254,8 @@ public class PrcItemInCart<RS> implements IProcessor {
     BigDecimal bd100 = new BigDecimal("100.00");
     List<CartItTxLn> itls = null;
     pCartLn.setTxCat(null);
-    if (pTxRules != null) {
-      if (pCartLn.getItsOwner().getBuyer().getRegCustomer()
-        .getTaxDestination() != null) {
-        Class<?> dstTxItLnCl;
-        if (pCartLn.getItTyp().equals(EShopItemType.GOODS)) {
-          dstTxItLnCl = DestTaxGoodsLn.class;
-        } else if (pCartLn.getItTyp().equals(EShopItemType.SERVICE)) {
-          dstTxItLnCl = DestTaxServSelLn.class;
-        } else if (pCartLn.getItTyp().equals(EShopItemType.SESERVICE)) {
-          dstTxItLnCl = DestTaxSeServiceLn.class;
-        } else {
-          dstTxItLnCl = DestTaxSeGoodsLn.class;
-        }
-        //override tax method:
-        pReqVars.put(dstTxItLnCl.getSimpleName() + "itsOwnerdeepLevel", 1);
-        List<ADestTaxItemLn<?>> dtls = (List<ADestTaxItemLn<?>>) getSrvOrm()
-          .retrieveListWithConditions(pReqVars, dstTxItLnCl,
-            "where ITSOWNER=" + pCartLn.getItId());
-        pReqVars.remove(dstTxItLnCl.getSimpleName() + "itsOwnerdeepLevel");
-        for (ADestTaxItemLn<?> dtl : dtls) {
-          if (dtl.getTaxDestination().getItsId().equals(pCartLn.getItsOwner()
-            .getBuyer().getRegCustomer().getTaxDestination().getItsId())) {
-            pCartLn.setTxCat(dtl.getTaxCategory()); //it may be null
-            break;
-          }
-        }
-      }
-      if (pCartLn.getTxCat() != null && !pTxRules.getSalTaxIsInvoiceBase()) {
+    if (pTxRules != null && pCartLn.getTxCat() != null) {
+      if (!pTxRules.getSalTaxIsInvoiceBase()) {
         if (!pTxRules.getSalTaxUseAggregItBas()) {
           if (!pTs.getTxExcl()) {
             throw new ExceptionWithCode(ExceptionWithCode.WRONG_PARAMETER,
@@ -301,7 +301,7 @@ public class PrcItemInCart<RS> implements IProcessor {
           }
         pCartLn.setTxDsc(pCartLn.getTxCat().getItsName());
         }
-      } else if (pCartLn.getTxCat() != null) {
+      } else {
         pCartLn.setTxDsc(pCartLn.getTxCat().getItsName());
       }
     }

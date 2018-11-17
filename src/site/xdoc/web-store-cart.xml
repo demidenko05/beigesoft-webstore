@@ -57,6 +57,12 @@
       </p>
       <p>Buyer's location maybe revealed by using HTML5-geolocation or buyer itself enters shipping address.
         If buyer prefer/should pickup good/service by himself (payment usually cash), then buyer's address maybe omitted.</p>
+      <p>Shipping/handling price. Ordinal short-distance usually cost nothing to buyer.
+        "In country" and overseas shipping and handling should be included into cart as "service" and it's usually taxable for "in country".
+        These services should be included into cart automatically. They price usually depends of cart items.
+        Because of it delivering method should be asked on first adding into cart. If buyer have changed delivering, then shipping service should be redone.
+        Many shops has only delivering method, e.g. "free hot pizza delivering" or "buyer pickup itself for ordinal shop with Internet catalog", so "TradingSettings.onlyDeliv" should be set.
+      </p>
       <p>Items measuring may have different decimal places e.g.:
         <ul>
           <li>Cable 3ft - 1</li>
@@ -84,6 +90,18 @@
         Items in list usually has availability in all pickup places, during checkout item line maybe divided.
       </p>
       
+      <h4>Revealing tax method</h4>
+      <p>If "TradingSettings.overseas" is "Yes", then foreign buyer can select delivering method - "shipping overseas",
+       so it's foreigner and taxes will be omitted.
+       In case of "TradingSettings.txDests" is "Yes", when buyer has selected "shipping", then it must enter "ZIP" to find "tax destination".
+       For numeric ZIP revealing tax destination is simple: any tax destination must has "regZip" filled with "comma separated ZIP range",
+       e.g. "23450,14450" means any ZIP from 23450 to 14450. Otherwise assigning tax destination should be customized or made "by hand" (e.g. B2B with small number of customers).
+      </p>
+      <p>Buyer can change delivering method and zip, tax method and cart will be redone.</p>
+      <p>If cart has item with tax destinations, and "in country shipping" and buyer's tax destination can not be made automatically, then buyer's cart will have "ask for tax method" button that enables "Cart.err" to highlight "this cart's buyer is waiting".</p>
+      <p>If both "TradingSettings.overseas and txDests" is false, then it's used item's tax method independent of delivering,
+        i.e. no need buyer's ZIP and delivering method.</p>
+
       <h4>Persistable models</h4>
       <p>OnlineBuyer:
         <ul>

@@ -15,6 +15,7 @@ package org.beigesoft.webstore.persistable;
 import org.beigesoft.persistable.AHasIdLongVersion;
 import org.beigesoft.accounting.persistable.DebtorCreditorCategory;
 import org.beigesoft.webstore.model.EPaymentMethod;
+import org.beigesoft.webstore.model.EDelivering;
 
 /**
  * <pre>
@@ -135,6 +136,21 @@ public class TradingSettings extends AHasIdLongVersion {
    * <p>If taxes excluded, default FALSE (included).</p>
    **/
   private Boolean txExcl;
+
+  /**
+   * <p>Not null, false default, Use overseas shipping.</p>
+   **/
+  private Boolean overseas;
+
+  /**
+   * <p>Not null, false default, Use "in country" tax destinations.</p>
+   **/
+  private Boolean txDests;
+
+  /**
+   * <p>Optional, only delivering for all items.</p>
+   **/
+  private EDelivering onlyDeliv;
 
   //Simple getters and setters:
   /**
@@ -449,5 +465,53 @@ public class TradingSettings extends AHasIdLongVersion {
    **/
   public final void setTxExcl(final Boolean pTxExcl) {
     this.txExcl = pTxExcl;
+  }
+
+  /**
+   * <p>Getter for overseas.</p>
+   * @return Boolean
+   **/
+  public final Boolean getOverseas() {
+    return this.overseas;
+  }
+
+  /**
+   * <p>Setter for overseas.</p>
+   * @param pOverseas reference
+   **/
+  public final void setOverseas(final Boolean pOverseas) {
+    this.overseas = pOverseas;
+  }
+
+  /**
+   * <p>Getter for txDests.</p>
+   * @return Boolean
+   **/
+  public final Boolean getTxDests() {
+    return this.txDests;
+  }
+
+  /**
+   * <p>Setter for txDests.</p>
+   * @param pTxDests reference
+   **/
+  public final void setTxDests(final Boolean pTxDests) {
+    this.txDests = pTxDests;
+  }
+
+  /**
+   * <p>Getter for onlyDeliv.</p>
+   * @return EDelivering
+   **/
+  public final EDelivering getOnlyDeliv() {
+    return this.onlyDeliv;
+  }
+
+  /**
+   * <p>Setter for onlyDeliv.</p>
+   * @param pOnlyDeliv reference
+   **/
+  public final void setOnlyDeliv(final EDelivering pOnlyDeliv) {
+    this.onlyDeliv = pOnlyDeliv;
   }
 }

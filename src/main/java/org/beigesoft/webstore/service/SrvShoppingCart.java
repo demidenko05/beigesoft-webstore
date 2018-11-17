@@ -39,6 +39,7 @@ import org.beigesoft.accounting.persistable.AccSettings;
 import org.beigesoft.webstore.persistable.SeSeller;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
 import org.beigesoft.webstore.persistable.Cart;
+import org.beigesoft.webstore.persistable.CartTot;
 import org.beigesoft.webstore.persistable.CartLn;
 import org.beigesoft.webstore.persistable.CartTxLn;
 import org.beigesoft.webstore.persistable.CartItTxLn;
@@ -128,29 +129,34 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     }
     Cart cart = getSrvOrm().retrieveEntityById(pReqVars, Cart.class, buyer);
     if (cart != null) {
-      CartLn cl = new CartLn();
-      cl.setItsOwner(cart);
       pReqVars.put("CartLnitsOwnerdeepLevel", 1);
-      List<CartLn> cartItems = getSrvOrm()
-        .retrieveListForField(pReqVars, cl, "itsOwner");
+      List<CartLn> cartItems = getSrvOrm().retrieveListWithConditions(pReqVars,
+        CartLn.class, "where ITSOWNER=" + cart.getBuyer().getItsId());
       cart.setItems(cartItems);
       pReqVars.remove("CartLnitsOwnerdeepLevel");
+      for (CartLn clt : cart.getItems()) {
+        clt.setItsOwner(cart);
+      }
       pReqVars.put("CartTxLnitsOwnerdeepLevel", 1);
-      List<CartTxLn> ctls = getSrvOrm().retrieveListWithConditions(
-          pReqVars, CartTxLn.class, "where ITSOWNER="
-            + cart.getBuyer().getItsId());
+      List<CartTxLn> ctls = getSrvOrm().retrieveListWithConditions(pReqVars,
+        CartTxLn.class, "where ITSOWNER=" + cart.getBuyer().getItsId());
       pReqVars.remove("CartTxLnitsOwnerdeepLevel");
       cart.setTaxes(ctls);
       for (CartTxLn ctl : cart.getTaxes()) {
         ctl.setItsOwner(cart);
       }
-      for (CartLn clt : cart.getItems()) {
-        clt.setItsOwner(cart);
+      List<CartTot> ctts = getSrvOrm().retrieveListWithConditions(pReqVars,
+        CartTot.class, "where ITSOWNER=" + cart.getBuyer().getItsId());
+      pReqVars.remove("CartTotitsOwnerdeepLevel");
+      cart.setTotals(ctts);
+      for (CartTot cttl : cart.getTotals()) {
+        cttl.setItsOwner(cart);
       }
     } else if (pIsNeedToCreate) {
       cart = new Cart();
       cart.setItems(new ArrayList<CartLn>());
       cart.setTaxes(new ArrayList<CartTxLn>());
+      cart.setTotals(new ArrayList<CartTot>());
       cart.setItsId(buyer);
       getSrvOrm().insertEntity(pReqVars, cart);
     }
@@ -359,19 +365,67 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         getSrvOrm().updateEntity(pReqVars, citl);
       }
     }
-    BigDecimal txTot = BigDecimal.ZERO;    
+    BigDecimal txTot = BigDecimal.ZERO;
+    BigDecimal txTotSe = BigDecimal.ZERO;
     for (CartTxLn ctl : pCartLn.getItsOwner().getTaxes()) {
       if (!ctl.getDisab()) {
+        if (ctl.getSeller() == null && pCartLn.getSeller() == null
+          || ctl.getSeller() != null && pCartLn.getSeller() != null
+            && pCartLn.getSeller().getItsId().getItsId()
+              .equals(ctl.getSeller().getItsId().getItsId())) {
+          txTotSe = txTotSe.add(ctl.getTot());
+        }
         txTot = txTot.add(ctl.getTot());
       }
     }
-    BigDecimal tot = BigDecimal.ZERO;    
+    BigDecimal tot = BigDecimal.ZERO;
+    BigDecimal totSe = BigDecimal.ZERO;
     for (CartLn cl : pCartLn.getItsOwner().getItems()) {
       if (!cl.getDisab()) {
+        if (cl.getSeller() == null && pCartLn.getSeller() == null
+          || cl.getSeller() != null && pCartLn.getSeller() != null
+            && pCartLn.getSeller().getItsId().getItsId()
+              .equals(cl.getSeller().getItsId().getItsId())) {
+          totSe = totSe.add(cl.getTot());
+        }
         tot = tot.add(cl.getTot());
       }
     }
+    CartTot cartTot = null;
+    for (CartTot ct : pCartLn.getItsOwner().getTotals()) {
+      if (!ct.getDisab() && ct.getSeller() == null && pCartLn
+        .getSeller() == null || ct.getSeller() != null && pCartLn
+          .getSeller() != null && pCartLn.getSeller().getItsId().getItsId()
+            .equals(ct.getSeller().getItsId().getItsId())) {
+        cartTot = ct;
+        break;
+      }
+    }
+    if (cartTot == null) {
+      for (CartTot ct : pCartLn.getItsOwner().getTotals()) {
+        if (ct.getDisab()) {
+          cartTot = ct;
+          cartTot.setDisab(false);
+          break;
+        }
+      }
+    }
+    if (cartTot == null) {
+      cartTot = new CartTot();
+      cartTot.setItsOwner(pCartLn.getItsOwner());
+      cartTot.setSeller(pCartLn.getSeller());
+      cartTot.setIsNew(true);
+    }
+    cartTot.setTotTx(txTotSe);
+    cartTot.setSubt(totSe.subtract(txTotSe));
+    cartTot.setTot(totSe);
+    if (cartTot.getIsNew()) {
+      getSrvOrm().insertEntity(pReqVars, cartTot);
+    } else {
+      getSrvOrm().updateEntity(pReqVars, cartTot);
+    }
     pCartLn.getItsOwner().setTotTx(txTot);
+    pCartLn.getItsOwner().setSubt(tot.subtract(txTot));
     pCartLn.getItsOwner().setTot(tot);
     getSrvOrm().updateEntity(pReqVars, pCartLn.getItsOwner());
   }

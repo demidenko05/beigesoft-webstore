@@ -18,6 +18,8 @@ import java.math.BigDecimal;
 import org.beigesoft.model.AEditableHasVersion;
 import org.beigesoft.model.IHasId;
 import org.beigesoft.accounting.persistable.Currency;
+import org.beigesoft.webstore.model.EDelivering;
+
 /**
  * <p>
  * Model of average buyer rating.
@@ -61,6 +63,22 @@ public class Cart extends AEditableHasVersion implements IHasId<OnlineBuyer> {
    * <p>Taxes.</p>
    **/
   private List<CartTxLn> taxes;
+
+  /**
+   * <p>Totals grouped by seller.</p>
+   **/
+  private List<CartTot> totals;
+
+  /**
+   * <p>Delivering, not null, buyer pickup itself default.</p>
+   **/
+  private EDelivering deliv = EDelivering.PICKUP;
+
+  /**
+   * <p>Buyer waiting to resolve problem, e.g. tax destination can't
+   * be revealed automatically.</p>
+   **/
+  private Boolean err = Boolean.FALSE;
 
   /**
    * <p>Usually it's simple getter that return model ID.</p>
@@ -191,5 +209,53 @@ public class Cart extends AEditableHasVersion implements IHasId<OnlineBuyer> {
    **/
   public final void setSubt(final BigDecimal pSubt) {
     this.subt = pSubt;
+  }
+
+  /**
+   * <p>Getter for totals.</p>
+   * @return List<CartTot>
+   **/
+  public final List<CartTot> getTotals() {
+    return this.totals;
+  }
+
+  /**
+   * <p>Setter for totals.</p>
+   * @param pTotals reference
+   **/
+  public final void setTotals(final List<CartTot> pTotals) {
+    this.totals = pTotals;
+  }
+
+  /**
+   * <p>Getter for deliv.</p>
+   * @return EDelivering
+   **/
+  public final EDelivering getDeliv() {
+    return this.deliv;
+  }
+
+  /**
+   * <p>Setter for deliv.</p>
+   * @param pDeliv reference
+   **/
+  public final void setDeliv(final EDelivering pDeliv) {
+    this.deliv = pDeliv;
+  }
+
+  /**
+   * <p>Getter for err.</p>
+   * @return Boolean
+   **/
+  public final Boolean getErr() {
+    return this.err;
+  }
+
+  /**
+   * <p>Setter for err.</p>
+   * @param pErr reference
+   **/
+  public final void setErr(final Boolean pErr) {
+    this.err = pErr;
   }
 }
