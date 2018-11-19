@@ -37,7 +37,7 @@ public class CartTot extends AHasIdLongVersion implements IOwned<Cart> {
    * when buyer add new goods to cart then it's used any disabled
    * line (if exist) otherwise new line will be created.</p>
    **/
-  private Boolean disab;
+  private Boolean disab = Boolean.FALSE;
 
   /**
    * <p>S.E.Seller which item presents in cart,
@@ -48,17 +48,17 @@ public class CartTot extends AHasIdLongVersion implements IOwned<Cart> {
   /**
    * <p>Subtotal without taxes.</p>
    **/
-  private BigDecimal subt;
+  private BigDecimal subt = BigDecimal.ZERO;
 
   /**
    * <p>Total taxes.</p>
    **/
-  private BigDecimal totTx;
+  private BigDecimal totTx = BigDecimal.ZERO;
 
   /**
    * <p>Total, not null.</p>
    **/
-  private BigDecimal tot;
+  private BigDecimal tot = BigDecimal.ZERO;
 
   /**
    * <p>Getter for itsOwner.</p>

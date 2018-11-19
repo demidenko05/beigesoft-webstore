@@ -183,6 +183,7 @@ public class PrcItemInCart<RS> implements IProcessor {
         }
         item = (AItem<?, ?>) getSrvOrm()
           .retrieveEntityById(pReqVars, itemCl, cartLn.getItId());
+        cartLn.setTxCat(null);
         if (txRules != null) {
           cartLn.setTxCat(item.getTaxCategory());
           if (ts.getTxDests() && cartLn.getItsOwner().getBuyer()
@@ -218,19 +219,24 @@ public class PrcItemInCart<RS> implements IProcessor {
         }
       }
     }
-    cartLn.setQuant(quant);
-    cartLn.setAvQuan(avQuan);
-    cartLn.setUnStep(unStep);
-    BigDecimal amount = cartLn.getPrice().multiply(cartLn.getQuant()).
-      setScale(as.getPricePrecision(), as.getRoundingMode());
-    if (ts.getTxExcl()) {
-      cartLn.setSubt(amount);
-    } else {
-      cartLn.setTot(amount);
+    if (!cartLn.getForc()) {
+      cartLn.setQuant(quant);
+      cartLn.setAvQuan(avQuan);
+      cartLn.setUnStep(unStep);
+      BigDecimal amount = cartLn.getPrice().multiply(cartLn.getQuant()).
+        setScale(as.getPricePrecision(), as.getRoundingMode());
+      if (ts.getTxExcl()) {
+        cartLn.setSubt(amount);
+      } else {
+        cartLn.setTot(amount);
+      }
+      makeItTxAndTot(pReqVars, ts, cartLn, as, txRules);
+      this.srvShoppingCart.makeCartTotals(pReqVars, ts, cartLn, as, txRules);
     }
-    makeItTxAndTot(pReqVars, ts, cartLn, as, txRules);
-    this.srvShoppingCart.makeCartTotals(pReqVars, ts, cartLn, as, txRules);
     pRequestData.setAttribute("cart", cart);
+    if (txRules != null) {
+      pRequestData.setAttribute("txRules", txRules);
+    }
     String processorName = pRequestData.getParameter("nmPrcRed");
     IProcessor proc = this.processorsFactory.lazyGet(pReqVars, processorName);
     proc.process(pReqVars, pRequestData);
@@ -253,7 +259,6 @@ public class PrcItemInCart<RS> implements IProcessor {
     BigDecimal totalTaxes = BigDecimal.ZERO;
     BigDecimal bd100 = new BigDecimal("100.00");
     List<CartItTxLn> itls = null;
-    pCartLn.setTxCat(null);
     if (pTxRules != null && pCartLn.getTxCat() != null) {
       if (!pTxRules.getSalTaxIsInvoiceBase()) {
         if (!pTxRules.getSalTaxUseAggregItBas()) {
@@ -311,16 +316,15 @@ public class PrcItemInCart<RS> implements IProcessor {
     } else {
       pCartLn.setSubt(pCartLn.getTot().subtract(pCartLn.getTotTx()));
     }
-    List<CartLn> cartLns = pCartLn.getItsOwner().getItems();
     if (pCartLn.getIsNew()) {
       this.getSrvOrm().insertEntity(pReqVars, pCartLn);
-      cartLns.add(pCartLn);
     } else {
       this.getSrvOrm().updateEntity(pReqVars, pCartLn);
-      for (int i = 0; i < cartLns.size(); i++) {
-        if (cartLns.get(i).getItId().equals(pCartLn.getItId())
-          && cartLns.get(i).getItTyp().equals(pCartLn.getItTyp())) {
-          cartLns.set(i, pCartLn);
+      for (int i = 0; i < pCartLn.getItsOwner().getItems().size(); i++) {
+        if (pCartLn.getItsOwner().getItems().get(i).getItId()
+          .equals(pCartLn.getItId()) && pCartLn.getItsOwner().getItems().get(i)
+            .getItTyp().equals(pCartLn.getItTyp())) {
+          pCartLn.getItsOwner().getItems().set(i, pCartLn);
           break;
         }
       }
@@ -328,18 +332,22 @@ public class PrcItemInCart<RS> implements IProcessor {
     if (itls != null) {
       pReqVars.put("CartItTxLnitsOwnerdeepLevel", 1);
       List<CartItTxLn> itlsr = getSrvOrm().retrieveListWithConditions(
-          pReqVars, CartItTxLn.class, "where DISAB=1 and CARTID="
+          pReqVars, CartItTxLn.class, "where CARTID="
             + pCartLn.getItsOwner().getBuyer().getItsId());
       pReqVars.remove("CartItTxLnitsOwnerdeepLevel");
+      for (CartItTxLn itlrt : itlsr) {
+        if (!itlrt.getDisab() && itlrt.getItsOwner().getItsId()
+          .equals(pCartLn.getItsId())) {
+          itlrt.setDisab(true);
+        }
+      }
       for (CartItTxLn itl : itls) {
         CartItTxLn itlr = null;
-        if (itlsr.size() > 0) {
-          for (CartItTxLn itlrt : itlsr) {
-            if (itlrt.getDisab()) {
-              itlr = itlrt;
-              itlr.setDisab(false);
-              break;
-            }
+        for (CartItTxLn itlrt : itlsr) {
+          if (itlrt.getDisab()) {
+            itlr = itlrt;
+            itlr.setDisab(false);
+            break;
           }
         }
         if (itlr == null) {
@@ -353,6 +361,12 @@ public class PrcItemInCart<RS> implements IProcessor {
           itlr.setItsOwner(pCartLn);
           itlr.setCartId(pCartLn.getItsOwner().getBuyer().getItsId());
           getSrvOrm().updateEntity(pReqVars, itlr);
+        }
+      }
+      for (CartItTxLn itlrt : itlsr) {
+        if (itlrt.getDisab() && itlrt.getItsOwner().getItsId()
+          .equals(pCartLn.getItsId())) {
+          getSrvOrm().updateEntity(pReqVars, itlrt);
         }
       }
     }

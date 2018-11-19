@@ -40,7 +40,7 @@ public class CartLn extends AHasNameIdLongVersion implements IOwned<Cart> {
    * when buyer add new goods to cart then it's used any disabled
    * line (if exist) otherwise new line will be created.</p>
    **/
-  private Boolean disab;
+  private Boolean disab = Boolean.FALSE;
 
   /**
    * <p>Shop Item Type, not null.</p>
@@ -61,12 +61,12 @@ public class CartLn extends AHasNameIdLongVersion implements IOwned<Cart> {
   /**
    * <p>Price, not null, grater than zero.</p>
    **/
-  private BigDecimal price;
+  private BigDecimal price = BigDecimal.ZERO;
 
   /**
    * <p>Quantity, not null.</p>
    **/
-  private BigDecimal quant;
+  private BigDecimal quant = BigDecimal.ZERO;
 
   /**
    * <p>Unit of measure, not null.</p>
@@ -76,12 +76,12 @@ public class CartLn extends AHasNameIdLongVersion implements IOwned<Cart> {
   /**
    * <p>Subtotal without taxes.</p>
    **/
-  private BigDecimal subt;
+  private BigDecimal subt = BigDecimal.ZERO;
 
   /**
    * <p>Total taxes.</p>
    **/
-  private BigDecimal totTx;
+  private BigDecimal totTx = BigDecimal.ZERO;
 
   /**
    * <p>Taxes description, uneditable,
@@ -92,12 +92,12 @@ public class CartLn extends AHasNameIdLongVersion implements IOwned<Cart> {
   /**
    * <p>Total, not null.</p>
    **/
-  private BigDecimal tot;
+  private BigDecimal tot = BigDecimal.ZERO;
 
   /**
    * <p>Available quantity, not null.</p>
    **/
-  private BigDecimal avQuan;
+  private BigDecimal avQuan = BigDecimal.ZERO;
 
   /**
    * <p>Tax category, NULL for non-taxable items.</p>
@@ -110,6 +110,12 @@ public class CartLn extends AHasNameIdLongVersion implements IOwned<Cart> {
    * buyer can order 0.5/1.0/1.5/2.0/etc. units of item.</p>
    **/
   private BigDecimal unStep = BigDecimal.ONE;
+
+  /**
+   * <p>forced (user can't change/delete it) item,
+   * e.g. service "delivering by mail".</p>
+   **/
+  private Boolean forc = Boolean.FALSE;
 
   /**
    * <p>Getter for itsOwner.</p>
@@ -352,5 +358,21 @@ public class CartLn extends AHasNameIdLongVersion implements IOwned<Cart> {
    **/
   public final void setUnStep(final BigDecimal pUnStep) {
     this.unStep = pUnStep;
+  }
+
+  /**
+   * <p>Getter for forc.</p>
+   * @return Boolean
+   **/
+  public final Boolean getForc() {
+    return this.forc;
+  }
+
+  /**
+   * <p>Setter for forc.</p>
+   * @param pForc reference
+   **/
+  public final void setForc(final Boolean pForc) {
+    this.forc = pForc;
   }
 }

@@ -148,8 +148,11 @@
           <li>tot - BigDecimal, not null, total</li>
           <li>subt - BigDecimal, not null</li>
           <li>totTx - BigDecimal, not null, total taxes</li>
+          <li>deliv - EDelivaring, not null, delivering method</li>
+          <li>err - Boolean, not null, Error arise, Buyer is waiting to resolve its problem, e.g. tax destination can't be revealed automatically</li>
           <li>items - List&lt;CartLn&gt;</li>
           <li>taxes - List&lt;CartTxLn&gt;</li>
+          <li>totals - List&lt;CartTot&gt;</li>
         </ul>
       </p>
       <h4></h4>
@@ -163,6 +166,7 @@
           <li>subt - BigDecimal, not null</li>
           <li>totTx - BigDecimal, not null, total taxes</li>
         </ul>
+        For performance reasons cart has <b>totals</b> only if it has any S.E.item.
       </p>
       <p>Persistable model CartLn:
         <ul>
@@ -183,6 +187,7 @@
           <li>tot - BigDecimal, not null</li>
           <li>avQuan - BigDecimal, not null, available quantity to constraint buyer/inform "N items left"</li>
           <li>txCat - tax category, NULL for non-taxable items</li>
+          <li>forc - Boolean, forced (user can't change/delete it) item, e.g. service "delivering by mail".</li>
         </ul>
       </p>
       <p>Persistable model base ATaxLn:

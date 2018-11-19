@@ -85,7 +85,7 @@ public class OnlineBuyer extends AHasNameIdLongVersion {
    * <p>Not null, false default.
    * If sales taxes must be omitted for this buyer.</p>
    **/
-  private Boolean foreig;
+  private Boolean foreig = Boolean.FALSE;
 
   /**
    * <p>Only for overseas/overstate buyers and S.E.items i.e.

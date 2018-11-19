@@ -13,6 +13,7 @@ package org.beigesoft.webstore.processor;
  */
 
 import java.util.Map;
+import java.util.List;
 
 import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.model.IRequestData;
@@ -23,6 +24,7 @@ import org.beigesoft.accounting.persistable.AccSettings;
 import org.beigesoft.accounting.persistable.TaxDestination;
 import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.webstore.persistable.CartLn;
+import org.beigesoft.webstore.persistable.CartItTxLn;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
@@ -60,12 +62,8 @@ public class PrcDelItemFromCart<RS> implements IProcessor {
     final IRequestData pRequestData) throws Exception {
     Cart cart = this.srvShoppingCart
       .getShoppingCart(pReqVars, pRequestData, false);
-    if (cart == null || cart.getItems() == null) {
-      throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
-        "there_is_no_cart_for_requestor");
-    }
     String lnIdStr = pRequestData.getParameter("lnId");
-    if (lnIdStr != null) {
+    if (cart != null && lnIdStr != null) {
       Long lnId = Long.valueOf(lnIdStr);
       CartLn cartLn = null;
       for (CartLn ci : cart.getItems()) {
@@ -82,14 +80,34 @@ public class PrcDelItemFromCart<RS> implements IProcessor {
         throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
           "requested_item_not_found");
       }
-      cartLn.setDisab(true);
-      this.getSrvOrm().updateEntity(pReqVars, cartLn);
       AccSettings as = (AccSettings) pReqVars.get("accSet");
       TradingSettings ts = (TradingSettings) pReqVars.get("tradSet");
       TaxDestination txRules = this.srvShoppingCart.revealTaxRules(pReqVars,
         cart, as);
-      this.srvShoppingCart.makeCartTotals(pReqVars, ts, cartLn, as, txRules);
+      if (!cartLn.getForc()) {
+        cartLn.setDisab(true);
+        getSrvOrm().updateEntity(pReqVars, cartLn);
+        if (txRules != null && cartLn.getTxCat() != null && !txRules
+          .getSalTaxIsInvoiceBase() && !txRules.getSalTaxUseAggregItBas()) {
+          pReqVars.put("CartItTxLnitsOwnerdeepLevel", 1);
+          List<CartItTxLn> itls = getSrvOrm().retrieveListWithConditions(
+              pReqVars, CartItTxLn.class, "where DISAB=0 and ITSOWNER="
+                + cartLn.getItsId());
+          pReqVars.remove("CartItTxLnitsOwnerdeepLevel");
+          for (CartItTxLn itl : itls) {
+            if (!itl.getDisab() && itl.getItsOwner().getItsId()
+              .equals(cartLn.getItsId())) {
+              itl.setDisab(true);
+              getSrvOrm().updateEntity(pReqVars, itl);
+            }
+          }
+        }
+        this.srvShoppingCart.makeCartTotals(pReqVars, ts, cartLn, as, txRules);
+      }
       pRequestData.setAttribute("cart", cart);
+      if (txRules != null) {
+        pRequestData.setAttribute("txRules", txRules);
+      }
       String processorName = pRequestData.getParameter("nmPrcRed");
       IProcessor proc = this.processorsFactory
         .lazyGet(pReqVars, processorName);

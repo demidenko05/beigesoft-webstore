@@ -75,7 +75,7 @@ public class Cart extends AEditableHasVersion implements IHasId<OnlineBuyer> {
   private EDelivering deliv = EDelivering.PICKUP;
 
   /**
-   * <p>Buyer waiting to resolve problem, e.g. tax destination can't
+   * <p>Buyer is waiting to resolve its problem, e.g. tax destination can't
    * be revealed automatically.</p>
    **/
   private Boolean err = Boolean.FALSE;

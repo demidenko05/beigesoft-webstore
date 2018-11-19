@@ -26,6 +26,7 @@ import java.net.URL;
 
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.model.IRecordSet;
+import org.beigesoft.log.ILogger;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.accounting.model.CmprTaxCatLnRate;
@@ -36,13 +37,13 @@ import org.beigesoft.accounting.persistable.Tax;
 import org.beigesoft.accounting.persistable.TaxDestination;
 import org.beigesoft.accounting.persistable.DebtorCreditor;
 import org.beigesoft.accounting.persistable.AccSettings;
+import org.beigesoft.webstore.model.EShopItemType;
 import org.beigesoft.webstore.persistable.SeSeller;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
 import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.webstore.persistable.CartTot;
 import org.beigesoft.webstore.persistable.CartLn;
 import org.beigesoft.webstore.persistable.CartTxLn;
-import org.beigesoft.webstore.persistable.CartItTxLn;
 import org.beigesoft.webstore.persistable.TradingSettings;
 
 /**
@@ -54,6 +55,11 @@ import org.beigesoft.webstore.persistable.TradingSettings;
  * @author Yury Demidenko
  */
 public class SrvShoppingCart<RS> implements ISrvShoppingCart {
+
+  /**
+   * <p>Logger.</p>
+   **/
+  private ILogger logger;
 
   /**
    * <p>Database service.</p>
@@ -108,8 +114,8 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
        buyerId = Long.valueOf(buyerIdStr);
     }
     OnlineBuyer buyer;
+    TradingSettings ts = srvTradingSettings.lazyGetTradingSettings(pReqVars);
     if (buyerId == null) {
-      TradingSettings ts = srvTradingSettings.lazyGetTradingSettings(pReqVars);
       if (pIsNeedToCreate
         || ts.getIsCreateOnlineUserOnFirstVisit()) {
         buyer = createOnlineBuyer(pReqVars, pRequestData);
@@ -134,29 +140,36 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         CartLn.class, "where ITSOWNER=" + cart.getBuyer().getItsId());
       cart.setItems(cartItems);
       pReqVars.remove("CartLnitsOwnerdeepLevel");
+      boolean isSeIt = false;
       for (CartLn clt : cart.getItems()) {
         clt.setItsOwner(cart);
+        if (!clt.getDisab() && clt.getItTyp().equals(EShopItemType.SESERVICE)
+          || clt.getItTyp().equals(EShopItemType.SEGOODS)) {
+          isSeIt = true;
+        }
       }
-      pReqVars.put("CartTxLnitsOwnerdeepLevel", 1);
-      List<CartTxLn> ctls = getSrvOrm().retrieveListWithConditions(pReqVars,
-        CartTxLn.class, "where ITSOWNER=" + cart.getBuyer().getItsId());
-      pReqVars.remove("CartTxLnitsOwnerdeepLevel");
-      cart.setTaxes(ctls);
-      for (CartTxLn ctl : cart.getTaxes()) {
-        ctl.setItsOwner(cart);
+      if (cart.getTotTx().compareTo(BigDecimal.ZERO) == 1) {
+        pReqVars.put("CartTxLnitsOwnerdeepLevel", 1);
+        List<CartTxLn> ctls = getSrvOrm().retrieveListWithConditions(pReqVars,
+          CartTxLn.class, "where ITSOWNER=" + cart.getBuyer().getItsId());
+        pReqVars.remove("CartTxLnitsOwnerdeepLevel");
+        cart.setTaxes(ctls);
+        for (CartTxLn ctl : cart.getTaxes()) {
+          ctl.setItsOwner(cart);
+        }
       }
-      List<CartTot> ctts = getSrvOrm().retrieveListWithConditions(pReqVars,
-        CartTot.class, "where ITSOWNER=" + cart.getBuyer().getItsId());
-      pReqVars.remove("CartTotitsOwnerdeepLevel");
-      cart.setTotals(ctts);
-      for (CartTot cttl : cart.getTotals()) {
-        cttl.setItsOwner(cart);
+      if (isSeIt) {
+        List<CartTot> ctts = getSrvOrm().retrieveListWithConditions(pReqVars,
+          CartTot.class, "where ITSOWNER=" + cart.getBuyer().getItsId());
+        pReqVars.remove("CartTotitsOwnerdeepLevel");
+        cart.setTotals(ctts);
+        for (CartTot cttl : cart.getTotals()) {
+          cttl.setItsOwner(cart);
+        }
       }
     } else if (pIsNeedToCreate) {
       cart = new Cart();
       cart.setItems(new ArrayList<CartLn>());
-      cart.setTaxes(new ArrayList<CartTxLn>());
-      cart.setTotals(new ArrayList<CartTot>());
       cart.setItsId(buyer);
       getSrvOrm().insertEntity(pReqVars, cart);
     }
@@ -164,6 +177,9 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       Currency curr = (Currency) pReqVars.get("wscurr");
       cart.setCurr(curr);
       cart.setBuyer(buyer);
+      if (ts.getOnlyDeliv() != null) {
+        cart.setDeliv(ts.getOnlyDeliv());
+      }
     }
     return cart;
   }
@@ -181,19 +197,41 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
   public final void makeCartTotals(final Map<String, Object> pReqVars,
     final TradingSettings pTs, final CartLn pCartLn, final AccSettings pAs,
       final TaxDestination pTxRules) throws Exception {
+    BigDecimal txTot = BigDecimal.ZERO;
+    BigDecimal txTotSe = BigDecimal.ZERO;
     if (pTxRules != null) {
-      for (CartTxLn ctl : pCartLn.getItsOwner().getTaxes()) {
-        ctl.setDisab(false);
+      if (getLogger().getIsShowDebugMessagesFor(getClass())
+        && getLogger().getDetailLevel() > 40000) {
+        getLogger().debug(pReqVars, SrvShoppingCart.class,
+      "Tax rules: aggregate/invoice basis/zip/RM = " + pTxRules
+    .getSalTaxUseAggregItBas() + "/" + pTxRules.getSalTaxIsInvoiceBase()
+  + "/" + pTxRules.getRegZip() + "/" + pTxRules.getSalTaxRoundMode());
+        String txCat;
+        if (pCartLn.getTxCat() != null) {
+          txCat = pCartLn.getTxCat().getItsName();
+        } else {
+          txCat = "-";
+        }
+        getLogger().debug(pReqVars, SrvShoppingCart.class,
+          "Item: name/tax category/disabled = " + pCartLn.getItsName() + "/"
+            + txCat + "/" + pCartLn.getDisab());
+      }
+      if (pCartLn.getItsOwner().getTaxes() == null) {
+        pCartLn.getItsOwner().setTaxes(new ArrayList<CartTxLn>());
+      } else {
+        for (CartTxLn ctl : pCartLn.getItsOwner().getTaxes()) {
+          ctl.setDisab(true);
+        }
       }
       //data storage for aggregate rate:
       List<CartLn> txdLns = null;
       //data storages for non-aggregate rate:
-      List<Long> txIds = null; //taxes IDs
+      List<Tax> txs = null; //taxes
       List<Double> txTotTaxb = null; //tax's totals/taxables
       List<Double> txPerc = null; //tax's percents for invoice basis
       String query;
       if (!pTxRules.getSalTaxUseAggregItBas()) { //non-aggregate:
-        txIds = new ArrayList<Long>();
+        txs = new ArrayList<Tax>();
         txTotTaxb = new ArrayList<Double>();
         if (!pTxRules.getSalTaxIsInvoiceBase()) {
           //item basis, taxes excluded:
@@ -225,8 +263,12 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         if (recordSet.moveToFirst()) {
           do {
             Long txId = recordSet.getLong("TAXID");
+            String txNm = recordSet.getString("TAXNAME");
+            Tax tax = new Tax();
+            tax.setItsId(txId);
+            tax.setItsName(txNm);
             if (!pTxRules.getSalTaxUseAggregItBas()) { //non-aggregate:
-              txIds.add(txId);
+              txs.add(tax);
               if (!pTxRules.getSalTaxIsInvoiceBase()) {
                 //item basis , taxes excluded:
                 txTotTaxb.add(recordSet.getDouble("TOTALTAX"));
@@ -244,13 +286,13 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
               Long tcId = recordSet.getLong("TAXCATID");
               if (!pTxRules.getSalTaxIsInvoiceBase()) { //item basis:
                 Long clId = recordSet.getLong("CLID");
-                CartLn txdLn = makeTxdLine(txdLns, clId, tcId, txId, percent,
+                CartLn txdLn = makeTxdLine(txdLns, clId, tcId, tax, percent,
                   pAs, pCartLn.getSeller());
                 txdLn.setTotTx(BigDecimal.valueOf(recordSet
                   .getDouble("TOTALTAXES"))
                     .setScale(pAs.getPricePrecision(), RoundingMode.HALF_UP));
               } else { //invoice basis:
-                CartLn txdLn = makeTxdLine(txdLns, tcId, tcId, txId, percent,
+                CartLn txdLn = makeTxdLine(txdLns, tcId, tcId, tax, percent,
                   pAs, pCartLn.getSeller());
                 txdLn.setTot(BigDecimal.valueOf(recordSet
                   .getDouble("ITSTOTAL"))
@@ -268,25 +310,23 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         }
       }
       if (!pTxRules.getSalTaxUseAggregItBas()) { //non-aggregate:
-        for (int i = 0; i < txIds.size(); i++) {
-          Tax tax = new Tax();
-          tax.setItsId(txIds.get(i));
+        for (int i = 0; i < txs.size(); i++) {
           CartTxLn ctl = findCreateTaxLine(pReqVars, pCartLn.getItsOwner(),
-            tax.getItsId(), pCartLn.getSeller(), false);
-          Double txTot;
+            txs.get(i), pCartLn.getSeller(), false);
+          Double txTotd;
           if (!pTxRules.getSalTaxIsInvoiceBase()) {
             //item basis, taxes excluded:
-            txTot = txTotTaxb.get(i);
+            txTotd = txTotTaxb.get(i);
           } else {
             //invoice basis, taxes excluded/included:
             if (pTs.getTxExcl()) {
-              txTot = txTotTaxb.get(i) * txPerc.get(i) / 100.0;
+              txTotd = txTotTaxb.get(i) * txPerc.get(i) / 100.0;
             } else {
-              txTot = txTotTaxb.get(i)
+              txTotd = txTotTaxb.get(i)
                 - (txTotTaxb.get(i) / (1 + txPerc.get(i) / 100.0));
             }
           }
-          ctl.setTot(BigDecimal.valueOf(txTot).setScale(pAs.
+          ctl.setTot(BigDecimal.valueOf(txTotd).setScale(pAs.
             getPricePrecision(), pTxRules.getSalTaxRoundMode()));
           if (ctl.getIsNew()) {
             getSrvOrm().insertEntity(pReqVars, ctl);
@@ -332,7 +372,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
               txdLn.setTotTx(taxAggegated.subtract(taxAggrAccum));
             }
             CartTxLn ctl = findCreateTaxLine(pReqVars, pCartLn.getItsOwner(),
-              itcl.getTax().getItsId(), txdLn.getSeller(), true);
+              itcl.getTax(), txdLn.getSeller(), true);
             ctl.setTot(ctl.getTot().add(txdLn.getTotTx()));
             if (pTxRules.getSalTaxIsInvoiceBase()) {
               if (pTs.getTxExcl()) {
@@ -350,32 +390,18 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
           }
         }
       }
-    } else {
       for (CartTxLn ctl : pCartLn.getItsOwner().getTaxes()) {
-        ctl.setDisab(true);
-        getSrvOrm().updateEntity(pReqVars, ctl);
-      }
-      pReqVars.put("CartItTxLnitsOwnerdeepLevel", 1);
-      List<CartItTxLn> citls = getSrvOrm().retrieveListWithConditions(
-          pReqVars, CartItTxLn.class, " where DISAB=0 and CARTID="
-            + pCartLn.getItsOwner().getBuyer().getItsId());
-      pReqVars.remove("CartItTxLnitsOwnerdeepLevel");
-      for (CartItTxLn citl : citls) {
-        citl.setDisab(true);
-        getSrvOrm().updateEntity(pReqVars, citl);
-      }
-    }
-    BigDecimal txTot = BigDecimal.ZERO;
-    BigDecimal txTotSe = BigDecimal.ZERO;
-    for (CartTxLn ctl : pCartLn.getItsOwner().getTaxes()) {
-      if (!ctl.getDisab()) {
-        if (ctl.getSeller() == null && pCartLn.getSeller() == null
-          || ctl.getSeller() != null && pCartLn.getSeller() != null
-            && pCartLn.getSeller().getItsId().getItsId()
-              .equals(ctl.getSeller().getItsId().getItsId())) {
-          txTotSe = txTotSe.add(ctl.getTot());
+        if (!ctl.getDisab()) {
+          if (ctl.getSeller() == null && pCartLn.getSeller() == null
+            || ctl.getSeller() != null && pCartLn.getSeller() != null
+              && pCartLn.getSeller().getItsId().getItsId()
+                .equals(ctl.getSeller().getItsId().getItsId())) {
+            txTotSe = txTotSe.add(ctl.getTot());
+          }
+          txTot = txTot.add(ctl.getTot());
+        } else {
+          getSrvOrm().updateEntity(pReqVars, ctl);
         }
-        txTot = txTot.add(ctl.getTot());
       }
     }
     BigDecimal tot = BigDecimal.ZERO;
@@ -391,43 +417,70 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         tot = tot.add(cl.getTot());
       }
     }
-    CartTot cartTot = null;
-    for (CartTot ct : pCartLn.getItsOwner().getTotals()) {
-      if (!ct.getDisab() && ct.getSeller() == null && pCartLn
-        .getSeller() == null || ct.getSeller() != null && pCartLn
-          .getSeller() != null && pCartLn.getSeller().getItsId().getItsId()
-            .equals(ct.getSeller().getItsId().getItsId())) {
-        cartTot = ct;
-        break;
-      }
-    }
-    if (cartTot == null) {
-      for (CartTot ct : pCartLn.getItsOwner().getTotals()) {
-        if (ct.getDisab()) {
-          cartTot = ct;
-          cartTot.setDisab(false);
-          break;
-        }
-      }
-    }
-    if (cartTot == null) {
-      cartTot = new CartTot();
-      cartTot.setItsOwner(pCartLn.getItsOwner());
-      cartTot.setSeller(pCartLn.getSeller());
-      cartTot.setIsNew(true);
-    }
-    cartTot.setTotTx(txTotSe);
-    cartTot.setSubt(totSe.subtract(txTotSe));
-    cartTot.setTot(totSe);
-    if (cartTot.getIsNew()) {
-      getSrvOrm().insertEntity(pReqVars, cartTot);
-    } else {
-      getSrvOrm().updateEntity(pReqVars, cartTot);
-    }
     pCartLn.getItsOwner().setTotTx(txTot);
     pCartLn.getItsOwner().setSubt(tot.subtract(txTot));
     pCartLn.getItsOwner().setTot(tot);
     getSrvOrm().updateEntity(pReqVars, pCartLn.getItsOwner());
+    if (pCartLn.getItsOwner().getTotals() != null
+      || pCartLn.getItTyp().equals(EShopItemType.SESERVICE)
+        || pCartLn.getItTyp().equals(EShopItemType.SEGOODS)) {
+      boolean needTot = true;
+      if (pCartLn.getDisab()) { //line deleted, check for any S.E.Item:
+        needTot = false;
+        for (CartLn clt : pCartLn.getItsOwner().getItems()) {
+          if (!clt.getDisab()
+            && pCartLn.getItTyp().equals(EShopItemType.SESERVICE)
+              || pCartLn.getItTyp().equals(EShopItemType.SEGOODS)) {
+            needTot = true;
+            break;
+          }
+        }
+      }
+      if (needTot) {
+        if (pCartLn.getItsOwner().getTotals() == null) {
+          pCartLn.getItsOwner().setTotals(new ArrayList<CartTot>());
+        }
+        CartTot cartTot = null;
+        for (CartTot ct : pCartLn.getItsOwner().getTotals()) {
+          if (!ct.getDisab() && ct.getSeller() == null && pCartLn
+            .getSeller() == null || ct.getSeller() != null && pCartLn
+              .getSeller() != null && pCartLn.getSeller().getItsId().getItsId()
+                .equals(ct.getSeller().getItsId().getItsId())) {
+            cartTot = ct;
+            break;
+          }
+        }
+        if (cartTot == null) {
+          for (CartTot ct : pCartLn.getItsOwner().getTotals()) {
+            if (ct.getDisab()) {
+              cartTot = ct;
+              cartTot.setDisab(false);
+              break;
+            }
+          }
+        }
+        if (cartTot == null) {
+          cartTot = new CartTot();
+          cartTot.setItsOwner(pCartLn.getItsOwner());
+          cartTot.setSeller(pCartLn.getSeller());
+          cartTot.setIsNew(true);
+        }
+        cartTot.setTotTx(txTotSe);
+        cartTot.setSubt(totSe.subtract(txTotSe));
+        cartTot.setTot(totSe);
+        if (cartTot.getIsNew()) {
+          getSrvOrm().insertEntity(pReqVars, cartTot);
+        } else {
+          getSrvOrm().updateEntity(pReqVars, cartTot);
+        }
+      } else if (pCartLn.getItsOwner().getTotals() != null) {
+        for (CartTot ct : pCartLn.getItsOwner().getTotals()) {
+          ct.setDisab(true);
+          getSrvOrm().updateEntity(pReqVars, ct);
+        }
+        pCartLn.getItsOwner().setTotals(null);
+      }
+    }
   }
 
   /**
@@ -473,14 +526,14 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    * @param pTxdLns TD lines
    * @param pTdlId line ID
    * @param pCatId tax category ID
-   * @param pTaxId tax ID
+   * @param pTax tax
    * @param pPercent tax rate
    * @param pAs AS
    * @param pSeller Seller
    * @return line
    **/
   public final CartLn makeTxdLine(final List<CartLn> pTxdLns, final Long pTdlId,
-    final Long pCatId,  final Long pTaxId, final Double pPercent,
+    final Long pCatId,  final Tax pTax, final Double pPercent,
       final AccSettings pAs, final SeSeller pSeller) {
     CartLn txdLn = null;
     for (CartLn tdl : pTxdLns) {
@@ -502,9 +555,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       pTxdLns.add(txdLn);
     }
     InvItemTaxCategoryLine itcl = new InvItemTaxCategoryLine();
-    Tax tax = new Tax();
-    tax.setItsId(pTaxId);
-    itcl.setTax(tax);
+    itcl.setTax(pTax);
     itcl.setItsPercentage(BigDecimal.valueOf(pPercent)
       .setScale(pAs.getTaxPrecision(), RoundingMode.HALF_UP));
     txdLn.getTxCat().getTaxes().add(itcl);
@@ -518,19 +569,19 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    * disabled tax line or creates one.</p>
    * @param pReqVars additional param
    * @param pCart cart
-   * @param pTaxId tax ID
+   * @param pTax tax
    * @param pSeller seller
    * @param pNeedFind if need to find enabled
    * @return line
    * @throws Exception if no need to find but line is found
    **/
   public final CartTxLn findCreateTaxLine(final Map<String, Object> pReqVars,
-    final Cart pCart, final Long pTaxId, final SeSeller pSeller,
+    final Cart pCart, final Tax pTax, final SeSeller pSeller,
       final boolean pNeedFind) throws Exception {
     CartTxLn ctl = null;
     //find enabled line to add amount
     for (CartTxLn tl : pCart.getTaxes()) {
-      if (!tl.getDisab() && tl.getTax().getItsId().equals(pTaxId)
+      if (!tl.getDisab() && tl.getTax().getItsId().equals(pTax.getItsId())
         && (pSeller == null && tl.getSeller() == null
           || pSeller != null && tl.getSeller() != null && pSeller.getItsId()
             .getItsId().equals(tl.getSeller().getItsId().getItsId()))) {
@@ -546,9 +597,8 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       for (CartTxLn tl : pCart.getTaxes()) {
         if (tl.getDisab()) {
           ctl = tl;
-          Tax tax = new Tax();
-          tax.setItsId(pTaxId);
-          ctl.setTax(tax);
+          ctl.setDisab(false);
+          ctl.setTax(pTax);
           ctl.setSeller(pSeller);
           break;
         }
@@ -558,9 +608,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       ctl = new CartTxLn();
       ctl.setItsOwner(pCart);
       ctl.setIsNew(true);
-      Tax tax = new Tax();
-      tax.setItsId(pTaxId);
-      ctl.setTax(tax);
+      ctl.setTax(pTax);
       ctl.setSeller(pSeller);
       pCart.getTaxes().add(ctl);
     }
@@ -657,6 +705,22 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
   }
 
   //Simple getters and setters:
+  /**
+   * <p>Geter for logger.</p>
+   * @return ILogger
+   **/
+  public final synchronized ILogger getLogger() {
+    return this.logger;
+  }
+
+  /**
+   * <p>Setter for logger.</p>
+   * @param pLogger reference
+   **/
+  public final synchronized void setLogger(final ILogger pLogger) {
+    this.logger = pLogger;
+  }
+
   /**
    * <p>Getter for srvDatabase.</p>
    * @return ISrvDatabase<RS>

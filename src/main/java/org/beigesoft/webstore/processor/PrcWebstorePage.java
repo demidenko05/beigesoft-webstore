@@ -36,6 +36,8 @@ import org.beigesoft.filter.EFilterOperator;
 import org.beigesoft.filter.FilterInteger;
 import org.beigesoft.filter.FilterBigDecimal;
 import org.beigesoft.filter.FilterItems;
+import org.beigesoft.accounting.persistable.TaxDestination;
+import org.beigesoft.accounting.persistable.AccSettings;
 import org.beigesoft.webstore.model.TradingCatalog;
 import org.beigesoft.webstore.model.CmprTradingCatalog;
 import org.beigesoft.webstore.model.EShopItemType;
@@ -384,19 +386,27 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
         pRequestData.setAttribute("catalog", tcat.getCatalog());
       }
     }
-    if (pRequestData.getAttribute("shoppingCart") == null) {
-      Cart shoppingCart = this.srvShoppingCart
+    if (pRequestData.getAttribute("cart") == null) {
+      Cart cart = this.srvShoppingCart
         .getShoppingCart(pReqVars, pRequestData, false);
-      if (shoppingCart != null) {
-        pRequestData.setAttribute("shoppingCart", shoppingCart);
+      if (cart.getTot().compareTo(BigDecimal.ZERO) == 1) {
+        pRequestData.setAttribute("cart", cart);
       }
     }
-    if (pRequestData.getAttribute("shoppingCart") != null) {
-      Cart shoppingCart = (Cart) pRequestData.getAttribute("shoppingCart");
-      if (shoppingCart.getItems() != null) {
+    if (pRequestData.getAttribute("cart") != null) {
+      Cart cart = (Cart) pRequestData.getAttribute("cart");
+      if (cart.getTot().compareTo(BigDecimal.ZERO) == 0) {
+        pRequestData.setAttribute("cart", null);
+      } else {
+        if (pRequestData.getAttribute("txRules") == null) {
+          AccSettings as = (AccSettings) pReqVars.get("accSet");
+          TaxDestination txRules = this.srvShoppingCart
+            .revealTaxRules(pReqVars, cart, as);
+          pRequestData.setAttribute("txRules", txRules);
+        }
         Map<EShopItemType, Map<Long, CartLn>> cartMap =
           new HashMap<EShopItemType, Map<Long, CartLn>>();
-        for (CartLn ci : shoppingCart.getItems()) {
+        for (CartLn ci : cart.getItems()) {
           if (!ci.getDisab()) {
             Map<Long, CartLn> typedMap = cartMap.get(ci.getItTyp());
             if (typedMap == null) {

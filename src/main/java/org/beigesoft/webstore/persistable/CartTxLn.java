@@ -49,7 +49,7 @@ public class CartTxLn extends ATaxLn implements IOwned<Cart> {
    * when buyer add new goods to cart then it's used any disabled
    * line (if exist) otherwise new line will be created.</p>
    **/
-  private Boolean disab;
+  private Boolean disab = Boolean.FALSE;
 
   /**
    * <p>Getter for itsOwner.</p>
