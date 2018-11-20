@@ -101,6 +101,7 @@
       <p>If cart has item with tax destinations, and "in country shipping" and buyer's tax destination can not be made automatically, then buyer's cart will have "ask for tax method" button that enables "Cart.err" to highlight "this cart's buyer is waiting".</p>
       <p>If both "TradingSettings.overseas and txDests" is false, then it's used item's tax method independent of delivering,
         i.e. no need buyer's ZIP and delivering method.</p>
+      <p>Cookie, request variable <b>shTxDet</b> is used to decide print or not tax detail information in cart.</p>
 
       <h4>Persistable models</h4>
       <p>OnlineBuyer:

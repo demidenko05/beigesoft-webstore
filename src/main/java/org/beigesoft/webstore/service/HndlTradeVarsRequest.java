@@ -167,20 +167,17 @@ public class HndlTradeVarsRequest<RS> implements IHandlerRequestDch {
     Currency wscurr = null;
     if (curRatesTmp.size() > 0) {
       String wscurrs = pRequestData.getParameter("wscurr");
-      String  wscurrsc = pRequestData.getCookieValue("wscurr");
       if (wscurrs != null) {
         Long wscurrl = Long.parseLong(wscurrs);
         for (CurrRate cr : curRatesTmp) {
           if (cr.getCurr().getItsId().equals(wscurrl)) {
             wscurr = cr.getCurr();
+            pRequestData.setCookieValue("wscurr", wscurr.getItsId().toString());
             break;
           }
         }
-        if (wscurr != null && wscurrsc != null && !wscurrs.equals(wscurrsc)) {
-          pRequestData.setCookieValue("wscurr", wscurr.getItsId().toString());
-        }
-      }
-      if (wscurr == null && wscurrsc != null) {
+      } else {
+        String  wscurrsc = pRequestData.getCookieValue("wscurr");
         Long wscurrl = Long.parseLong(wscurrsc);
         for (CurrRate cr : curRatesTmp) {
           if (cr.getCurr().getItsId().equals(wscurrl)) {
@@ -196,6 +193,21 @@ public class HndlTradeVarsRequest<RS> implements IHandlerRequestDch {
       pRequestData.setCookieValue("wscurr", wscurr.getItsId().toString());
     }
     pReqVars.put("wscurr", wscurr);
+    Boolean shTxDet;
+    String shTxDets = pRequestData.getParameter("shTxDet");
+    if (shTxDets == null) {
+      String shTxDetsc = pRequestData.getCookieValue("shTxDet");
+      if (shTxDetsc == null) {
+        shTxDet = Boolean.FALSE;
+        pRequestData.setCookieValue("shTxDet", shTxDet.toString());
+      } else {
+        shTxDet = Boolean.valueOf(shTxDetsc);
+      }
+    } else {
+      shTxDet = Boolean.valueOf(shTxDets);
+      pRequestData.setCookieValue("shTxDet", shTxDet.toString());
+    }
+    pReqVars.put("shTxDet", shTxDet);
   }
 
   /**

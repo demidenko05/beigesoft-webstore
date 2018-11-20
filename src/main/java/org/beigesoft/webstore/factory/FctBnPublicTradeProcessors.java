@@ -20,7 +20,6 @@ import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvPage;
-import org.beigesoft.service.ISrvNumberToString;
 import org.beigesoft.settings.IMngSettings;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
@@ -75,11 +74,6 @@ public class FctBnPublicTradeProcessors<RS>
    * <p>Shopping Cart service.</p>
    **/
   private ISrvShoppingCart srvShoppingCart;
-
-  /**
-   * <p>Service print number.</p>
-   **/
-  private ISrvNumberToString srvNumberToString;
 
   /**
    * <p>Get bean in lazy mode (if bean is null then initialize it).</p>
@@ -176,7 +170,6 @@ public class FctBnPublicTradeProcessors<RS>
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvShoppingCart(getSrvShoppingCart());
       proc.setProcessorsFactory(this);
-      proc.setSrvNumberToString(getSrvNumberToString());
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);
       this.logger.info(null, FctBnPublicTradeProcessors.class,
@@ -239,23 +232,6 @@ public class FctBnPublicTradeProcessors<RS>
   }
 
   //Simple getters and setters:
-  /**
-   * <p>Getter for srvNumberToString.</p>
-   * @return ISrvNumberToString
-   **/
-  public final ISrvNumberToString getSrvNumberToString() {
-    return this.srvNumberToString;
-  }
-
-  /**
-   * <p>Setter for srvNumberToString.</p>
-   * @param pSrvNumberToString reference
-   **/
-  public final void setSrvNumberToString(
-    final ISrvNumberToString pSrvNumberToString) {
-    this.srvNumberToString = pSrvNumberToString;
-  }
-
   /**
    * <p>Getter for srvDatabase.</p>
    * @return ISrvDatabase<RS>

@@ -1,7 +1,7 @@
 package org.beigesoft.webstore.processor;
 
 /*
- * Copyright (c) 2017 Beigesoft ™
+ * Copyright (c) 2017 Beigesoft™
  *
  * Licensed under the GNU General Public License (GPL), Version 2.0
  * (the "License");
@@ -38,6 +38,7 @@ import org.beigesoft.filter.FilterBigDecimal;
 import org.beigesoft.filter.FilterItems;
 import org.beigesoft.accounting.persistable.TaxDestination;
 import org.beigesoft.accounting.persistable.AccSettings;
+import org.beigesoft.accounting.persistable.Currency;
 import org.beigesoft.webstore.model.TradingCatalog;
 import org.beigesoft.webstore.model.CmprTradingCatalog;
 import org.beigesoft.webstore.model.EShopItemType;
@@ -192,15 +193,15 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   public final void process(final Map<String, Object> pReqVars,
     final IRequestData pRequestData) throws Exception {
     pRequestData.setAttribute("catalogs", lazyRetrieveCatalogs(pReqVars));
-    TradingSettings tradSet = (TradingSettings)
+    TradingSettings ts = (TradingSettings)
       pReqVars.get("tradSet");
     String catalogIdStr = pRequestData.getParameter("catalogId");
     Long catId = null;
     if (catalogIdStr != null) {
       catId = Long.valueOf(catalogIdStr);
     }
-    if (catId == null && tradSet.getCatalogOnStart() != null) {
-      catId = tradSet.getCatalogOnStart().getItsId();
+    if (catId == null && ts.getCatalogOnStart() != null) {
+      catId = ts.getCatalogOnStart().getItsId();
     }
     if (catId != null) {
       // either selected by user catalog or "on start" must be
@@ -211,11 +212,11 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
         this.logger.warn(pReqVars, PrcWebstorePage.class,
           "Can't find catalog #" + catId);
       } else {
-        if (tradSet.getIsUsePriceForCustomer()) {
+        if (ts.getIsUsePriceForCustomer()) {
           throw new Exception(
             "Method price depends of customer's category not yet implemented!");
         }
-        if (tradSet.getIsUseAuction()) {
+        if (ts.getIsUseAuction()) {
           throw new Exception(
             "Auctioning not yet implemented!");
         }
@@ -230,7 +231,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
         String queryg = null;
         String querys = null;
         String queryseg = null;
-        if (tradSet.getUseAdvancedI18n()) {
+        if (ts.getUseAdvancedI18n()) {
           String lang = (String) pReqVars.get("lang");
           String langDef = (String) pReqVars.get("langDef");
           if (!lang.equals(langDef)) {
@@ -356,7 +357,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
           } else {
             page = 1;
           }
-          Integer itemsPerPage = tradSet.getItemsPerPage();
+          Integer itemsPerPage = ts.getItemsPerPage();
           int totalPages = this.srvPage.evalPageCount(rowCount, itemsPerPage);
           if (page > totalPages) {
             page = totalPages;
@@ -389,7 +390,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
     if (pRequestData.getAttribute("cart") == null) {
       Cart cart = this.srvShoppingCart
         .getShoppingCart(pReqVars, pRequestData, false);
-      if (cart.getTot().compareTo(BigDecimal.ZERO) == 1) {
+      if (cart != null && cart.getTot().compareTo(BigDecimal.ZERO) == 1) {
         pRequestData.setAttribute("cart", cart);
       }
     }
@@ -398,8 +399,13 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
       if (cart.getTot().compareTo(BigDecimal.ZERO) == 0) {
         pRequestData.setAttribute("cart", null);
       } else {
+        AccSettings as = (AccSettings) pReqVars.get("accSet");
+        Currency curr = (Currency) pReqVars.get("wscurr");
+        if (!cart.getCurr().getItsId().equals(curr.getItsId())) {
+          cart.setCurr(curr);
+          this.srvShoppingCart.handleCurrencyChanged(pReqVars, cart, as, ts);
+        }
         if (pRequestData.getAttribute("txRules") == null) {
-          AccSettings as = (AccSettings) pReqVars.get("accSet");
           TaxDestination txRules = this.srvShoppingCart
             .revealTaxRules(pReqVars, cart, as);
           pRequestData.setAttribute("txRules", txRules);

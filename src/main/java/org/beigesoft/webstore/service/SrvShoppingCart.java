@@ -24,11 +24,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
+import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.model.IRecordSet;
 import org.beigesoft.log.ILogger;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
+import org.beigesoft.service.ISrvNumberToString;
+import org.beigesoft.accounting.model.ETaxType;
 import org.beigesoft.accounting.model.CmprTaxCatLnRate;
 import org.beigesoft.accounting.persistable.Currency;
 import org.beigesoft.accounting.persistable.InvItemTaxCategory;
@@ -37,7 +40,22 @@ import org.beigesoft.accounting.persistable.Tax;
 import org.beigesoft.accounting.persistable.TaxDestination;
 import org.beigesoft.accounting.persistable.DebtorCreditor;
 import org.beigesoft.accounting.persistable.AccSettings;
+import org.beigesoft.accounting.persistable.InvItem;
+import org.beigesoft.accounting.persistable.ServiceToSale;
 import org.beigesoft.webstore.model.EShopItemType;
+import org.beigesoft.webstore.persistable.base.AItemPrice;
+import org.beigesoft.webstore.persistable.CartItTxLn;
+import org.beigesoft.webstore.persistable.BuyerPriceCategory;
+import org.beigesoft.webstore.persistable.PriceGoodsId;
+import org.beigesoft.webstore.persistable.PriceGoods;
+import org.beigesoft.webstore.persistable.ServicePrice;
+import org.beigesoft.webstore.persistable.ServicePriceId;
+import org.beigesoft.webstore.persistable.SeService;
+import org.beigesoft.webstore.persistable.SeServicePrice;
+import org.beigesoft.webstore.persistable.SeServicePriceId;
+import org.beigesoft.webstore.persistable.SeGoods;
+import org.beigesoft.webstore.persistable.SeGoodsPrice;
+import org.beigesoft.webstore.persistable.SeGoodsPriceId;
 import org.beigesoft.webstore.persistable.SeSeller;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
 import org.beigesoft.webstore.persistable.Cart;
@@ -45,6 +63,7 @@ import org.beigesoft.webstore.persistable.CartTot;
 import org.beigesoft.webstore.persistable.CartLn;
 import org.beigesoft.webstore.persistable.CartTxLn;
 import org.beigesoft.webstore.persistable.TradingSettings;
+import org.beigesoft.webstore.persistable.CurrRate;
 
 /**
  * <p>Service that retrieve/create buyer's shopping cart, make cart totals
@@ -95,6 +114,11 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    * <p>Query taxes item basis aggregate.</p>
    **/
   private String quTxItBasAggr;
+
+  /**
+   * <p>Service print number.</p>
+   **/
+  private ISrvNumberToString srvNumberToString;
 
   /**
    * <p>Get/Create Cart.</p>
@@ -169,13 +193,14 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       }
     } else if (pIsNeedToCreate) {
       cart = new Cart();
+      Currency curr = (Currency) pReqVars.get("wscurr");
+      cart.setCurr(curr);
       cart.setItems(new ArrayList<CartLn>());
+      cart.setTaxes(new ArrayList<CartTxLn>());
       cart.setItsId(buyer);
       getSrvOrm().insertEntity(pReqVars, cart);
     }
     if (cart != null) {
-      Currency curr = (Currency) pReqVars.get("wscurr");
-      cart.setCurr(curr);
       cart.setBuyer(buyer);
       if (ts.getOnlyDeliv() != null) {
         cart.setDeliv(ts.getOnlyDeliv());
@@ -217,9 +242,21 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
             + txCat + "/" + pCartLn.getDisab());
       }
       if (pCartLn.getItsOwner().getTaxes() == null) {
-        pCartLn.getItsOwner().setTaxes(new ArrayList<CartTxLn>());
-      } else {
+        pReqVars.put("CartTxLnitsOwnerdeepLevel", 1);
+        List<CartTxLn> ctls = getSrvOrm().retrieveListWithConditions(pReqVars,
+          CartTxLn.class, "where ITSOWNER=" + pCartLn.getItsOwner()
+            .getBuyer().getItsId());
+        pReqVars.remove("CartTxLnitsOwnerdeepLevel");
+        pCartLn.getItsOwner().setTaxes(ctls);
         for (CartTxLn ctl : pCartLn.getItsOwner().getTaxes()) {
+          ctl.setItsOwner(pCartLn.getItsOwner());
+        }
+      }
+      for (CartTxLn ctl : pCartLn.getItsOwner().getTaxes()) {
+        if (!ctl.getDisab() && (ctl.getSeller() == null
+          && pCartLn.getSeller() == null || ctl.getSeller() != null
+            && pCartLn.getSeller() != null && pCartLn.getSeller().getItsId()
+              .getItsId().equals(ctl.getSeller().getItsId().getItsId()))) {
           ctl.setDisab(true);
         }
       }
@@ -399,7 +436,10 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
             txTotSe = txTotSe.add(ctl.getTot());
           }
           txTot = txTot.add(ctl.getTot());
-        } else {
+        } else if (ctl.getSeller() == null && pCartLn.getSeller() == null
+          || ctl.getSeller() != null && pCartLn.getSeller() != null
+            && pCartLn.getSeller().getItsId().getItsId()
+              .equals(ctl.getSeller().getItsId().getItsId())) {
           getSrvOrm().updateEntity(pReqVars, ctl);
         }
       }
@@ -424,32 +464,32 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     if (pCartLn.getItsOwner().getTotals() != null
       || pCartLn.getItTyp().equals(EShopItemType.SESERVICE)
         || pCartLn.getItTyp().equals(EShopItemType.SEGOODS)) {
-      boolean needTot = true;
-      if (pCartLn.getDisab()) { //line deleted, check for any S.E.Item:
-        needTot = false;
-        for (CartLn clt : pCartLn.getItsOwner().getItems()) {
-          if (!clt.getDisab()
-            && pCartLn.getItTyp().equals(EShopItemType.SESERVICE)
-              || pCartLn.getItTyp().equals(EShopItemType.SEGOODS)) {
-            needTot = true;
-            break;
-          }
+      if (pCartLn.getItsOwner().getTotals() == null) {
+        List<CartTot> ctts = getSrvOrm().retrieveListWithConditions(pReqVars,
+          CartTot.class, "where ITSOWNER=" + pCartLn.getItsOwner()
+            .getBuyer().getItsId());
+        pReqVars.remove("CartTotitsOwnerdeepLevel");
+        pCartLn.getItsOwner().setTotals(ctts);
+        for (CartTot cttl : pCartLn.getItsOwner().getTotals()) {
+          cttl.setItsOwner(pCartLn.getItsOwner());
         }
       }
-      if (needTot) {
-        if (pCartLn.getItsOwner().getTotals() == null) {
-          pCartLn.getItsOwner().setTotals(new ArrayList<CartTot>());
+      CartTot cartTot = null;
+      for (CartTot ct : pCartLn.getItsOwner().getTotals()) {
+        if (!ct.getDisab() && ct.getSeller() == null && pCartLn
+          .getSeller() == null || ct.getSeller() != null && pCartLn
+            .getSeller() != null && pCartLn.getSeller().getItsId().getItsId()
+              .equals(ct.getSeller().getItsId().getItsId())) {
+          cartTot = ct;
+          break;
         }
-        CartTot cartTot = null;
-        for (CartTot ct : pCartLn.getItsOwner().getTotals()) {
-          if (!ct.getDisab() && ct.getSeller() == null && pCartLn
-            .getSeller() == null || ct.getSeller() != null && pCartLn
-              .getSeller() != null && pCartLn.getSeller().getItsId().getItsId()
-                .equals(ct.getSeller().getItsId().getItsId())) {
-            cartTot = ct;
-            break;
-          }
+      }
+      if (totSe.compareTo(BigDecimal.ZERO) == 0) {
+        if (cartTot != null) {
+          cartTot.setDisab(true);
+          getSrvOrm().updateEntity(pReqVars, cartTot);
         }
+      } else {
         if (cartTot == null) {
           for (CartTot ct : pCartLn.getItsOwner().getTotals()) {
             if (ct.getDisab()) {
@@ -462,9 +502,9 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         if (cartTot == null) {
           cartTot = new CartTot();
           cartTot.setItsOwner(pCartLn.getItsOwner());
-          cartTot.setSeller(pCartLn.getSeller());
           cartTot.setIsNew(true);
         }
+        cartTot.setSeller(pCartLn.getSeller());
         cartTot.setTotTx(txTotSe);
         cartTot.setSubt(totSe.subtract(txTotSe));
         cartTot.setTot(totSe);
@@ -473,12 +513,6 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         } else {
           getSrvOrm().updateEntity(pReqVars, cartTot);
         }
-      } else if (pCartLn.getItsOwner().getTotals() != null) {
-        for (CartTot ct : pCartLn.getItsOwner().getTotals()) {
-          ct.setDisab(true);
-          getSrvOrm().updateEntity(pReqVars, ct);
-        }
-        pCartLn.getItsOwner().setTotals(null);
       }
     }
   }
@@ -518,6 +552,285 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       }
     }
     return txRules;
+  }
+
+  /**
+   * <p>Handle event cart currency changed.</p>
+   * @param pReqVars request scoped vars
+   * @param pCart cart
+   * @param pAs Accounting Settings
+   * @param pTs TradingSettings
+   * @throws Exception - an exception.
+   **/
+  @Override
+  public final void handleCurrencyChanged(final Map<String, Object> pReqVars,
+    final Cart pCart, final AccSettings pAs,
+      final TradingSettings pTs) throws Exception {
+    TaxDestination txRules = revealTaxRules(pReqVars, pCart, pAs);
+    for (CartLn cl : pCart.getItems()) {
+      if (!cl.getDisab()) {
+        makeCartLine(pReqVars, cl, pAs, pTs, txRules, true);
+        makeCartTotals(pReqVars, pTs, cl, pAs, txRules);
+      }
+    }
+  }
+
+  /**
+   * <p>Makes cart line.</p>
+   * @param pReqVars request scoped vars
+   * @param pCartLn cart line
+   * @param pAs Accounting Settings
+   * @param pTs TradingSettings
+   * @param pTxRules NULL if not taxable
+   * @param pRedoPr redo price
+   * @throws Exception - an exception.
+   **/
+  @Override
+  public final void makeCartLine(final Map<String, Object> pReqVars,
+    final CartLn pCartLn, final AccSettings pAs, final TradingSettings pTs,
+      final TaxDestination pTxRules, final boolean pRedoPr) throws Exception {
+    if (pRedoPr) {
+      AItemPrice<?, ?> itPrice = revealItemPrice(pReqVars, pTs,
+        pCartLn.getItsOwner(), pCartLn.getItTyp(), pCartLn.getItId());
+      pCartLn.setPrice(itPrice.getItsPrice());
+      List<CurrRate> currRates = (List<CurrRate>) pReqVars.get("currRates");
+      for (CurrRate cr: currRates) {
+        if (cr.getCurr().getItsId().equals(pCartLn.getItsOwner()
+          .getCurr().getItsId())) {
+          pCartLn.setPrice(pCartLn.getPrice().multiply(cr.getRate())
+            .setScale(pAs.getPricePrecision(), pAs.getRoundingMode()));
+          break;
+        }
+      }
+      BigDecimal amount = pCartLn.getPrice().multiply(pCartLn.getQuant()).
+        setScale(pAs.getPricePrecision(), pAs.getRoundingMode());
+      if (pTs.getTxExcl()) {
+        pCartLn.setSubt(amount);
+      } else {
+        pCartLn.setTot(amount);
+      }
+    }
+    //using user passed values:
+    BigDecimal totalTaxes = BigDecimal.ZERO;
+    BigDecimal bd100 = new BigDecimal("100.00");
+    List<CartItTxLn> itls = null;
+    if (pTxRules != null && pCartLn.getTxCat() != null) {
+      if (!pTxRules.getSalTaxIsInvoiceBase()) {
+        if (!pTxRules.getSalTaxUseAggregItBas()) {
+          if (!pTs.getTxExcl()) {
+            throw new ExceptionWithCode(ExceptionWithCode.WRONG_PARAMETER,
+              "price_inc_tax_multi_not_imp");
+          }
+          itls = new ArrayList<CartItTxLn>();
+          pReqVars.put("InvItemTaxCategoryLineitsOwnerdeepLevel", 1);
+          List<InvItemTaxCategoryLine> itcls = getSrvOrm()
+            .retrieveListWithConditions(pReqVars,
+              InvItemTaxCategoryLine.class, "where ITSOWNER="
+                + pCartLn.getTxCat().getItsId());
+          pReqVars.remove("InvItemTaxCategoryLineitsOwnerdeepLevel");
+          StringBuffer sb = new StringBuffer();
+          int i = 0;
+          for (InvItemTaxCategoryLine itcl : itcls) {
+           if (ETaxType.SALES_TAX_OUTITEM.equals(itcl.getTax().getItsType())
+          || ETaxType.SALES_TAX_INITEM.equals(itcl.getTax().getItsType())) {
+              if (i++ > 0) {
+                sb.append(", ");
+              }
+              BigDecimal addTx = pCartLn.getSubt().multiply(itcl
+                .getItsPercentage()).divide(bd100, pAs.getPricePrecision(),
+                  pTxRules.getSalTaxRoundMode());
+              totalTaxes = totalTaxes.add(addTx);
+              CartItTxLn itl = new CartItTxLn();
+              itl.setIsNew(true);
+              itl.setTot(addTx);
+              itl.setTax(itcl.getTax());
+              itls.add(itl);
+              sb.append(itl.getTax().getItsName() + " " + prn(pReqVars, addTx));
+            }
+          }
+          pCartLn.setTxDsc(sb.toString());
+        } else {
+          if (!pTs.getTxExcl()) {
+        totalTaxes = pCartLn.getTot().subtract(pCartLn.getTot()
+    .divide(BigDecimal.ONE.add(pCartLn.getTxCat().getAggrOnlyPercent()
+  .divide(bd100)), pAs.getPricePrecision(), pTxRules.getSalTaxRoundMode()));
+          } else {
+            totalTaxes = pCartLn.getSubt().multiply(pCartLn.getTxCat()
+          .getAggrOnlyPercent()).divide(bd100, pAs.getPricePrecision(),
+        pTxRules.getSalTaxRoundMode());
+          }
+        pCartLn.setTxDsc(pCartLn.getTxCat().getItsName());
+        }
+      } else {
+        pCartLn.setTxDsc(pCartLn.getTxCat().getItsName());
+      }
+    }
+    pCartLn.setTotTx(totalTaxes);
+    if (pTs.getTxExcl()) {
+      pCartLn.setTot(pCartLn.getSubt().add(pCartLn.getTotTx()));
+    } else {
+      pCartLn.setSubt(pCartLn.getTot().subtract(pCartLn.getTotTx()));
+    }
+    if (pCartLn.getIsNew()) {
+      this.getSrvOrm().insertEntity(pReqVars, pCartLn);
+    } else {
+      this.getSrvOrm().updateEntity(pReqVars, pCartLn);
+      for (int i = 0; i < pCartLn.getItsOwner().getItems().size(); i++) {
+        if (pCartLn.getItsOwner().getItems().get(i).getItId()
+          .equals(pCartLn.getItId()) && pCartLn.getItsOwner().getItems().get(i)
+            .getItTyp().equals(pCartLn.getItTyp())) {
+          pCartLn.getItsOwner().getItems().set(i, pCartLn);
+          break;
+        }
+      }
+    }
+    if (itls != null) {
+      pReqVars.put("CartItTxLnitsOwnerdeepLevel", 1);
+      List<CartItTxLn> itlsr = getSrvOrm().retrieveListWithConditions(
+          pReqVars, CartItTxLn.class, "where CARTID="
+            + pCartLn.getItsOwner().getBuyer().getItsId());
+      pReqVars.remove("CartItTxLnitsOwnerdeepLevel");
+      for (CartItTxLn itlrt : itlsr) {
+        if (!itlrt.getDisab() && itlrt.getItsOwner().getItsId()
+          .equals(pCartLn.getItsId())) {
+          itlrt.setDisab(true);
+        }
+      }
+      for (CartItTxLn itl : itls) {
+        CartItTxLn itlr = null;
+        for (CartItTxLn itlrt : itlsr) {
+          if (itlrt.getDisab()) {
+            itlr = itlrt;
+            itlr.setDisab(false);
+            break;
+          }
+        }
+        if (itlr == null) {
+          itl.setItsOwner(pCartLn);
+          itl.setCartId(pCartLn.getItsOwner().getBuyer().getItsId());
+          getSrvOrm().insertEntity(pReqVars, itl);
+          itl.setIsNew(false);
+        } else {
+          itlr.setTax(itl.getTax());
+          itlr.setTot(itl.getTot());
+          itlr.setItsOwner(pCartLn);
+          itlr.setCartId(pCartLn.getItsOwner().getBuyer().getItsId());
+          getSrvOrm().updateEntity(pReqVars, itlr);
+        }
+      }
+      for (CartItTxLn itlrt : itlsr) {
+        if (itlrt.getDisab() && itlrt.getItsOwner().getItsId()
+          .equals(pCartLn.getItsId())) {
+          getSrvOrm().updateEntity(pReqVars, itlrt);
+        }
+      }
+    }
+  }
+
+  /**
+   * <p>Reveals item's price descriptor.</p>
+   * @param pReqVars request scoped vars
+   * @param pTs TradingSettings
+   * @param pCart cart
+   * @param pItType Item Type
+   * @param pItId Item ID
+   * @return item's price descriptor or exception
+   * @throws Exception - an exception
+   **/
+  @Override
+  public final AItemPrice<?, ?> revealItemPrice(
+    final Map<String, Object> pReqVars, final TradingSettings pTs,
+      final Cart pCart, final EShopItemType pItType,
+        final Long pItId) throws Exception {
+    AItemPrice<?, ?> itPrice = null;
+    if (pTs.getIsUsePriceForCustomer()) {
+      //try to reveal price dedicated to customer:
+      List<BuyerPriceCategory> buyerPrCats = this.getSrvOrm()
+        .retrieveListWithConditions(pReqVars, BuyerPriceCategory.class,
+          "where BUYER=" + pCart.getBuyer().getItsId());
+      for (BuyerPriceCategory buyerPrCat : buyerPrCats) {
+        if (pItType.equals(EShopItemType.GOODS)) {
+          InvItem item = new InvItem();
+          item.setItsId(pItId);
+          PriceGoodsId pIpId = new PriceGoodsId();
+          pIpId.setItem(item);
+          pIpId.setPriceCategory(buyerPrCat.getPriceCategory());
+          PriceGoods itPr = new PriceGoods();
+          itPr.setItsId(pIpId);
+          itPr = this.getSrvOrm().retrieveEntity(pReqVars, itPr);
+          if (itPr != null) {
+            itPrice = itPr;
+            break;
+          }
+        } else if (pItType.equals(EShopItemType.SERVICE)) {
+          ServiceToSale item = new ServiceToSale();
+          item.setItsId(pItId);
+          ServicePriceId pIpId = new ServicePriceId();
+          pIpId.setItem(item);
+          pIpId.setPriceCategory(buyerPrCat.getPriceCategory());
+          ServicePrice itPr = new ServicePrice();
+          itPr.setItsId(pIpId);
+          itPr = this.getSrvOrm().retrieveEntity(pReqVars, itPr);
+          if (itPr != null) {
+            itPrice = itPr;
+            break;
+          }
+        } else if (pItType.equals(EShopItemType.SESERVICE)) {
+          SeService item = new SeService();
+          item.setItsId(pItId);
+          SeServicePriceId pIpId = new SeServicePriceId();
+          pIpId.setItem(item);
+          pIpId.setPriceCategory(buyerPrCat.getPriceCategory());
+          SeServicePrice itPr = new SeServicePrice();
+          itPr.setItsId(pIpId);
+          itPr = this.getSrvOrm().retrieveEntity(pReqVars, itPr);
+          if (itPr != null) {
+            itPrice = itPr;
+            break;
+          }
+        } else {
+          SeGoods item = new SeGoods();
+          item.setItsId(pItId);
+          SeGoodsPriceId pIpId = new SeGoodsPriceId();
+          pIpId.setItem(item);
+          pIpId.setPriceCategory(buyerPrCat.getPriceCategory());
+          SeGoodsPrice itPr = new SeGoodsPrice();
+          itPr.setItsId(pIpId);
+          itPr = this.getSrvOrm().retrieveEntity(pReqVars, itPr);
+          if (itPr != null) {
+            itPrice = itPr;
+            break;
+          }
+        }
+      }
+    }
+    if (itPrice == null) {
+      //retrieve price for all:
+      Class<?> itepPriceCl;
+      if (pItType.equals(EShopItemType.GOODS)) {
+        itepPriceCl = PriceGoods.class;
+      } else if (pItType.equals(EShopItemType.SERVICE)) {
+        itepPriceCl = ServicePrice.class;
+      } else if (pItType.equals(EShopItemType.SESERVICE)) {
+        itepPriceCl = SeServicePrice.class;
+      } else {
+        itepPriceCl = SeGoodsPrice.class;
+      }
+      @SuppressWarnings("unchecked")
+      List<AItemPrice<?, ?>> itPrices = (List<AItemPrice<?, ?>>)
+        this.getSrvOrm().retrieveListWithConditions(pReqVars, itepPriceCl,
+          "where ITEM=" + pItId);
+      if (itPrices.size() == 0) {
+        throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
+          "requested_item_has_no_price");
+      }
+      if (itPrices.size() > 1) {
+        throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
+          "requested_item_has_several_prices");
+      }
+      itPrice = itPrices.get(0);
+    }
+    return itPrice;
   }
 
   /**
@@ -598,6 +911,8 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         if (tl.getDisab()) {
           ctl = tl;
           ctl.setDisab(false);
+          ctl.setTot(BigDecimal.ZERO);
+          ctl.setTaxab(BigDecimal.ZERO);
           ctl.setTax(pTax);
           ctl.setSeller(pSeller);
           break;
@@ -704,7 +1019,39 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     return null;
   }
 
+  /**
+   * <p>Simple delegator to print number.</p>
+   * @param pReqVars additional param
+   * @param pVal value
+   * @return String
+   **/
+  public final String prn(final Map<String, Object> pReqVars,
+    final BigDecimal pVal) {
+    return this.srvNumberToString.print(pVal.toString(),
+      (String) pReqVars.get("decSepv"), //user's preferences
+        (String) pReqVars.get("decGrSepv"),
+          (Integer) pReqVars.get("priceDp"),
+            (Integer) pReqVars.get("digInGr"));
+  }
+
   //Simple getters and setters:
+  /**
+   * <p>Getter for srvNumberToString.</p>
+   * @return ISrvNumberToString
+   **/
+  public final ISrvNumberToString getSrvNumberToString() {
+    return this.srvNumberToString;
+  }
+
+  /**
+   * <p>Setter for srvNumberToString.</p>
+   * @param pSrvNumberToString reference
+   **/
+  public final void setSrvNumberToString(
+    final ISrvNumberToString pSrvNumberToString) {
+    this.srvNumberToString = pSrvNumberToString;
+  }
+
   /**
    * <p>Geter for logger.</p>
    * @return ILogger
