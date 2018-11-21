@@ -111,6 +111,9 @@ public class PrcItemInCart<RS> implements IProcessor {
           if (ci.getDisab()) {
             cartLn = ci;
             cartLn.setDisab(false);
+            cartLn.setSeller(null);
+            cartLn.setTxCat(null);
+            cartLn.setTxDsc(null);
             break;
           }
         }

@@ -14,6 +14,8 @@ package org.beigesoft.webstore.service;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -41,21 +43,22 @@ import org.beigesoft.accounting.persistable.TaxDestination;
 import org.beigesoft.accounting.persistable.DebtorCreditor;
 import org.beigesoft.accounting.persistable.AccSettings;
 import org.beigesoft.accounting.persistable.InvItem;
+import org.beigesoft.accounting.persistable.I18nInvItem;
 import org.beigesoft.accounting.persistable.ServiceToSale;
+import org.beigesoft.accounting.persistable.I18nServiceToSale;
 import org.beigesoft.webstore.model.EShopItemType;
 import org.beigesoft.webstore.persistable.base.AItemPrice;
 import org.beigesoft.webstore.persistable.CartItTxLn;
+import org.beigesoft.webstore.persistable.PriceCategory;
 import org.beigesoft.webstore.persistable.BuyerPriceCategory;
-import org.beigesoft.webstore.persistable.PriceGoodsId;
 import org.beigesoft.webstore.persistable.PriceGoods;
 import org.beigesoft.webstore.persistable.ServicePrice;
-import org.beigesoft.webstore.persistable.ServicePriceId;
 import org.beigesoft.webstore.persistable.SeService;
+import org.beigesoft.webstore.persistable.I18nSeService;
 import org.beigesoft.webstore.persistable.SeServicePrice;
-import org.beigesoft.webstore.persistable.SeServicePriceId;
+import org.beigesoft.webstore.persistable.I18nSeGoods;
 import org.beigesoft.webstore.persistable.SeGoods;
 import org.beigesoft.webstore.persistable.SeGoodsPrice;
-import org.beigesoft.webstore.persistable.SeGoodsPriceId;
 import org.beigesoft.webstore.persistable.SeSeller;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
 import org.beigesoft.webstore.persistable.Cart;
@@ -114,6 +117,26 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    * <p>Query taxes item basis aggregate.</p>
    **/
   private String quTxItBasAggr;
+
+  /**
+   * <p>Query item price.</p>
+   **/
+  private String quItemPrice;
+
+  /**
+   * <p>Query S.E. item price.</p>
+   **/
+  private String quItemSePrice;
+
+  /**
+   * <p>Query item price for category.</p>
+   **/
+  private String quItemPriceCat;
+
+  /**
+   * <p>Query S.E. item price for category.</p>
+   **/
+  private String quItemSePriceCat;
 
   /**
    * <p>Service print number.</p>
@@ -183,6 +206,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         }
       }
       if (isSeIt) {
+        pReqVars.put("CartTotitsOwnerdeepLevel", 1);
         List<CartTot> ctts = getSrvOrm().retrieveListWithConditions(pReqVars,
           CartTot.class, "where ITSOWNER=" + cart.getBuyer().getItsId());
         pReqVars.remove("CartTotitsOwnerdeepLevel");
@@ -324,13 +348,13 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
               if (!pTxRules.getSalTaxIsInvoiceBase()) { //item basis:
                 Long clId = recordSet.getLong("CLID");
                 CartLn txdLn = makeTxdLine(txdLns, clId, tcId, tax, percent,
-                  pAs, pCartLn.getSeller());
+                  pAs);
                 txdLn.setTotTx(BigDecimal.valueOf(recordSet
                   .getDouble("TOTALTAXES"))
                     .setScale(pAs.getPricePrecision(), RoundingMode.HALF_UP));
               } else { //invoice basis:
                 CartLn txdLn = makeTxdLine(txdLns, tcId, tcId, tax, percent,
-                  pAs, pCartLn.getSeller());
+                  pAs);
                 txdLn.setTot(BigDecimal.valueOf(recordSet
                   .getDouble("ITSTOTAL"))
                     .setScale(pAs.getPricePrecision(), RoundingMode.HALF_UP));
@@ -409,7 +433,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
               txdLn.setTotTx(taxAggegated.subtract(taxAggrAccum));
             }
             CartTxLn ctl = findCreateTaxLine(pReqVars, pCartLn.getItsOwner(),
-              itcl.getTax(), txdLn.getSeller(), true);
+              itcl.getTax(), pCartLn.getSeller(), true);
             ctl.setTot(ctl.getTot().add(txdLn.getTotTx()));
             if (pTxRules.getSalTaxIsInvoiceBase()) {
               if (pTs.getTxExcl()) {
@@ -465,6 +489,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       || pCartLn.getItTyp().equals(EShopItemType.SESERVICE)
         || pCartLn.getItTyp().equals(EShopItemType.SEGOODS)) {
       if (pCartLn.getItsOwner().getTotals() == null) {
+        pReqVars.put("CartTotitsOwnerdeepLevel", 1);
         List<CartTot> ctts = getSrvOrm().retrieveListWithConditions(pReqVars,
           CartTot.class, "where ITSOWNER=" + pCartLn.getItsOwner()
             .getBuyer().getItsId());
@@ -485,9 +510,28 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         }
       }
       if (totSe.compareTo(BigDecimal.ZERO) == 0) {
-        if (cartTot != null) {
-          cartTot.setDisab(true);
-          getSrvOrm().updateEntity(pReqVars, cartTot);
+        //last seller's line has been deleted
+        cartTot.setDisab(true);
+        getSrvOrm().updateEntity(pReqVars, cartTot);
+        if (pCartLn.getSeller() != null) {
+          //if only owner's lines left, then remove totals:
+          boolean isLeftOwners = true;
+          for (CartTot ct : pCartLn.getItsOwner().getTotals()) {
+            if (!ct.getDisab() && ct.getSeller() != null) {
+              isLeftOwners = false;
+              break;
+            }
+          }
+          if (isLeftOwners) {
+            for (CartTot ct : pCartLn.getItsOwner().getTotals()) {
+              if (!ct.getDisab() && ct.getSeller() == null) {
+                ct.setDisab(true);
+                getSrvOrm().updateEntity(pReqVars, ct);
+                break;
+              }
+            }
+            pCartLn.getItsOwner().setTotals(null);
+          }
         }
       } else {
         if (cartTot == null) {
@@ -707,6 +751,9 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         }
         if (itlr == null) {
           itl.setItsOwner(pCartLn);
+          if (pCartLn.getSeller() != null) {
+            itl.setSellerId(pCartLn.getSeller().getItsId().getItsId());
+          }
           itl.setCartId(pCartLn.getItsOwner().getBuyer().getItsId());
           getSrvOrm().insertEntity(pReqVars, itl);
           itl.setIsNew(false);
@@ -714,6 +761,11 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
           itlr.setTax(itl.getTax());
           itlr.setTot(itl.getTot());
           itlr.setItsOwner(pCartLn);
+          if (pCartLn.getSeller() == null) {
+            itlr.setSellerId(null);
+          } else {
+            itlr.setSellerId(pCartLn.getSeller().getItsId().getItsId());
+          }
           itlr.setCartId(pCartLn.getItsOwner().getBuyer().getItsId());
           getSrvOrm().updateEntity(pReqVars, itlr);
         }
@@ -742,84 +794,113 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     final Map<String, Object> pReqVars, final TradingSettings pTs,
       final Cart pCart, final EShopItemType pItType,
         final Long pItId) throws Exception {
+    String lang = (String) pReqVars.get("lang");
     AItemPrice<?, ?> itPrice = null;
+    String query;
+    Class<?> itemI18nCl;
+    Class<?> itemCl;
+    Class<?> itemPriceCl;
+    if (pItType.equals(EShopItemType.GOODS)) {
+      itemCl = InvItem.class;
+      itemI18nCl = I18nInvItem.class;
+      itemPriceCl = PriceGoods.class;
+    } else if (pItType.equals(EShopItemType.SERVICE)) {
+      itemCl = ServiceToSale.class;
+      itemI18nCl = I18nServiceToSale.class;
+      itemPriceCl = ServicePrice.class;
+    } else if (pItType.equals(EShopItemType.SESERVICE)) {
+      itemCl = SeService.class;
+      itemI18nCl = I18nSeService.class;
+      itemPriceCl = SeServicePrice.class;
+    } else {
+      itemCl = SeGoods.class;
+      itemI18nCl = I18nSeGoods.class;
+      itemPriceCl = SeGoodsPrice.class;
+    }
+    Set<String> ndFlItPr = new HashSet<String>();
+    ndFlItPr.add("item");
+    ndFlItPr.add("priceCategory");
+    ndFlItPr.add("itsPrice");
+    ndFlItPr.add("unStep");
+    pReqVars.put(itemPriceCl.getSimpleName() + "neededFields", ndFlItPr);
+    Set<String> ndFlPc = new HashSet<String>();
+    ndFlPc.add("itsId");
+    pReqVars.put(PriceCategory.class.getSimpleName() + "neededFields", ndFlPc);
+    Set<String> ndFlIt = new HashSet<String>();
+    ndFlIt.add("itsId");
+    ndFlIt.add("itsName");
+    ndFlIt.add("taxCategory");
+    if (pItType.equals(EShopItemType.SEGOODS)
+      || pItType.equals(EShopItemType.SESERVICE)) {
+      ndFlIt.add("seller");
+      Set<String> ndFlSe = new HashSet<String>();
+      ndFlSe.add("seller");
+      pReqVars.put("SeSellerneededFields", ndFlSe);
+      pReqVars.put(itemCl.getSimpleName() + "sellerdeepLevel", 1);
+    }
+    pReqVars.put(itemCl.getSimpleName() + "neededFields", ndFlIt);
+    Set<String> ndFlTc = new HashSet<String>();
+    ndFlTc.add("itsId");
+    ndFlTc.add("itsName");
+    ndFlTc.add("aggrOnlyPercent");
+    pReqVars.put(InvItemTaxCategory.class.getSimpleName() + "neededFields",
+      ndFlTc);
+    pReqVars.put(itemPriceCl.getSimpleName() + "itemdeepLevel", 3);
     if (pTs.getIsUsePriceForCustomer()) {
       //try to reveal price dedicated to customer:
       List<BuyerPriceCategory> buyerPrCats = this.getSrvOrm()
         .retrieveListWithConditions(pReqVars, BuyerPriceCategory.class,
           "where BUYER=" + pCart.getBuyer().getItsId());
-      for (BuyerPriceCategory buyerPrCat : buyerPrCats) {
-        if (pItType.equals(EShopItemType.GOODS)) {
-          InvItem item = new InvItem();
-          item.setItsId(pItId);
-          PriceGoodsId pIpId = new PriceGoodsId();
-          pIpId.setItem(item);
-          pIpId.setPriceCategory(buyerPrCat.getPriceCategory());
-          PriceGoods itPr = new PriceGoods();
-          itPr.setItsId(pIpId);
-          itPr = this.getSrvOrm().retrieveEntity(pReqVars, itPr);
-          if (itPr != null) {
-            itPrice = itPr;
-            break;
-          }
-        } else if (pItType.equals(EShopItemType.SERVICE)) {
-          ServiceToSale item = new ServiceToSale();
-          item.setItsId(pItId);
-          ServicePriceId pIpId = new ServicePriceId();
-          pIpId.setItem(item);
-          pIpId.setPriceCategory(buyerPrCat.getPriceCategory());
-          ServicePrice itPr = new ServicePrice();
-          itPr.setItsId(pIpId);
-          itPr = this.getSrvOrm().retrieveEntity(pReqVars, itPr);
-          if (itPr != null) {
-            itPrice = itPr;
-            break;
-          }
-        } else if (pItType.equals(EShopItemType.SESERVICE)) {
-          SeService item = new SeService();
-          item.setItsId(pItId);
-          SeServicePriceId pIpId = new SeServicePriceId();
-          pIpId.setItem(item);
-          pIpId.setPriceCategory(buyerPrCat.getPriceCategory());
-          SeServicePrice itPr = new SeServicePrice();
-          itPr.setItsId(pIpId);
-          itPr = this.getSrvOrm().retrieveEntity(pReqVars, itPr);
-          if (itPr != null) {
-            itPrice = itPr;
-            break;
-          }
+      if (buyerPrCats.size() > 0) {
+        if (pItType.equals(EShopItemType.GOODS)
+          || pItType.equals(EShopItemType.SERVICE)) {
+          query = lazyGetQuItemPriceCat();
         } else {
-          SeGoods item = new SeGoods();
-          item.setItsId(pItId);
-          SeGoodsPriceId pIpId = new SeGoodsPriceId();
-          pIpId.setItem(item);
-          pIpId.setPriceCategory(buyerPrCat.getPriceCategory());
-          SeGoodsPrice itPr = new SeGoodsPrice();
-          itPr.setItsId(pIpId);
-          itPr = this.getSrvOrm().retrieveEntity(pReqVars, itPr);
-          if (itPr != null) {
-            itPrice = itPr;
-            break;
-          }
+          query = lazyGetQuItemSePriceCat();
         }
+        query = query.replace(":ITEMID", pItId.toString());
+        query = query.replace(":LANG", lang);
+        query = query.replace(":TITEMPRICE", itemPriceCl.getSimpleName()
+          .toUpperCase());
+        query = query.replace(":TITEM", itemCl.getSimpleName().toUpperCase());
+        query = query.replace(":TI18NITEM", itemI18nCl.getSimpleName()
+          .toUpperCase());
+        StringBuffer pccnd = new StringBuffer("");
+        if (buyerPrCats.size() == 1) {
+          pccnd.append("=" + buyerPrCats.get(0).getPriceCategory().getItsId());
+        } else {
+          for (BuyerPriceCategory bpc : buyerPrCats) {
+            if (pccnd.length() == 0) {
+              pccnd.append(" in (" + bpc.getPriceCategory().getItsId());
+            } else {
+              pccnd.append(", " + bpc.getPriceCategory().getItsId());
+            }
+          }
+          pccnd.append(")");
+        }
+        query = query.replace(":PRCATIDCOND", pccnd);
+        itPrice = (AItemPrice<?, ?>) getSrvOrm().retrieveEntity(pReqVars,
+          itemPriceCl, query);
       }
     }
     if (itPrice == null) {
       //retrieve price for all:
-      Class<?> itepPriceCl;
-      if (pItType.equals(EShopItemType.GOODS)) {
-        itepPriceCl = PriceGoods.class;
-      } else if (pItType.equals(EShopItemType.SERVICE)) {
-        itepPriceCl = ServicePrice.class;
-      } else if (pItType.equals(EShopItemType.SESERVICE)) {
-        itepPriceCl = SeServicePrice.class;
+      if (pItType.equals(EShopItemType.GOODS)
+        || pItType.equals(EShopItemType.SERVICE)) {
+        query = lazyGetQuItemPrice();
       } else {
-        itepPriceCl = SeGoodsPrice.class;
+        query = lazyGetQuItemSePrice();
       }
+      query = query.replace(":ITEMID", pItId.toString());
+      query = query.replace(":LANG", lang);
+      query = query.replace(":TITEMPRICE", itemPriceCl.getSimpleName()
+        .toUpperCase());
+      query = query.replace(":TITEM", itemCl.getSimpleName().toUpperCase());
+      query = query.replace(":TI18NITEM", itemI18nCl.getSimpleName()
+        .toUpperCase());
       @SuppressWarnings("unchecked")
       List<AItemPrice<?, ?>> itPrices = (List<AItemPrice<?, ?>>)
-        this.getSrvOrm().retrieveListWithConditions(pReqVars, itepPriceCl,
-          "where ITEM=" + pItId);
+        getSrvOrm().retrieveListByQuery(pReqVars, itemPriceCl, query);
       if (itPrices.size() == 0) {
         throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
           "requested_item_has_no_price");
@@ -829,6 +910,16 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
           "requested_item_has_several_prices");
       }
       itPrice = itPrices.get(0);
+    }
+    pReqVars.remove(itemCl.getSimpleName() + "neededFields");
+    pReqVars.remove(PriceCategory.class.getSimpleName() + "neededFields");
+    pReqVars.remove(itemPriceCl.getSimpleName() + "neededFields");
+    pReqVars.remove(InvItemTaxCategory.class.getSimpleName() + "neededFields");
+    pReqVars.remove(itemPriceCl.getSimpleName() + "itemdeepLevel", 3);
+    if (pItType.equals(EShopItemType.SEGOODS)
+      || pItType.equals(EShopItemType.SESERVICE)) {
+      pReqVars.remove("SeSellerneededFields");
+      pReqVars.remove(itemCl.getSimpleName() + "sellerdeepLevel");
     }
     return itPrice;
   }
@@ -842,18 +933,14 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    * @param pTax tax
    * @param pPercent tax rate
    * @param pAs AS
-   * @param pSeller Seller
    * @return line
    **/
   public final CartLn makeTxdLine(final List<CartLn> pTxdLns, final Long pTdlId,
     final Long pCatId,  final Tax pTax, final Double pPercent,
-      final AccSettings pAs, final SeSeller pSeller) {
+      final AccSettings pAs) {
     CartLn txdLn = null;
     for (CartLn tdl : pTxdLns) {
-      if (tdl.getItsId().equals(pTdlId)
-        && (pSeller == null && tdl.getSeller() == null
-        || pSeller != null && tdl.getSeller() != null && tdl.getSeller()
-          .getItsId().getItsId().equals(pSeller.getItsId().getItsId()))) {
+      if (tdl.getItsId().equals(pTdlId)) {
         txdLn = tdl;
       }
     }
@@ -864,7 +951,6 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       tc.setItsId(pCatId);
       tc.setTaxes(new ArrayList<InvItemTaxCategoryLine>());
       txdLn.setTxCat(tc);
-      txdLn.setSeller(pSeller);
       pTxdLns.add(txdLn);
     }
     InvItemTaxCategoryLine itcl = new InvItemTaxCategoryLine();
@@ -993,6 +1079,54 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       this.quTxItBasAggr = loadString("/webstore/cartTxItBasAggr.sql");
     }
     return this.quTxItBasAggr;
+  }
+
+  /**
+   * <p>Lazy Getter for quItemPrice.</p>
+   * @return String
+   * @throws IOException - IO exception
+   **/
+  public final String lazyGetQuItemPrice() throws IOException {
+    if (this.quItemPrice == null) {
+      this.quItemPrice = loadString("/webstore/itemPrice.sql");
+    }
+    return this.quItemPrice;
+  }
+
+  /**
+   * <p>Lazy Getter for quItemSePrice.</p>
+   * @return String
+   * @throws IOException - IO exception
+   **/
+  public final String lazyGetQuItemSePrice() throws IOException {
+    if (this.quItemSePrice == null) {
+      this.quItemSePrice = loadString("/webstore/itemSePrice.sql");
+    }
+    return this.quItemSePrice;
+  }
+
+  /**
+   * <p>Lazy Getter for quItemPriceCat.</p>
+   * @return String
+   * @throws IOException - IO exception
+   **/
+  public final String lazyGetQuItemPriceCat() throws IOException {
+    if (this.quItemPriceCat == null) {
+      this.quItemPriceCat = loadString("/webstore/itemPriceCat.sql");
+    }
+    return this.quItemPriceCat;
+  }
+
+  /**
+   * <p>Lazy Getter for quItemSePriceCat.</p>
+   * @return String
+   * @throws IOException - IO exception
+   **/
+  public final String lazyGetQuItemSePriceCat() throws IOException {
+    if (this.quItemSePriceCat == null) {
+      this.quItemSePriceCat = loadString("/webstore/itemSePriceCat.sql");
+    }
+    return this.quItemSePriceCat;
   }
 
   /**
@@ -1147,5 +1281,37 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    **/
   public final void setQuTxItBasAggr(final String pQuTxItBasAggr) {
     this.quTxItBasAggr = pQuTxItBasAggr;
+  }
+
+  /**
+   * <p>Setter for quItemPrice.</p>
+   * @param pQuItemPrice reference
+   **/
+  public final void setQuItemPrice(final String pQuItemPrice) {
+    this.quItemPrice = pQuItemPrice;
+  }
+
+  /**
+   * <p>Setter for quItemSePrice.</p>
+   * @param pQuItemSePrice reference
+   **/
+  public final void setQuItemSePrice(final String pQuItemSePrice) {
+    this.quItemSePrice = pQuItemSePrice;
+  }
+
+  /**
+   * <p>Setter for quItemPriceCat.</p>
+   * @param pQuItemPriceCat reference
+   **/
+  public final void setQuItemPriceCat(final String pQuItemPriceCat) {
+    this.quItemPriceCat = pQuItemPriceCat;
+  }
+
+  /**
+   * <p>Setter for quItemSePriceCat.</p>
+   * @param pQuItemSePriceCat reference
+   **/
+  public final void setQuItemSePriceCat(final String pQuItemSePriceCat) {
+    this.quItemSePriceCat = pQuItemSePriceCat;
   }
 }
