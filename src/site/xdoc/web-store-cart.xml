@@ -167,7 +167,6 @@
           <li>subt - BigDecimal, not null</li>
           <li>totTx - BigDecimal, not null, total taxes</li>
         </ul>
-        For performance reasons cart has <b>totals</b> only if it has any S.E.item.
       </p>
       <p>Persistable model CartLn:
         <ul>
