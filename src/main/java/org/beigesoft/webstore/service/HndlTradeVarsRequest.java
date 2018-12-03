@@ -178,11 +178,13 @@ public class HndlTradeVarsRequest<RS> implements IHandlerRequestDch {
         }
       } else {
         String  wscurrsc = pRequestData.getCookieValue("wscurr");
-        Long wscurrl = Long.parseLong(wscurrsc);
-        for (CurrRate cr : curRatesTmp) {
-          if (cr.getCurr().getItsId().equals(wscurrl)) {
-            wscurr = cr.getCurr();
-            break;
+        if (wscurrsc != null) {
+          Long wscurrl = Long.parseLong(wscurrsc);
+          for (CurrRate cr : curRatesTmp) {
+            if (cr.getCurr().getItsId().equals(wscurrl)) {
+              wscurr = cr.getCurr();
+              break;
+            }
           }
         }
       }

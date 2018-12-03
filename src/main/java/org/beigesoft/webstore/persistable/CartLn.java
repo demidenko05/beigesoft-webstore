@@ -27,7 +27,8 @@ import org.beigesoft.webstore.model.EShopItemType;
  *
  * @author Yury Demidenko
  */
-public class CartLn extends AHasNameIdLongVersion implements IOwned<Cart> {
+public class CartLn extends AHasNameIdLongVersion
+  implements IOwned<Cart>, IHasSeSeller<Long> {
 
   /**
    * <p>Shopping Cart.</p>
@@ -135,6 +136,24 @@ public class CartLn extends AHasNameIdLongVersion implements IOwned<Cart> {
     this.itsOwner = pItsOwner;
   }
 
+  /**
+   * <p>Getter for seller.</p>
+   * @return SeSeller
+   **/
+  @Override
+  public final SeSeller getSeller() {
+    return this.seller;
+  }
+
+  /**
+   * <p>Setter for seller.</p>
+   * @param pSeller reference
+   **/
+  @Override
+  public final void setSeller(final SeSeller pSeller) {
+    this.seller = pSeller;
+  }
+
   //Simple getters and setters:
   /**
    * <p>Getter for disab.</p>
@@ -182,22 +201,6 @@ public class CartLn extends AHasNameIdLongVersion implements IOwned<Cart> {
    **/
   public final void setItId(final Long pItId) {
     this.itId = pItId;
-  }
-
-  /**
-   * <p>Getter for seller.</p>
-   * @return SeSeller
-   **/
-  public final SeSeller getSeller() {
-    return this.seller;
-  }
-
-  /**
-   * <p>Setter for seller.</p>
-   * @param pSeller reference
-   **/
-  public final void setSeller(final SeSeller pSeller) {
-    this.seller = pSeller;
   }
 
   /**

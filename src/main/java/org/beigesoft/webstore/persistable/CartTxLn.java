@@ -25,7 +25,8 @@ import org.beigesoft.webstore.persistable.base.ATaxLn;
  *
  * @author Yury Demidenko
  */
-public class CartTxLn extends ATaxLn implements IOwned<Cart> {
+public class CartTxLn extends ATaxLn
+  implements IOwned<Cart>, IHasSeSeller<Long> {
 
   /**
    * <p>Shopping Cart.</p>
@@ -69,6 +70,24 @@ public class CartTxLn extends ATaxLn implements IOwned<Cart> {
     this.itsOwner = pItsOwner;
   }
 
+  /**
+   * <p>Getter for seller.</p>
+   * @return SeSeller
+   **/
+  @Override
+  public final SeSeller getSeller() {
+    return this.seller;
+  }
+
+  /**
+   * <p>Setter for seller.</p>
+   * @param pSeller reference
+   **/
+  @Override
+  public final void setSeller(final SeSeller pSeller) {
+    this.seller = pSeller;
+  }
+
   //SGS:
   /**
    * <p>Getter for disab.</p>
@@ -84,22 +103,6 @@ public class CartTxLn extends ATaxLn implements IOwned<Cart> {
    **/
   public final void setDisab(final Boolean pDisab) {
     this.disab = pDisab;
-  }
-
-  /**
-   * <p>Getter for seller.</p>
-   * @return SeSeller
-   **/
-  public final SeSeller getSeller() {
-    return this.seller;
-  }
-
-  /**
-   * <p>Setter for seller.</p>
-   * @param pSeller reference
-   **/
-  public final void setSeller(final SeSeller pSeller) {
-    this.seller = pSeller;
   }
 
   /**
