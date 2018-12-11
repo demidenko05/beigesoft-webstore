@@ -211,6 +211,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       cart.setCurr(curr);
       cart.setItems(new ArrayList<CartLn>());
       cart.setTaxes(new ArrayList<CartTxLn>());
+      cart.setTotals(new ArrayList<CartTot>());
       cart.setItsId(buyer);
       getSrvOrm().insertEntity(pReqVars, cart);
     }
@@ -602,11 +603,12 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       }
     }
     BigDecimal totalTaxes = BigDecimal.ZERO;
+    List<CartItTxLn> itls = null;
     if (pTxRules != null && pCartLn.getTxCat() != null) {
       if (!pTxRules.getSalTaxIsInvoiceBase()) {
         BigDecimal bd100 = new BigDecimal("100.00");
         if (!pTxRules.getSalTaxUseAggregItBas()) {
-          List<CartItTxLn> itls = new ArrayList<CartItTxLn>();
+          itls = new ArrayList<CartItTxLn>();
           pReqVars.put("InvItemTaxCategoryLineitsOwnerdeepLevel", 1);
           List<InvItemTaxCategoryLine> itcls = getSrvOrm()
         .retrieveListWithConditions(pReqVars, InvItemTaxCategoryLine.class,
@@ -653,53 +655,6 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
             }
           }
           pCartLn.setTxDsc(sb.toString());
-          pReqVars.put("CartItTxLnitsOwnerdeepLevel", 1);
-          List<CartItTxLn> itlsr = getSrvOrm().retrieveListWithConditions(
-              pReqVars, CartItTxLn.class, "where CARTID="
-                + pCartLn.getItsOwner().getBuyer().getItsId());
-          pReqVars.remove("CartItTxLnitsOwnerdeepLevel");
-          for (CartItTxLn itlrt : itlsr) {
-            if (!itlrt.getDisab() && itlrt.getItsOwner().getItsId()
-              .equals(pCartLn.getItsId())) {
-              itlrt.setDisab(true);
-            }
-          }
-          for (CartItTxLn itl : itls) {
-            CartItTxLn itlr = null;
-            for (CartItTxLn itlrt : itlsr) {
-              if (itlrt.getDisab()) {
-                itlr = itlrt;
-                itlr.setDisab(false);
-                break;
-              }
-            }
-            if (itlr == null) {
-              itl.setItsOwner(pCartLn);
-              if (pCartLn.getSeller() != null) {
-                itl.setSellerId(pCartLn.getSeller().getItsId().getItsId());
-              }
-              itl.setCartId(pCartLn.getItsOwner().getBuyer().getItsId());
-              getSrvOrm().insertEntity(pReqVars, itl);
-              itl.setIsNew(false);
-            } else {
-              itlr.setTax(itl.getTax());
-              itlr.setTot(itl.getTot());
-              itlr.setItsOwner(pCartLn);
-              if (pCartLn.getSeller() == null) {
-                itlr.setSellerId(null);
-              } else {
-                itlr.setSellerId(pCartLn.getSeller().getItsId().getItsId());
-              }
-              itlr.setCartId(pCartLn.getItsOwner().getBuyer().getItsId());
-              getSrvOrm().updateEntity(pReqVars, itlr);
-            }
-          }
-          for (CartItTxLn itlrt : itlsr) {
-            if (itlrt.getDisab() && itlrt.getItsOwner().getItsId()
-              .equals(pCartLn.getItsId())) {
-              getSrvOrm().updateEntity(pReqVars, itlrt);
-            }
-          }
         } else {
           if (!pTs.getTxExcl()) {
         totalTaxes = pCartLn.getTot().subtract(pCartLn.getTot()
@@ -732,6 +687,56 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
             .getItTyp().equals(pCartLn.getItTyp())) {
           pCartLn.getItsOwner().getItems().set(i, pCartLn);
           break;
+        }
+      }
+    }
+    if (itls != null) {
+      pReqVars.put("CartItTxLnitsOwnerdeepLevel", 1);
+      List<CartItTxLn> itlsr = getSrvOrm().retrieveListWithConditions(
+          pReqVars, CartItTxLn.class, "where CARTID="
+            + pCartLn.getItsOwner().getBuyer().getItsId());
+      pReqVars.remove("CartItTxLnitsOwnerdeepLevel");
+      for (CartItTxLn itlrt : itlsr) {
+        if (!itlrt.getDisab() && itlrt.getItsOwner().getItsId()
+          .equals(pCartLn.getItsId())) {
+          itlrt.setDisab(true);
+        }
+      }
+      for (CartItTxLn itl : itls) {
+        CartItTxLn itlr = null;
+        for (CartItTxLn itlrt : itlsr) {
+          if (itlrt.getDisab()) {
+            itlr = itlrt;
+            itlr.setDisab(false);
+            break;
+          }
+        }
+        if (itlr == null) {
+          itl.setItsOwner(pCartLn);
+          if (pCartLn.getSeller() != null) {
+            itl.setSellerId(pCartLn.getSeller().getItsId().getItsId());
+          }
+          itl.setCartId(pCartLn.getItsOwner().getBuyer().getItsId());
+          itl.setItsOwner(pCartLn);
+          getSrvOrm().insertEntity(pReqVars, itl);
+          itl.setIsNew(false);
+        } else {
+          itlr.setTax(itl.getTax());
+          itlr.setTot(itl.getTot());
+          itlr.setItsOwner(pCartLn);
+          if (pCartLn.getSeller() == null) {
+            itlr.setSellerId(null);
+          } else {
+            itlr.setSellerId(pCartLn.getSeller().getItsId().getItsId());
+          }
+          itlr.setCartId(pCartLn.getItsOwner().getBuyer().getItsId());
+          getSrvOrm().updateEntity(pReqVars, itlr);
+        }
+      }
+      for (CartItTxLn itlrt : itlsr) {
+        if (itlrt.getDisab() && itlrt.getItsOwner().getItsId()
+          .equals(pCartLn.getItsId())) {
+          getSrvOrm().updateEntity(pReqVars, itlrt);
         }
       }
     }
