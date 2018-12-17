@@ -589,7 +589,12 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       for (CurrRate cr: currRates) {
         if (cr.getCurr().getItsId().equals(pCartLn.getItsOwner()
           .getCurr().getItsId())) {
-          pCartLn.setPrice(pCartLn.getPrice().multiply(cr.getRate())
+          BigDecimal exchRate = cr.getRate();
+          if (exchRate.compareTo(BigDecimal.ZERO) == -1) {
+            exchRate = BigDecimal.ONE.divide(exchRate.negate(), 15,
+              RoundingMode.HALF_UP);
+          }
+          pCartLn.setPrice(pCartLn.getPrice().multiply(exchRate)
             .setScale(pAs.getPricePrecision(), pAs.getRoundingMode()));
           break;
         }
