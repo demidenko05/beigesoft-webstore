@@ -87,11 +87,12 @@ public interface ISrvShoppingCart {
    * @param pTs TradingSettings
    * @param pTxRules NULL if not taxable
    * @param pRedoPr redo price
+   * @param pRedoTxc redo tax category
    * @throws Exception - an exception.
    **/
-  void makeCartLine(Map<String, Object> pReqVars,
-    CartLn pCartLn, AccSettings pAs, TradingSettings pTs,
-      TaxDestination pTxRules, boolean pRedoPr) throws Exception;
+  void makeCartLine(Map<String, Object> pReqVars, CartLn pCartLn,
+    AccSettings pAs, TradingSettings pTs, TaxDestination pTxRules,
+      boolean pRedoPr, boolean pRedoTxc) throws Exception;
 
 
   /**

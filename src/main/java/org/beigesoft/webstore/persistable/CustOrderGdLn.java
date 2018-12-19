@@ -12,7 +12,7 @@ package org.beigesoft.webstore.persistable;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import org.beigesoft.webstore.persistable.base.ACustomerOrderLine;
+import org.beigesoft.webstore.persistable.base.ACustOrderLn;
 import org.beigesoft.accounting.persistable.InvItem;
 
 /**
@@ -22,27 +22,27 @@ import org.beigesoft.accounting.persistable.InvItem;
  *
  * @author Yury Demidenko
  */
-public class CustOrderGdLn extends ACustomerOrderLine {
+public class CustOrderGdLn extends ACustOrderLn {
 
   /**
-   * <p>Goods, not null.</p>
+   * <p>Good, not null.</p>
    **/
-  private InvItem goods;
+  private InvItem good;
 
   //Simple getters and setters:
   /**
    * <p>Getter for goods.</p>
    * @return InvItem
    **/
-  public final InvItem getGoods() {
-    return this.goods;
+  public final InvItem getGood() {
+    return this.good;
   }
 
   /**
    * <p>Setter for goods.</p>
-   * @param pGoods reference
+   * @param pGood reference
    **/
-  public final void setGoods(final InvItem pGoods) {
-    this.goods = pGoods;
+  public final void setGood(final InvItem pGood) {
+    this.good = pGood;
   }
 }

@@ -46,6 +46,10 @@ import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.accounting.persistable.I18nInvItem;
 import org.beigesoft.accounting.persistable.ServiceToSale;
 import org.beigesoft.accounting.persistable.I18nServiceToSale;
+import org.beigesoft.accounting.persistable.DestTaxGoodsLn;
+import org.beigesoft.accounting.persistable.DestTaxServSelLn;
+import org.beigesoft.accounting.persistable.base.AItem;
+import org.beigesoft.accounting.persistable.base.ADestTaxItemLn;
 import org.beigesoft.webstore.model.EShopItemType;
 import org.beigesoft.webstore.persistable.base.AItemPrice;
 import org.beigesoft.webstore.persistable.CartItTxLn;
@@ -66,6 +70,9 @@ import org.beigesoft.webstore.persistable.CartLn;
 import org.beigesoft.webstore.persistable.CartTxLn;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.persistable.CurrRate;
+import org.beigesoft.webstore.persistable.IHasSeSeller;
+import org.beigesoft.webstore.persistable.DestTaxSeGoodsLn;
+import org.beigesoft.webstore.persistable.DestTaxSeServiceLn;
 
 /**
  * <p>Service that retrieve/create buyer's shopping cart, make cart totals
@@ -239,13 +246,13 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       final TaxDestination pTxRules) throws Exception {
     BigDecimal txTot = BigDecimal.ZERO;
     BigDecimal txTotSe = BigDecimal.ZERO;
+    String descr = null;
     if (pTxRules != null) {
+        descr = "Tax rules: aggregate/invoice basis/zip/RM = " + pTxRules
+    .getSalTaxUseAggregItBas() + "/" + pTxRules.getSalTaxIsInvoiceBase()
+  + "/" + pTxRules.getRegZip() + "/" + pTxRules.getSalTaxRoundMode();
       if (getLogger().getIsShowDebugMessagesFor(getClass())
         && getLogger().getDetailLevel() > 40000) {
-        getLogger().debug(pReqVars, SrvShoppingCart.class,
-      "Tax rules: aggregate/invoice basis/zip/RM = " + pTxRules
-    .getSalTaxUseAggregItBas() + "/" + pTxRules.getSalTaxIsInvoiceBase()
-  + "/" + pTxRules.getRegZip() + "/" + pTxRules.getSalTaxRoundMode());
         String txCat;
         if (pCartLn.getTxCat() != null) {
           txCat = pCartLn.getTxCat().getItsName();
@@ -467,6 +474,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     pCartLn.getItsOwner().setTotTx(txTot);
     pCartLn.getItsOwner().setSubt(tot.subtract(txTot));
     pCartLn.getItsOwner().setTot(tot);
+    pCartLn.getItsOwner().setDescr(descr);
     getSrvOrm().updateEntity(pReqVars, pCartLn.getItsOwner());
     CartTot cartTot = null;
     for (CartTot ct : pCartLn.getItsOwner().getTotals()) {
@@ -561,7 +569,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     TaxDestination txRules = revealTaxRules(pReqVars, pCart, pAs);
     for (CartLn cl : pCart.getItems()) {
       if (!cl.getDisab()) {
-        makeCartLine(pReqVars, cl, pAs, pTs, txRules, true);
+        makeCartLine(pReqVars, cl, pAs, pTs, txRules, true, false);
         makeCartTotals(pReqVars, pTs, cl, pAs, txRules);
       }
     }
@@ -575,16 +583,24 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    * @param pTs TradingSettings
    * @param pTxRules NULL if not taxable
    * @param pRedoPr redo price
+   * @param pRedoTxc redo tax category
    * @throws Exception - an exception.
    **/
   @Override
   public final void makeCartLine(final Map<String, Object> pReqVars,
     final CartLn pCartLn, final AccSettings pAs, final TradingSettings pTs,
-      final TaxDestination pTxRules, final boolean pRedoPr) throws Exception {
-    if (pRedoPr) {
-      AItemPrice<?, ?> itPrice = revealItemPrice(pReqVars, pTs,
+      final TaxDestination pTxRules, final boolean pRedoPr,
+        final boolean pRedoTxc) throws Exception {
+    AItemPrice<?, ?> itPrice = null;
+    if (pRedoPr || pRedoTxc) {
+      itPrice = revealItemPrice(pReqVars, pTs,
         pCartLn.getItsOwner(), pCartLn.getItTyp(), pCartLn.getItId());
       pCartLn.setPrice(itPrice.getItsPrice());
+      BigDecimal qosr = pCartLn.getQuant().remainder(itPrice.getUnStep());
+      if (qosr.compareTo(BigDecimal.ZERO) != 0) {
+        pCartLn.setQuant(pCartLn.getQuant().subtract(qosr));
+      }
+      @SuppressWarnings("unchecked")
       List<CurrRate> currRates = (List<CurrRate>) pReqVars.get("currRates");
       for (CurrRate cr: currRates) {
         if (cr.getCurr().getItsId().equals(pCartLn.getItsOwner()
@@ -594,6 +610,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
             exchRate = BigDecimal.ONE.divide(exchRate.negate(), 15,
               RoundingMode.HALF_UP);
           }
+          pCartLn.getItsOwner().setExcRt(exchRate);
           pCartLn.setPrice(pCartLn.getPrice().multiply(exchRate)
             .setScale(pAs.getPricePrecision(), pAs.getRoundingMode()));
           break;
@@ -605,6 +622,50 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         pCartLn.setSubt(amount);
       } else {
         pCartLn.setTot(amount);
+      }
+    }
+    if (pRedoTxc && pTxRules != null || pCartLn.getItTyp().equals(EShopItemType
+      .SESERVICE) || pCartLn.getItTyp().equals(EShopItemType.SEGOODS)) {
+      boolean isSeSeller = false;
+      if (pCartLn.getItTyp().equals(EShopItemType.SESERVICE)
+        || pCartLn.getItTyp().equals(EShopItemType.SEGOODS)) {
+        isSeSeller = true;
+      }
+      AItem<?, ?> item = (AItem<?, ?>) itPrice.getItem();
+      pCartLn.setTxCat(null);
+      if (pTxRules != null) {
+        pCartLn.setTxCat(item.getTaxCategory());
+        if (pTs.getTxDests() && pCartLn.getItsOwner().getBuyer()
+          .getRegCustomer().getTaxDestination() != null) {
+          Class<?> dstTxItLnCl;
+          if (pCartLn.getItTyp().equals(EShopItemType.GOODS)) {
+            dstTxItLnCl = DestTaxGoodsLn.class;
+          } else if (pCartLn.getItTyp().equals(EShopItemType.SERVICE)) {
+            dstTxItLnCl = DestTaxServSelLn.class;
+          } else if (pCartLn.getItTyp().equals(EShopItemType.SESERVICE)) {
+            dstTxItLnCl = DestTaxSeServiceLn.class;
+          } else {
+            dstTxItLnCl = DestTaxSeGoodsLn.class;
+          }
+          //override tax method:
+          pReqVars.put(dstTxItLnCl.getSimpleName() + "itsOwnerdeepLevel", 1);
+          @SuppressWarnings("unchecked")
+          List<ADestTaxItemLn<?>> dtls = (List<ADestTaxItemLn<?>>) getSrvOrm()
+            .retrieveListWithConditions(pReqVars, dstTxItLnCl,
+              "where ITSOWNER=" + pCartLn.getItId());
+          pReqVars.remove(dstTxItLnCl.getSimpleName() + "itsOwnerdeepLevel");
+          for (ADestTaxItemLn<?> dtl : dtls) {
+            if (dtl.getTaxDestination().getItsId().equals(pCartLn.getItsOwner()
+              .getBuyer().getRegCustomer().getTaxDestination().getItsId())) {
+              pCartLn.setTxCat(dtl.getTaxCategory()); //it may be null
+              break;
+            }
+          }
+        }
+      }
+      if (isSeSeller) {
+        IHasSeSeller<Long> seitem = (IHasSeSeller<Long>) item;
+        pCartLn.setSeller(seitem.getSeller());
       }
     }
     BigDecimal totalTaxes = BigDecimal.ZERO;

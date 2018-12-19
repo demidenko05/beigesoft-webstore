@@ -97,6 +97,8 @@
         For small shop or service maker payment usually made by cash.</li>
           <li>defaultPaymentMethod - EPaymentMethod, not null, ONLINE default. </li>
           <li>txExcl - Boolean, If taxes excluded in price, default FALSE (included).</li>
+          <li>sevPlac - Boolean, If any item can be in several place, default FALSE (only place).</li>
+          <li></li>
         </ul>
         The most settings reflects to menu (enabled features) and performance in some cases(e.g. if it used price for customer then additional query used).
       </p>

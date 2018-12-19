@@ -40,6 +40,11 @@ public class Cart extends AEditableHasVersion implements IHasId<OnlineBuyer> {
   private Currency curr;
 
   /**
+   * <p>Exchange rate for foreign currency, not null, default 1.</p>
+   **/
+  private BigDecimal excRt = BigDecimal.ONE;
+
+  /**
    * <p>Subtotal, not null.</p>
    **/
   private BigDecimal subt = BigDecimal.ZERO;
@@ -79,6 +84,11 @@ public class Cart extends AEditableHasVersion implements IHasId<OnlineBuyer> {
    * be revealed automatically.</p>
    **/
   private Boolean err = Boolean.FALSE;
+
+  /**
+   * <p>Description - tax method details.</p>
+   **/
+  private String descr;
 
   /**
    * <p>Usually it's simple getter that return model ID.</p>
@@ -129,6 +139,22 @@ public class Cart extends AEditableHasVersion implements IHasId<OnlineBuyer> {
    **/
   public final void setCurr(final Currency pCurr) {
     this.curr = pCurr;
+  }
+
+  /**
+   * <p>Getter for excRt.</p>
+   * @return BigDecimal
+   **/
+  public final BigDecimal getExcRt() {
+    return this.excRt;
+  }
+
+  /**
+   * <p>Setter for excRt.</p>
+   * @param pExcRt reference
+   **/
+  public final void setExcRt(final BigDecimal pExcRt) {
+    this.excRt = pExcRt;
   }
 
   /**
@@ -257,5 +283,21 @@ public class Cart extends AEditableHasVersion implements IHasId<OnlineBuyer> {
    **/
   public final void setErr(final Boolean pErr) {
     this.err = pErr;
+  }
+
+  /**
+   * <p>Getter for descr.</p>
+   * @return String
+   **/
+  public final String getDescr() {
+    return this.descr;
+  }
+
+  /**
+   * <p>Setter for descr.</p>
+   * @param pDescr reference
+   **/
+  public final void setDescr(final String pDescr) {
+    this.descr = pDescr;
   }
 }

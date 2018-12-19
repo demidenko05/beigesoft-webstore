@@ -12,7 +12,7 @@ package org.beigesoft.webstore.persistable;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import org.beigesoft.webstore.persistable.base.ACustomerOrderLine;
+import org.beigesoft.webstore.persistable.base.ACustOrderLn;
 import org.beigesoft.accounting.persistable.ServiceToSale;
 
 /**
@@ -22,7 +22,7 @@ import org.beigesoft.accounting.persistable.ServiceToSale;
  *
  * @author Yury Demidenko
  */
-public class CustOrderSrvLn extends ACustomerOrderLine {
+public class CustOrderSrvLn extends ACustOrderLn {
 
   /**
    * <p>Service, not null.</p>

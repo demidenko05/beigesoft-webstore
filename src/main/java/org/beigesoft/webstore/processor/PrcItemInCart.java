@@ -13,7 +13,6 @@ package org.beigesoft.webstore.processor;
  */
 
 import java.util.Map;
-import java.util.List;
 import java.math.BigDecimal;
 
 import org.beigesoft.exception.ExceptionWithCode;
@@ -23,20 +22,11 @@ import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.accounting.persistable.AccSettings;
 import org.beigesoft.accounting.persistable.UnitOfMeasure;
-import org.beigesoft.accounting.persistable.DestTaxGoodsLn;
-import org.beigesoft.accounting.persistable.DestTaxServSelLn;
 import org.beigesoft.accounting.persistable.TaxDestination;
-import org.beigesoft.accounting.persistable.base.AItem;
-import org.beigesoft.accounting.persistable.base.ADestTaxItemLn;
 import org.beigesoft.webstore.model.EShopItemType;
-import org.beigesoft.webstore.persistable.base.AItemPrice;
 import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.webstore.persistable.CartLn;
 import org.beigesoft.webstore.persistable.TradingSettings;
-import org.beigesoft.webstore.persistable.CurrRate;
-import org.beigesoft.webstore.persistable.DestTaxSeGoodsLn;
-import org.beigesoft.webstore.persistable.DestTaxSeServiceLn;
-import org.beigesoft.webstore.persistable.IHasSeSeller;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
@@ -89,13 +79,14 @@ public class PrcItemInCart<RS> implements IProcessor {
     AccSettings as = (AccSettings) pReqVars.get("accSet");
     TaxDestination txRules = this.srvShoppingCart
       .revealTaxRules(pReqVars, cart, as);
-    AItem<?, ?> item = null;
     EShopItemType itTyp = EShopItemType.class.
       getEnumConstants()[Integer.parseInt(itTypStr)];
+    boolean redoTxc = false;
     if (lnIdStr != null) { //change quantity
       Long lnId = Long.valueOf(lnIdStr);
       cartLn = findCartItemById(cart, lnId);
     } else { //add
+      redoTxc = true;
       String uomIdStr = pRequestData.getParameter("uomId");
       Long uomId = Long.valueOf(uomIdStr);
       for (CartLn ci : cart.getItems()) {
@@ -126,71 +117,6 @@ public class PrcItemInCart<RS> implements IProcessor {
       cartLn.setUom(uom);
       cartLn.setItId(itId);
       cartLn.setItTyp(itTyp);
-      //price, tax category and seller is set only for new line,
-      //they will be examined additionally during creating customer order:
-      AItemPrice<?, ?> itPrice = this.srvShoppingCart.revealItemPrice(pReqVars,
-        ts, cart, itTyp, itId);
-      cartLn.setItsName(itPrice.getItem().getItsName());
-      BigDecimal qosr = quant.remainder(itPrice.getUnStep());
-      if (qosr.compareTo(BigDecimal.ZERO) != 0) {
-        quant = quant.subtract(qosr);
-      }
-      cartLn.setPrice(itPrice.getItsPrice());
-      if (!as.getCurrency().getItsId().equals(cart.getCurr().getItsId())) {
-        List<CurrRate> currRates = (List<CurrRate>) pReqVars.get("currRates");
-        for (CurrRate cr: currRates) {
-          if (cr.getCurr().getItsId().equals(cart.getCurr().getItsId())) {
-            cartLn.setPrice(cartLn.getPrice().multiply(cr.getRate())
-              .setScale(as.getPricePrecision(), as.getRoundingMode()));
-            break;
-          }
-        }
-      }
-      if (txRules != null || cartLn.getItTyp().equals(EShopItemType.SESERVICE)
-        || cartLn.getItTyp().equals(EShopItemType.SEGOODS)) {
-        boolean isSeSeller;
-        if (cartLn.getItTyp().equals(EShopItemType.SESERVICE)
-          || cartLn.getItTyp().equals(EShopItemType.SEGOODS)) {
-          isSeSeller = true;
-        } else {
-          isSeSeller = false;
-        }
-        item = (AItem<?, ?>) itPrice.getItem();
-        cartLn.setTxCat(null);
-        if (txRules != null) {
-          cartLn.setTxCat(item.getTaxCategory());
-          if (ts.getTxDests() && cartLn.getItsOwner().getBuyer()
-            .getRegCustomer().getTaxDestination() != null) {
-            Class<?> dstTxItLnCl;
-            if (cartLn.getItTyp().equals(EShopItemType.GOODS)) {
-              dstTxItLnCl = DestTaxGoodsLn.class;
-            } else if (cartLn.getItTyp().equals(EShopItemType.SERVICE)) {
-              dstTxItLnCl = DestTaxServSelLn.class;
-            } else if (cartLn.getItTyp().equals(EShopItemType.SESERVICE)) {
-              dstTxItLnCl = DestTaxSeServiceLn.class;
-            } else {
-              dstTxItLnCl = DestTaxSeGoodsLn.class;
-            }
-            //override tax method:
-            pReqVars.put(dstTxItLnCl.getSimpleName() + "itsOwnerdeepLevel", 1);
-            List<ADestTaxItemLn<?>> dtls = (List<ADestTaxItemLn<?>>) getSrvOrm()
-              .retrieveListWithConditions(pReqVars, dstTxItLnCl,
-                "where ITSOWNER=" + cartLn.getItId());
-            pReqVars.remove(dstTxItLnCl.getSimpleName() + "itsOwnerdeepLevel");
-            for (ADestTaxItemLn<?> dtl : dtls) {
-              if (dtl.getTaxDestination().getItsId().equals(cartLn.getItsOwner()
-                .getBuyer().getRegCustomer().getTaxDestination().getItsId())) {
-                cartLn.setTxCat(dtl.getTaxCategory()); //it may be null
-                break;
-              }
-            }
-          }
-        }
-        if (isSeSeller) {
-          IHasSeSeller<Long> seitem = (IHasSeSeller<Long>) item;
-          cartLn.setSeller(seitem.getSeller());
-        }
-      }
     }
     if (!cartLn.getForc()) {
       cartLn.setQuant(quant);
@@ -204,7 +130,7 @@ public class PrcItemInCart<RS> implements IProcessor {
         cartLn.setTot(amount);
       }
       this.srvShoppingCart.makeCartLine(pReqVars, cartLn, as, ts,
-       txRules, false);
+       txRules, false, redoTxc);
       this.srvShoppingCart.makeCartTotals(pReqVars, ts, cartLn, as, txRules);
     }
     pRequestData.setAttribute("cart", cart);

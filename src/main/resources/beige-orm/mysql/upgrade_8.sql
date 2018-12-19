@@ -43,6 +43,7 @@ alter table ONLINEBUYER add FOREIGN KEY (TAXDEST) references TAXDESTINATION(ITSI
 alter table TRADINGSETTINGS add column TXEXCL tinyint not null default 0;
 alter table TRADINGSETTINGS add column OVERSEAS tinyint not null default 0;
 alter table TRADINGSETTINGS add column TXDESTS tinyint not null default 0;
+alter table TRADINGSETTINGS add column SEVPLAC tinyint not null default 0;
 alter table TRADINGSETTINGS add column ONLYDELIV tinyint default null;
 set FOREIGN_KEY_CHECKS=0;
 drop table CUSTOMERORDERTAXLINE;

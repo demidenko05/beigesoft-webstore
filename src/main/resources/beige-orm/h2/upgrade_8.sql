@@ -43,6 +43,7 @@ alter table ONLINEBUYER add constraint fkonlbtxdest FOREIGN KEY (TAXDEST) refere
 alter table TRADINGSETTINGS add column TXEXCL tinyint not null default 0;
 alter table TRADINGSETTINGS add column OVERSEAS tinyint not null default 0;
 alter table TRADINGSETTINGS add column TXDESTS tinyint not null default 0;
+alter table TRADINGSETTINGS add column SEVPLAC tinyint not null default 0;
 alter table TRADINGSETTINGS add column ONLYDELIV tinyint default null;
 drop table CUSTOMERORDERTAXLINE;
 drop table CUSTOMERORDERSESERVICE;

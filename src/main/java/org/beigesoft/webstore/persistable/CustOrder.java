@@ -13,9 +13,12 @@ package org.beigesoft.webstore.persistable;
  */
 
 import java.util.List;
+import java.math.BigDecimal;
 
 import org.beigesoft.persistable.AHasIdLongVersion;
+import org.beigesoft.accounting.persistable.Currency;
 import org.beigesoft.webstore.model.EPaymentMethod;
+import org.beigesoft.webstore.model.EOrdStat;
 
 /**
  * <p>
@@ -36,24 +39,64 @@ public class CustOrder extends AHasIdLongVersion {
   private OnlineBuyer buyer;
 
   /**
+   * <p>Place where goods is stored or service is performed, not null.</p>
+   **/
+  private PickUpPlace place;
+
+  /**
    * <p>Payment Method, not null, ANY default.</p>
    **/
-  private EPaymentMethod paymentMethod;
+  private EPaymentMethod payMeth;
+
+  /**
+   * <p>Order status, not null, NEW default.</p>
+   **/
+  private EOrdStat stat = EOrdStat.NEW;
+
+  /**
+   * <p>Currency, not null, that buyer opted.</p>
+   **/
+  private Currency curr;
+
+  /**
+   * <p>Exchange rate for foreign currency, not null, default 1.</p>
+   **/
+  private BigDecimal excRt = BigDecimal.ONE;
+
+  /**
+   * <p>Subtotal, not null.</p>
+   **/
+  private BigDecimal subt = BigDecimal.ZERO;
+
+  /**
+   * <p>Total, not null.</p>
+   **/
+  private BigDecimal tot = BigDecimal.ZERO;
+
+  /**
+   * <p>Total taxes, not null.</p>
+   **/
+  private BigDecimal totTx = BigDecimal.ZERO;
 
   /**
    * <p>Ordered goods.</p>
    **/
-  private List<CustOrderGdLn> goodsList;
+  private List<CustOrderGdLn> goods;
 
   /**
    * <p>Ordered services.</p>
    **/
-  private List<CustOrderSrvLn> serviceList;
+  private List<CustOrderSrvLn> servs;
 
   /**
    * <p>Order's taxes summary.</p>
    **/
-  private List<CustOrderTxLn> taxesList;
+  private List<CustOrderTxLn> taxes;
+
+  /**
+   * <p>Description.</p>
+   **/
+  private String descr;
 
   //Simple getters and setters:
   /**
@@ -73,67 +116,194 @@ public class CustOrder extends AHasIdLongVersion {
   }
 
   /**
-   * <p>Getter for paymentMethod.</p>
+   * <p>Getter for place.</p>
+   * @return PickUpPlace
+   **/
+  public final PickUpPlace getPlace() {
+    return this.place;
+  }
+
+  /**
+   * <p>Setter for place.</p>
+   * @param pPlace reference
+   **/
+  public final void setPlace(final PickUpPlace pPlace) {
+    this.place = pPlace;
+  }
+
+  /**
+   * <p>Getter for payMeth.</p>
    * @return EPaymentMethod
    **/
-  public final EPaymentMethod getPaymentMethod() {
-    return this.paymentMethod;
+  public final EPaymentMethod getPayMeth() {
+    return this.payMeth;
   }
 
   /**
-   * <p>Setter for paymentMethod.</p>
-   * @param pPaymentMethod reference
+   * <p>Setter for payMeth.</p>
+   * @param pPayMeth reference
    **/
-  public final void setPaymentMethod(final EPaymentMethod pPaymentMethod) {
-    this.paymentMethod = pPaymentMethod;
+  public final void setPayMeth(final EPaymentMethod pPayMeth) {
+    this.payMeth = pPayMeth;
   }
 
   /**
-   * <p>Getter for goodsList.</p>
+   * <p>Getter for stat.</p>
+   * @return EOrdStat
+   **/
+  public final EOrdStat getStat() {
+    return this.stat;
+  }
+
+  /**
+   * <p>Setter for stat.</p>
+   * @param pStat reference
+   **/
+  public final void setStat(final EOrdStat pStat) {
+    this.stat = pStat;
+  }
+
+  /**
+   * <p>Getter for curr.</p>
+   * @return Currency
+   **/
+  public final Currency getCurr() {
+    return this.curr;
+  }
+
+  /**
+   * <p>Setter for curr.</p>
+   * @param pCurr reference
+   **/
+  public final void setCurr(final Currency pCurr) {
+    this.curr = pCurr;
+  }
+
+  /**
+   * <p>Getter for excRt.</p>
+   * @return BigDecimal
+   **/
+  public final BigDecimal getExcRt() {
+    return this.excRt;
+  }
+
+  /**
+   * <p>Setter for excRt.</p>
+   * @param pExcRt reference
+   **/
+  public final void setExcRt(final BigDecimal pExcRt) {
+    this.excRt = pExcRt;
+  }
+
+  /**
+   * <p>Getter for subt.</p>
+   * @return BigDecimal
+   **/
+  public final BigDecimal getSubt() {
+    return this.subt;
+  }
+
+  /**
+   * <p>Setter for subt.</p>
+   * @param pSubt reference
+   **/
+  public final void setSubt(final BigDecimal pSubt) {
+    this.subt = pSubt;
+  }
+
+  /**
+   * <p>Getter for tot.</p>
+   * @return BigDecimal
+   **/
+  public final BigDecimal getTot() {
+    return this.tot;
+  }
+
+  /**
+   * <p>Setter for tot.</p>
+   * @param pTot reference
+   **/
+  public final void setTot(final BigDecimal pTot) {
+    this.tot = pTot;
+  }
+
+  /**
+   * <p>Getter for totTx.</p>
+   * @return BigDecimal
+   **/
+  public final BigDecimal getTotTx() {
+    return this.totTx;
+  }
+
+  /**
+   * <p>Setter for totTx.</p>
+   * @param pTotTx reference
+   **/
+  public final void setTotTx(final BigDecimal pTotTx) {
+    this.totTx = pTotTx;
+  }
+
+  /**
+   * <p>Getter for goods.</p>
    * @return List<CustOrderGdLn>
    **/
-  public final List<CustOrderGdLn> getGoodsList() {
-    return this.goodsList;
+  public final List<CustOrderGdLn> getGoods() {
+    return this.goods;
   }
 
   /**
-   * <p>Setter for goodsList.</p>
-   * @param pGoodsList reference
+   * <p>Setter for goods.</p>
+   * @param pGoods reference
    **/
-  public final void setGoodsList(final List<CustOrderGdLn> pGoodsList) {
-    this.goodsList = pGoodsList;
+  public final void setGoods(final List<CustOrderGdLn> pGoods) {
+    this.goods = pGoods;
   }
 
   /**
-   * <p>Getter for serviceList.</p>
+   * <p>Getter for servs.</p>
    * @return List<CustOrderSrvLn>
    **/
-  public final List<CustOrderSrvLn> getServiceList() {
-    return this.serviceList;
+  public final List<CustOrderSrvLn> getServs() {
+    return this.servs;
   }
 
   /**
-   * <p>Setter for serviceList.</p>
-   * @param pServiceList reference
+   * <p>Setter for servs.</p>
+   * @param pServs reference
    **/
-  public final void setServiceList(
-    final List<CustOrderSrvLn> pServiceList) {
-    this.serviceList = pServiceList;
+  public final void setServs(final List<CustOrderSrvLn> pServs) {
+    this.servs = pServs;
   }
 
   /**
-   * <p>Getter for taxesList.</p>
+   * <p>Getter for taxes.</p>
    * @return List<CustOrderTxLn>
    **/
-  public final List<CustOrderTxLn> getTaxesList() {
-    return this.taxesList;
+  public final List<CustOrderTxLn> getTaxes() {
+    return this.taxes;
   }
 
   /**
-   * <p>Setter for taxesList.</p>
-   * @param pTaxesList reference
+   * <p>Setter for taxes.</p>
+   * @param pTaxes reference
    **/
-  public final void setTaxesList(final List<CustOrderTxLn> pTaxesList) {
-    this.taxesList = pTaxesList;
+  public final void setTaxes(final List<CustOrderTxLn> pTaxes) {
+    this.taxes = pTaxes;
+  }
+
+  /**
+   * <p>Getter for descr.</p>
+   * @return String
+   **/
+  public final String getDescr() {
+    return this.descr;
+  }
+
+  /**
+   * <p>Setter for descr.</p>
+   * @param pDescr reference
+   **/
+  public final void setDescr(final String pDescr) {
+    this.descr = pDescr;
   }
 }
