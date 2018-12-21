@@ -22,6 +22,9 @@ alter table SALESRETURNLINE add column FOREIGNTOTAL decimal(19,4) default 0;
 alter table SALESRETURNGOODSTAXLINE add column FOREIGNTOTALTAXES decimal(19,4) default 0;
 alter table SALESRETURNTAXLINE add column FOREIGNTOTALTAXES decimal(19,4) default 0;
 alter table SALESRETURNTAXLINE add column TAXABLEINVBASFC decimal(19,4) default 0;
+alter table SERVICETOSALE add column TMME tinyint not null default 0;
+alter table SERVICETOSALE add column TMAD int default null;
+alter table SETTINGSADD add column DAOF int not null default 365;
 alter table GOODSINLISTLUV add column SESERVICESPECIFICLUV bigint default null;
 alter table GOODSINLISTLUV add column SESERVICEPRICELUV bigint default null;
 alter table GOODSINLISTLUV add column SESERVICEPLACELUV bigint default null;
@@ -43,7 +46,6 @@ alter table ONLINEBUYER add constraint fkonlbtxdest FOREIGN KEY (TAXDEST) refere
 alter table TRADINGSETTINGS add column TXEXCL tinyint not null default 0;
 alter table TRADINGSETTINGS add column OVERSEAS tinyint not null default 0;
 alter table TRADINGSETTINGS add column TXDESTS tinyint not null default 0;
-alter table TRADINGSETTINGS add column SEVPLAC tinyint not null default 0;
 alter table TRADINGSETTINGS add column ONLYDELIV tinyint default null;
 drop table CUSTOMERORDERTAXLINE;
 drop table CUSTOMERORDERSESERVICE;

@@ -67,6 +67,12 @@ public class SettingsAdd extends AHasIdLongVersion {
    **/
   private String specGrSeparator;
 
+  /**
+   * <p>Days for all services offered from now, 365 default,
+   * it restricts end in data picker.</p>
+   **/
+  private Integer daOf = 365;
+
   //Simple getters and setters:
   /**
    * <p>Getter for recordsPerTransaction.</p>
@@ -196,5 +202,21 @@ public class SettingsAdd extends AHasIdLongVersion {
    **/
   public final void setSpecGrSeparator(final String pSpecGrSeparator) {
     this.specGrSeparator = pSpecGrSeparator;
+  }
+
+  /**
+   * <p>Getter for daOf.</p>
+   * @return Integer
+   **/
+  public final Integer getDaOf() {
+    return this.daOf;
+  }
+
+  /**
+   * <p>Setter for daOf.</p>
+   * @param pDaOf reference
+   **/
+  public final void setDaOf(final Integer pDaOf) {
+    this.daOf = pDaOf;
   }
 }

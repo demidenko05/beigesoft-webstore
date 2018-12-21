@@ -13,6 +13,7 @@ package org.beigesoft.webstore.persistable;
  */
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 import org.beigesoft.model.IOwned;
 import org.beigesoft.persistable.AHasNameIdLongVersion;
@@ -117,6 +118,16 @@ public class CartLn extends AHasNameIdLongVersion
    * e.g. service "delivering by mail".</p>
    **/
   private Boolean forc = Boolean.FALSE;
+
+  /**
+   * <p>Nullable, booking from date1 (include) for service only.</p>
+   **/
+  private Date dt1;
+
+  /**
+   * <p>Nullable, booking till date2 (exclude) for service only.</p>
+   **/
+  private Date dt2;
 
   /**
    * <p>Getter for itsOwner.</p>
@@ -377,5 +388,37 @@ public class CartLn extends AHasNameIdLongVersion
    **/
   public final void setForc(final Boolean pForc) {
     this.forc = pForc;
+  }
+
+  /**
+   * <p>Getter for dt1.</p>
+   * @return Date
+   **/
+  public final Date getDt1() {
+    return this.dt1;
+  }
+
+  /**
+   * <p>Setter for dt1.</p>
+   * @param pDt1 reference
+   **/
+  public final void setDt1(final Date pDt1) {
+    this.dt1 = pDt1;
+  }
+
+  /**
+   * <p>Getter for dt2.</p>
+   * @return Date
+   **/
+  public final Date getDt2() {
+    return this.dt2;
+  }
+
+  /**
+   * <p>Setter for dt2.</p>
+   * @param pDt2 reference
+   **/
+  public final void setDt2(final Date pDt2) {
+    this.dt2 = pDt2;
   }
 }

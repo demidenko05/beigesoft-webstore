@@ -35,7 +35,7 @@
       </p>
       <p>Customer order are made from cart and maybe divided by pickup place, e.g. buying "bike helmet" in store A, and renting "bike" at park B (in both cases seller is same).
         More complex case - same item in different places, e.g. "food for party" that buyer (reseller) wants to pickup by itself from several places (e.g. pizzerias).
-        The simplest case is - "any item can be in only place", i.e. it will be only record "Item Availability". TradingSettings -> "sevPlac, item in several places NO default" to avoid unneeded striking performance.
+        The simplest case is - "any item can be in only place", i.e. it will be only record "Item Availability".
         Customer order does neither accounting nor warehouse entries, but it reduces "Good/Service Available in Place".
         Canceled order increases back "Item Available in Place".
         Order with web-store owner's items is used to create Sales Invoice.
@@ -200,6 +200,8 @@
           <li>avQuan - BigDecimal, not null, available quantity to constraint buyer/inform "N items left"</li>
           <li>txCat - tax category, NULL for non-taxable items</li>
           <li>forc - Boolean, forced (user can't change/delete it) item, e.g. service "delivering by mail".</li>
+          <li>dt1 - Date, nullable, booking from date1 (include) for service only.</li>
+          <li>dt2 - Date, nullable, booking till date2 (exclude) for service only.</li>
         </ul>
       </p>
       <p>Persistable model base ATaxLn:
@@ -287,10 +289,22 @@
           <li>good - InvItem, not null.</li>
         </ul>
       </p>
+      <p>Persistable model CuOrGdTxLn:
+        <ul>
+          <li>ATaxLn fields</li>
+          <li>itsOwner - CustOrderGdLn, not null.</li>
+        </ul>
+      </p>
       <p>Persistable model CustOrderSrvLn:
         <ul>
           <li>ACustOrderLn fields</li>
           <li>service - ServiceToSale, not null.</li>
+        </ul>
+      </p>
+      <p>Persistable model CuOrSrTxLn:
+        <ul>
+          <li>ATaxLn fields</li>
+          <li>itsOwner - CustOrderSrvLn, not null.</li>
         </ul>
       </p>
       <p>Persistable model CustOrderSe for S.E.Seller's goods/services:
@@ -371,6 +385,17 @@
         In case farther online checkout transaction by 3-d party that is not completed, and buyer
         did not change payment method then reservation (order) is reversed.
         In case of cash or bank transfer order saved with this information. 
+      </p>
+      <p>Checkout availability. It's retrieved list of places with available item.
+        Same service (e.g. appointment to DR.Jonson) can not be available at same time in two different places),
+        so list must has no size more than 1, and there is no need to make filter place for service.
+        For goods several available places means:
+        <ol>
+          <li>buyer chooses only place (in filter), so use this place</li>
+          <li>buyer will pickups by yourself from different places,
+          but it must chooses them (in filter) in this case.</li>
+        </ol>
+        i.e. without filter it will ends checkout and offering fixing cart to user.
       </p>
       
       <h4>Seller payments preferences/requirements</h4>

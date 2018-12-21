@@ -152,12 +152,6 @@ public class TradingSettings extends AHasIdLongVersion {
    **/
   private EDelivering onlyDeliv;
 
-  /**
-   * <p>Not null, If any item can be in several place,
-   * default FALSE (only place).</p>
-   **/
-  private Boolean sevPlac = Boolean.FALSE;
-
   //Simple getters and setters:
   /**
    * <p>Getter for isUseGoodsAdvising.</p>
@@ -519,21 +513,5 @@ public class TradingSettings extends AHasIdLongVersion {
    **/
   public final void setOnlyDeliv(final EDelivering pOnlyDeliv) {
     this.onlyDeliv = pOnlyDeliv;
-  }
-
-  /**
-   * <p>Getter for sevPlac.</p>
-   * @return Boolean
-   **/
-  public final Boolean getSevPlac() {
-    return this.sevPlac;
-  }
-
-  /**
-   * <p>Setter for sevPlac.</p>
-   * @param pSevPlac reference
-   **/
-  public final void setSevPlac(final Boolean pSevPlac) {
-    this.sevPlac = pSevPlac;
   }
 }

@@ -15,4 +15,6 @@
 <entry key="itsOwnerdefinition">bigint unsigned</entry>
 <entry key="sellerdefinition">bigint unsigned</entry>
 <entry key="sellerisNullable">true</entry>
+<entry key="dt1isNullable">true</entry>
+<entry key="dt2isNullable">true</entry>
 </properties>

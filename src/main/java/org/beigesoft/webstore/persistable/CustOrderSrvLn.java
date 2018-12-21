@@ -12,6 +12,8 @@ package org.beigesoft.webstore.persistable;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
+import java.util.List;
+
 import org.beigesoft.webstore.persistable.base.ACustOrderLn;
 import org.beigesoft.accounting.persistable.ServiceToSale;
 
@@ -29,6 +31,11 @@ public class CustOrderSrvLn extends ACustOrderLn {
    **/
   private ServiceToSale service;
 
+  /**
+   * <p>Item taxes for item basis non-aggregate method.</p>
+   **/
+  private List<CuOrSrTxLn> itTxs;
+
   //Simple getters and setters:
   /**
    * <p>Getter for service.</p>
@@ -44,5 +51,21 @@ public class CustOrderSrvLn extends ACustOrderLn {
    **/
   public final void setService(final ServiceToSale pService) {
     this.service = pService;
+  }
+
+  /**
+   * <p>Getter for itTxs.</p>
+   * @return List<CuOrSrTxLn>
+   **/
+  public final List<CuOrSrTxLn> getItTxs() {
+    return this.itTxs;
+  }
+
+  /**
+   * <p>Setter for itTxs.</p>
+   * @param pItTxs reference
+   **/
+  public final void setItTxs(final List<CuOrSrTxLn> pItTxs) {
+    this.itTxs = pItTxs;
   }
 }
