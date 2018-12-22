@@ -120,14 +120,20 @@ public class CartLn extends AHasNameIdLongVersion
   private Boolean forc = Boolean.FALSE;
 
   /**
-   * <p>Nullable, booking from date1 (include) for service only.</p>
+   * <p>Nullable, booking from date1 (include) for bookable service only.</p>
    **/
   private Date dt1;
 
   /**
-   * <p>Nullable, booking till date2 (exclude) for service only.</p>
+   * <p>Nullable, booking till date2 (exclude) for bookable service only.</p>
    **/
   private Date dt2;
+
+  /**
+   * <p>Description - item details, dynamically,
+   * e.g. " at Mon.19" for booking appointment.</p>
+   **/
+  private String descr;
 
   /**
    * <p>Getter for itsOwner.</p>
@@ -420,5 +426,21 @@ public class CartLn extends AHasNameIdLongVersion
    **/
   public final void setDt2(final Date pDt2) {
     this.dt2 = pDt2;
+  }
+
+  /**
+   * <p>Getter for descr.</p>
+   * @return String
+   **/
+  public final String getDescr() {
+    return this.descr;
+  }
+
+  /**
+   * <p>Setter for descr.</p>
+   * @param pDescr reference
+   **/
+  public final void setDescr(final String pDescr) {
+    this.descr = pDescr;
   }
 }

@@ -27,7 +27,8 @@
         </ul>
         this characteristic is service's hard coded property.
       </p>
-      <p>Booking any service means reservation from Date1 (include) till Date2(exclude). E.g. doctor appointment at "11/11/18, 09:00AM" that scheduled as hourly, i.e. till 10:00AM.
+      <p>Some of services do not require booking and they are always available, e.g. "shipping and handling", "pizza delivering".</p>
+      <p>Booking a service means reservation from Date1 (include) till Date2(exclude). E.g. doctor appointment at "11/11/18, 09:00AM" that scheduled as hourly, i.e. till 10:00AM.
         Taxi from "11/11/18, 09:00PM" from point A to B, estimated time is 2 hours, so till "11:00PM".
         In second case it must be generic algorithm to estimate time,
         it's implements as ordinal service that can be changed during runtime (replaced with new service class loaded by dedicated factory-class-loader).
@@ -49,6 +50,7 @@
           <li>HOURRANGE</li>
           <li>DAYRANGE</li>
           <li>MONTHRANGE</li>
+          <li>NONE - do not require booking</li>
         </ul>
         This used for making filter and booking service.
         Chosen time maybe restricted (e.g. by schedule), e.g. "13:00" and "13:15" are available to choose, but "13:10" - not.

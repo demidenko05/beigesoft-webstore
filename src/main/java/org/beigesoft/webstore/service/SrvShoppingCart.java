@@ -596,6 +596,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       itPrice = revealItemPrice(pReqVars, pTs,
         pCartLn.getItsOwner(), pCartLn.getItTyp(), pCartLn.getItId());
       pCartLn.setPrice(itPrice.getItsPrice());
+      pCartLn.setItsName(itPrice.getItem().getItsName());
       BigDecimal qosr = pCartLn.getQuant().remainder(itPrice.getUnStep());
       if (qosr.compareTo(BigDecimal.ZERO) != 0) {
         pCartLn.setQuant(pCartLn.getQuant().subtract(qosr));
@@ -626,12 +627,12 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     }
     if (pRedoTxc && pTxRules != null || pCartLn.getItTyp().equals(EShopItemType
       .SESERVICE) || pCartLn.getItTyp().equals(EShopItemType.SEGOODS)) {
+      AItem<?, ?> item = (AItem<?, ?>) itPrice.getItem();
       boolean isSeSeller = false;
       if (pCartLn.getItTyp().equals(EShopItemType.SESERVICE)
         || pCartLn.getItTyp().equals(EShopItemType.SEGOODS)) {
         isSeSeller = true;
       }
-      AItem<?, ?> item = (AItem<?, ?>) itPrice.getItem();
       pCartLn.setTxCat(null);
       if (pTxRules != null) {
         pCartLn.setTxCat(item.getTaxCategory());

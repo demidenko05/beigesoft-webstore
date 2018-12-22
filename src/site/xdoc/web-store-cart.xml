@@ -200,8 +200,8 @@
           <li>avQuan - BigDecimal, not null, available quantity to constraint buyer/inform "N items left"</li>
           <li>txCat - tax category, NULL for non-taxable items</li>
           <li>forc - Boolean, forced (user can't change/delete it) item, e.g. service "delivering by mail".</li>
-          <li>dt1 - Date, nullable, booking from date1 (include) for service only.</li>
-          <li>dt2 - Date, nullable, booking till date2 (exclude) for service only.</li>
+          <li>dt1 - Date, nullable, booking from date1 (include) for bookable service only.</li>
+          <li>dt2 - Date, nullable, booking till date2 (exclude) for bookable service only.</li>
         </ul>
       </p>
       <p>Persistable model base ATaxLn:

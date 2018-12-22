@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.math.BigDecimal;
 
 import org.beigesoft.model.IRequestData;
+import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.accounting.persistable.AccSettings;
@@ -32,12 +33,14 @@ import org.beigesoft.webstore.persistable.base.AItemPlace;
 import org.beigesoft.webstore.persistable.base.ACustOrderLn;
 import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.webstore.persistable.CartLn;
+import org.beigesoft.webstore.persistable.CartTxLn;
 import org.beigesoft.webstore.persistable.CartItTxLn;
 import org.beigesoft.webstore.persistable.GoodsPlace;
 import org.beigesoft.webstore.persistable.SeGoodsPlace;
 import org.beigesoft.webstore.persistable.ServicePlace;
 import org.beigesoft.webstore.persistable.SeServicePlace;
 import org.beigesoft.webstore.persistable.CustOrder;
+import org.beigesoft.webstore.persistable.CustOrderTxLn;
 import org.beigesoft.webstore.persistable.CustOrderSrvLn;
 import org.beigesoft.webstore.persistable.CustOrderGdLn;
 import org.beigesoft.webstore.persistable.CuOrGdTxLn;
@@ -67,6 +70,11 @@ public class PrcCheckOut<RS> implements IProcessor {
   private ISrvShoppingCart srvCart;
 
   /**
+   * <p>Processors factory.</p>
+   **/
+  private IFactoryAppBeansByName<IProcessor> procFac;
+
+  /**
    * <p>Process entity request.</p>
    * @param pReqVars request scoped vars
    * @param pRequestData Request Data
@@ -79,11 +87,21 @@ public class PrcCheckOut<RS> implements IProcessor {
     TradingSettings ts = (TradingSettings) pReqVars.get("tradSet");
     AccSettings as = (AccSettings) pReqVars.get("accSet");
     TaxDestination txRules = this.srvCart.revealTaxRules(pReqVars, cart, as);
+    //redo prices and taxes:
+    for (CartLn cl : cart.getItems()) {
+      if (!cl.getDisab()) {
+        this.srvCart.makeCartLine(pReqVars, cl, as, ts, txRules, true, true);
+        this.srvCart.makeCartTotals(pReqVars, ts, cl, as, txRules);
+      }
+    }
     boolean isCompl = true;
     List<CustOrder> orders = new ArrayList<CustOrder>();
     //List<SeCustOrder> seorders = new ArrayList<SeCustOrder>();
     String cond;
     for (CartLn cl : cart.getItems()) {
+      if (cl.getDisab()) {
+        continue;
+      }
       Class<?> itPlCl;
       String serBus = null;
       if (cl.getItTyp().equals(EShopItemType.GOODS)) {
@@ -97,7 +115,8 @@ public class PrcCheckOut<RS> implements IProcessor {
       } else {
         itPlCl = SeGoodsPlace.class;
       }
-      if (serBus == null) {
+      if (serBus == null || cl.getDt1() == null) {
+        // good or non-bookable service
         cond = "where ITSQUANTITY>0 and ITEM=" + cl.getItId();
       } else {
         cond = "left join (select distinct SERV from " + serBus + " where SERV="
@@ -114,8 +133,10 @@ public class PrcCheckOut<RS> implements IProcessor {
       pReqVars.remove(itPlCl.getSimpleName() + "itemdeepLevel");
       pReqVars.remove(itPlCl.getSimpleName() + "pickUpPlacedeepLevel");
       if (places.size() > 1) {
-        //for service it's ambiguous case - same service (e.g. appointment
+        //for bookable service it's ambiguous - same service (e.g. appointment
         //to DR.Jonson) is available at same time in two different places)
+        //for non-bookable service, e.g. for delivering place means
+        //starting-point, but it should be selected automatically TODO
         //for goods:
         //1. buyer chooses place (in filter), so use this place
         //2. buyer will pickups by yourself from different places,
@@ -150,20 +171,25 @@ public class PrcCheckOut<RS> implements IProcessor {
             makeOrdLn(pReqVars, orders, ip, cl, ts);
           }
         }
+      } else {
+        getSrvOrm().updateEntity(pReqVars, cl);
       }
     }
+    pRequestData.setAttribute("cart", cart);
+    if (txRules != null) {
+      pRequestData.setAttribute("txRules", txRules);
+    }
     if (!isCompl) {
-      pRequestData.setAttribute("cart", cart);
-      if (txRules != null) {
-        pRequestData.setAttribute("txRules", txRules);
-      }
+      String procNm = pRequestData.getParameter("nmPrcRed");
+      IProcessor proc = this.procFac.lazyGet(pReqVars, procNm);
+      proc.process(pReqVars, pRequestData);
     } else {
       for (CustOrder co : orders) {
         if (co.getIsNew()) {
           getSrvOrm().insertEntity(pReqVars, co);
-        } else {
-          getSrvOrm().updateEntity(pReqVars, co);
         }
+        BigDecimal tot = BigDecimal.ZERO;
+        BigDecimal subt = BigDecimal.ZERO;
         for (CustOrderGdLn gl : co.getGoods()) {
           gl.setItsOwner(co);
           if (gl.getIsNew()) {
@@ -183,8 +209,12 @@ public class PrcCheckOut<RS> implements IProcessor {
           }
           if (!gl.getIsNew() && gl.getGood() == null) {
             getSrvOrm().deleteEntity(pReqVars, gl);
-          } else if (!gl.getIsNew()) {
-            getSrvOrm().updateEntity(pReqVars, gl);
+          } else {
+            tot = tot.add(gl.getTot());
+            subt = subt.add(gl.getSubt());
+            if (!gl.getIsNew()) {
+              getSrvOrm().updateEntity(pReqVars, gl);
+            }
           }
         }
         for (CustOrderSrvLn sl : co.getServs()) {
@@ -206,10 +236,56 @@ public class PrcCheckOut<RS> implements IProcessor {
           }
           if (!sl.getIsNew() && sl.getService() == null) {
             getSrvOrm().deleteEntity(pReqVars, sl);
-          } else if (!sl.getIsNew()) {
-            getSrvOrm().updateEntity(pReqVars, sl);
+          } else {
+            tot = tot.add(sl.getTot());
+            subt = subt.add(sl.getSubt());
+            if (!sl.getIsNew()) {
+              getSrvOrm().updateEntity(pReqVars, sl);
+            }
           }
         }
+        BigDecimal totTx = BigDecimal.ZERO;
+        for (CartTxLn ctl : cart.getTaxes()) {
+          if (ctl.getDisab()) {
+            continue;
+          }
+          CustOrderTxLn otl = null;
+          if (!co.getIsNew()) {
+            for (CustOrderTxLn otlt : co.getTaxes()) {
+              if (otlt.getTax() == null) {
+                otl = otlt;
+                break;
+              }
+            }
+          }
+          if (otl == null) {
+            otl = new CustOrderTxLn();
+            otl.setIsNew(true);
+            co.getTaxes().add(otl);
+          }
+          otl.setItsOwner(co);
+          Tax tx = new Tax();
+          tx.setItsId(ctl.getTax().getItsId());
+          otl.setTax(tx);
+          otl.setTot(ctl.getTot());
+          totTx = totTx.add(otl.getTot());
+          if (otl.getIsNew()) {
+            getSrvOrm().insertEntity(pReqVars, otl);
+          } else {
+            getSrvOrm().updateEntity(pReqVars, otl);
+          }
+        }
+        if (!co.getIsNew()) {
+          for (CustOrderTxLn otlt : co.getTaxes()) {
+            if (otlt.getTax() == null) {
+              getSrvOrm().deleteEntity(pReqVars, otlt);
+            }
+          }
+        }
+        co.setTot(tot);
+        co.setSubt(subt);
+        co.setTotTx(totTx);
+        getSrvOrm().updateEntity(pReqVars, co);
       }
       pRequestData.setAttribute("orders", orders);
     }
@@ -244,11 +320,15 @@ public class PrcCheckOut<RS> implements IProcessor {
       if (cuOr != null) {
         pOrders.add(cuOr);
         //redo all lines:
-        //itsOwner will be set farther only for used lines!!!
+        //itsOwner and other data will be set farther only for used lines!!!
         //unused lines will be removed from DB
         Set<String> ndFl = new HashSet<String>();
         ndFl.add("itsId");
         ndFl.add("itsVersion");
+       pReqVars.put(CustOrderTxLn.class.getSimpleName() + "neededFields", ndFl);
+        cuOr.setTaxes(getSrvOrm().retrieveListWithConditions(pReqVars,
+          CustOrderTxLn.class, "where ITSOWNER=" + cuOr.getItsId()));
+        pReqVars.remove(CustOrderTxLn.class.getSimpleName() + "neededFields");
        pReqVars.put(CustOrderGdLn.class.getSimpleName() + "neededFields", ndFl);
         cuOr.setGoods(getSrvOrm().retrieveListWithConditions(pReqVars,
           CustOrderGdLn.class, "where ITSOWNER=" + cuOr.getItsId()));
@@ -274,11 +354,18 @@ public class PrcCheckOut<RS> implements IProcessor {
     if (cuOr == null) {
       cuOr = new CustOrder();
       cuOr.setIsNew(true);
+      cuOr.setTaxes(new ArrayList<CustOrderTxLn>());
+      cuOr.setGoods(new ArrayList<CustOrderGdLn>());
+      cuOr.setServs(new ArrayList<CustOrderSrvLn>());
+      pOrders.add(cuOr);
     }
     if (isNdOrInit) {
       cuOr.setPayMeth(pTs.getDefaultPaymentMethod());
       cuOr.setBuyer(pCartLn.getItsOwner().getBuyer());
       cuOr.setPlace(pItPl.getPickUpPlace());
+      cuOr.setCurr(pCartLn.getItsOwner().getCurr());
+      cuOr.setExcRt(pCartLn.getItsOwner().getExcRt());
+      cuOr.setDescr(pCartLn.getItsOwner().getDescr());
     }
     pReqVars.put(CartItTxLn.class.getSimpleName() + "itsOwnerdeepLevel", 1);
     pReqVars.put(CartItTxLn.class.getSimpleName() + "taxdeepLevel", 1);
@@ -306,7 +393,7 @@ public class PrcCheckOut<RS> implements IProcessor {
       gd.setItsId(pCartLn.getItId());
       ogl.setGood(gd);
       if (citls.size() > 0) {
-        if (cuOr.getIsNew()) {
+        if (ogl.getIsNew()) {
           ogl.setItTxs(new ArrayList<CuOrGdTxLn>());
         }
         for (CartItTxLn citl : citls) {
@@ -351,7 +438,7 @@ public class PrcCheckOut<RS> implements IProcessor {
       sr.setItsId(pCartLn.getItId());
       osl.setService(sr);
       if (citls.size() > 0) {
-        if (cuOr.getIsNew()) {
+        if (osl.getIsNew()) {
           osl.setItTxs(new ArrayList<CuOrSrTxLn>());
         }
         for (CartItTxLn citl : citls) {
@@ -378,6 +465,8 @@ public class PrcCheckOut<RS> implements IProcessor {
       }
       ol = osl;
     }
+    ol.setDescr(pCartLn.getDescr());
+    ol.setUom(pCartLn.getUom());
     ol.setPrice(pCartLn.getPrice());
     ol.setQuant(pCartLn.getQuant());
     ol.setSubt(pCartLn.getSubt());
@@ -419,5 +508,22 @@ public class PrcCheckOut<RS> implements IProcessor {
 
   public final void setSrvCart(final ISrvShoppingCart pSrvCart) {
     this.srvCart = pSrvCart;
+  }
+
+  /**
+   * <p>Getter for procFac.</p>
+   * @return IFactoryAppBeansByName<IProcessor>
+   **/
+  public final IFactoryAppBeansByName<IProcessor> getProcFac() {
+    return this.procFac;
+  }
+
+  /**
+   * <p>Setter for procFac.</p>
+   * @param pProcFac reference
+   **/
+  public final void setProcFac(
+    final IFactoryAppBeansByName<IProcessor> pProcFac) {
+    this.procFac = pProcFac;
   }
 }

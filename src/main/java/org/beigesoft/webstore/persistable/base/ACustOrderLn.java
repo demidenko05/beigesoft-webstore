@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import org.beigesoft.model.IOwned;
 import org.beigesoft.persistable.AHasIdLongVersion;
 import org.beigesoft.accounting.persistable.InvItemTaxCategory;
+import org.beigesoft.accounting.persistable.UnitOfMeasure;
 import org.beigesoft.webstore.persistable.CustOrder;
 
 /**
@@ -34,6 +35,11 @@ public class ACustOrderLn extends AHasIdLongVersion
    * <p>Customer Order.</p>
    **/
   private CustOrder itsOwner;
+
+  /**
+   * <p>Unit of measure, not null.</p>
+   **/
+  private UnitOfMeasure uom;
 
   /**
    * <p>Price, not null, grater than zero.</p>
@@ -70,6 +76,12 @@ public class ACustOrderLn extends AHasIdLongVersion
    * e.g. "tax1 10%=12, tax2 5%=6".</p>
    **/
   private String txDsc;
+
+  /**
+   * <p>Description - item details, dynamically,
+   * e.g. " at Mon.19" for booking appointment.</p>
+   **/
+  private String descr;
 
   /**
    * <p>Getter for itsOwner.</p>
@@ -200,5 +212,37 @@ public class ACustOrderLn extends AHasIdLongVersion
    **/
   public final void setTxDsc(final String pTxDsc) {
     this.txDsc = pTxDsc;
+  }
+
+  /**
+   * <p>Getter for uom.</p>
+   * @return UnitOfMeasure
+   **/
+  public final UnitOfMeasure getUom() {
+    return this.uom;
+  }
+
+  /**
+   * <p>Setter for uom.</p>
+   * @param pUom reference
+   **/
+  public final void setUom(final UnitOfMeasure pUom) {
+    this.uom = pUom;
+  }
+
+  /**
+   * <p>Getter for descr.</p>
+   * @return String
+   **/
+  public final String getDescr() {
+    return this.descr;
+  }
+
+  /**
+   * <p>Setter for descr.</p>
+   * @param pDescr reference
+   **/
+  public final void setDescr(final String pDescr) {
+    this.descr = pDescr;
   }
 }

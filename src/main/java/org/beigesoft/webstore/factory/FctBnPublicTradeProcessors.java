@@ -27,6 +27,7 @@ import org.beigesoft.webstore.processor.PrcWebstorePage;
 import org.beigesoft.webstore.processor.PrcItemPage;
 import org.beigesoft.webstore.processor.PrcDelItemFromCart;
 import org.beigesoft.webstore.processor.PrcItemInCart;
+import org.beigesoft.webstore.processor.PrcCheckOut;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
@@ -99,6 +100,9 @@ public class FctBnPublicTradeProcessors<RS>
           } else if (pBeanName.equals(PrcItemInCart
             .class.getSimpleName())) {
             proc = lazyGetPrcItemInCart(pAddParam);
+          } else if (pBeanName.equals(PrcCheckOut
+            .class.getSimpleName())) {
+            proc = lazyGetPrcCheckOut(pAddParam);
           } else if (pBeanName.equals(PrcItemPage
             .class.getSimpleName())) {
             proc = lazyGetPrcItemPage(pAddParam);
@@ -145,6 +149,31 @@ public class FctBnPublicTradeProcessors<RS>
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvShoppingCart(getSrvShoppingCart());
       proc.setProcessorsFactory(this);
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnPublicTradeProcessors.class,
+        beanName + " has been created.");
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Lazy get PrcCheckOut.</p>
+   * @param pAddParam additional param
+   * @return requested PrcCheckOut
+   * @throws Exception - an exception
+   */
+  protected final PrcCheckOut<RS> lazyGetPrcCheckOut(
+    final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrcCheckOut.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrcCheckOut<RS> proc = (PrcCheckOut<RS>)
+      this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrcCheckOut<RS>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setSrvCart(getSrvShoppingCart());
+      proc.setProcFac(this);
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);
       this.logger.info(null, FctBnPublicTradeProcessors.class,
