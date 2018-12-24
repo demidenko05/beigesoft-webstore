@@ -197,7 +197,7 @@ public class FctBnPublicTradeProcessors<RS>
     if (proc == null) {
       proc = new PrcItemInCart<RS>();
       proc.setSrvOrm(getSrvOrm());
-      proc.setSrvShoppingCart(getSrvShoppingCart());
+      proc.setSrvCart(getSrvShoppingCart());
       proc.setProcessorsFactory(this);
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);
@@ -222,7 +222,7 @@ public class FctBnPublicTradeProcessors<RS>
     if (proc == null) {
       proc = new PrcItemPage<RS>();
       proc.setSrvOrm(getSrvOrm());
-      proc.setSrvShoppingCart(getSrvShoppingCart());
+      proc.setSrvCart(getSrvShoppingCart());
       proc.setLogger(getLogger());
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);

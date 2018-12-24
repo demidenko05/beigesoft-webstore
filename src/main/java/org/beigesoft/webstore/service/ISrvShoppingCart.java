@@ -18,6 +18,7 @@ import org.beigesoft.model.IRequestData;
 import org.beigesoft.accounting.persistable.AccSettings;
 import org.beigesoft.accounting.persistable.TaxDestination;
 import org.beigesoft.webstore.model.EShopItemType;
+import org.beigesoft.webstore.persistable.OnlineBuyer;
 import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.webstore.persistable.CartLn;
 import org.beigesoft.webstore.persistable.TradingSettings;
@@ -99,13 +100,13 @@ public interface ISrvShoppingCart {
    * <p>Reveals item's price descriptor.</p>
    * @param pReqVars request scoped vars
    * @param pTs TradingSettings
-   * @param pCart cart
+   * @param pBuyer Buyer
    * @param pItType Item Type
    * @param pItId Item ID
    * @return item's price descriptor or exception
    * @throws Exception - an exception
    **/
   AItemPrice<?, ?> revealItemPrice(Map<String, Object> pReqVars,
-    TradingSettings pTs, Cart pCart, EShopItemType pItType,
+    TradingSettings pTs, OnlineBuyer pBuyer, EShopItemType pItType,
         Long pItId) throws Exception;
 }

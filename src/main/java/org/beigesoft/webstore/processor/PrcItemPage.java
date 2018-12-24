@@ -25,6 +25,8 @@ import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.accounting.persistable.ServiceToSale;
+import org.beigesoft.accounting.persistable.AccSettings;
+import org.beigesoft.accounting.persistable.TaxDestination;
 import org.beigesoft.webstore.model.EShopItemType;
 import org.beigesoft.webstore.model.ESpecificsItemType;
 import org.beigesoft.webstore.persistable.base.AItemSpecifics;
@@ -33,14 +35,12 @@ import org.beigesoft.webstore.persistable.GoodsSpecifics;
 import org.beigesoft.webstore.persistable.ServiceSpecifics;
 import org.beigesoft.webstore.persistable.SeGoods;
 import org.beigesoft.webstore.persistable.SeGoodsPlace;
-import org.beigesoft.webstore.persistable.SeGoodsPrice;
 import org.beigesoft.webstore.persistable.SeGoodsSpecifics;
 import org.beigesoft.webstore.persistable.ServicePlace;
-import org.beigesoft.webstore.persistable.ServicePrice;
-import org.beigesoft.webstore.persistable.PriceGoods;
 import org.beigesoft.webstore.persistable.GoodsPlace;
 import org.beigesoft.webstore.persistable.CartLn;
 import org.beigesoft.webstore.persistable.Cart;
+import org.beigesoft.webstore.persistable.OnlineBuyer;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
@@ -67,7 +67,7 @@ public class PrcItemPage<RS> implements IProcessor {
   /**
    * <p>Shopping Cart service.</p>
    **/
-  private ISrvShoppingCart srvShoppingCart;
+  private ISrvShoppingCart srvCart;
 
   /**
    * <p>I18N query goods specifics for goods.</p>
@@ -93,13 +93,49 @@ public class PrcItemPage<RS> implements IProcessor {
   @Override
   public final void process(final Map<String, Object> pReqVars,
     final IRequestData pRequestData) throws Exception {
+    TradingSettings ts = (TradingSettings) pReqVars.get("tradSet");
+    AccSettings as = (AccSettings) pReqVars.get("accSet");
     String itemTypeStr = pRequestData.getParameter("itemType");
+    Long itemId = Long.valueOf(pRequestData.getParameter("itemId"));
+    if (pRequestData.getAttribute("cart") == null) {
+      Cart cart = this.srvCart
+        .getShoppingCart(pReqVars, pRequestData, false);
+      if (cart != null) {
+        pRequestData.setAttribute("cart", cart);
+        if (pRequestData.getAttribute("txRules") == null) {
+          TaxDestination txRules = this.srvCart
+            .revealTaxRules(pReqVars, cart, as);
+          pRequestData.setAttribute("txRules", txRules);
+        }
+      }
+    }
+    OnlineBuyer buyr = null;
+    if (pRequestData.getAttribute("cart") != null) {
+      Cart cart = (Cart) pRequestData.getAttribute("cart");
+      buyr = cart.getBuyer();
+      if (cart.getItems() != null) {
+        for (CartLn ci : cart.getItems()) {
+          if (!ci.getDisab() && ci.getItId().equals(itemId)
+            && ci.getItTyp().toString().equals(itemTypeStr)) {
+            pRequestData.setAttribute("cartItem", ci);
+            break;
+          }
+        }
+      }
+    } else {
+      String buyerIdStr = pRequestData.getCookieValue("cBuyerId");
+      if (buyerIdStr != null && buyerIdStr.length() > 0) {
+        Long buyerId = Long.valueOf(buyerIdStr);
+        buyr = getSrvOrm()
+          .retrieveEntityById(pReqVars, OnlineBuyer.class, buyerId);
+      }
+    }
     if (EShopItemType.GOODS.toString().equals(itemTypeStr)) {
-      processGoods(pReqVars, pRequestData);
+      processGoods(pReqVars, pRequestData, ts, buyr, itemId);
     } else if (EShopItemType.SERVICE.toString().equals(itemTypeStr)) {
-      processService(pReqVars, pRequestData);
+      processService(pReqVars, pRequestData, ts, buyr, itemId);
     } else if (EShopItemType.SEGOODS.toString().equals(itemTypeStr)) {
-      processSeGoods(pReqVars, pRequestData);
+      processSeGoods(pReqVars, pRequestData, ts, buyr, itemId);
     } else {
       throw new Exception(
         "Detail page not yet implemented for item type: " + itemTypeStr);
@@ -113,15 +149,17 @@ public class PrcItemPage<RS> implements IProcessor {
    * <p>Process a goods from our warehouse.</p>
    * @param pReqVars additional param
    * @param pRequestData Request Data
+   * @param pTs TradingSettings
+   * @param pBuyer Buyer
+   * @param pItemId Item ID
    * @throws Exception - an exception
    **/
   public final void processGoods(final Map<String, Object> pReqVars,
-    final IRequestData pRequestData) throws Exception {
-    Long itemId = Long.valueOf(pRequestData.getParameter("itemId"));
+    final IRequestData pRequestData, final TradingSettings pTs,
+      final OnlineBuyer pBuyer, final Long pItemId) throws Exception {
     List<GoodsSpecifics> itemSpecLst;
     List<GoodsPlace> itemPlaceLst;
-    PriceGoods itemPrice;
-    itemSpecLst = retrieveItemSpecificsList(pReqVars, itemId,
+    itemSpecLst = retrieveItemSpecificsList(pReqVars, pTs, pItemId,
       GoodsSpecifics.class, InvItem.class.getSimpleName());
     //extract main image if exist:
     int miIdx = -1;
@@ -136,30 +174,10 @@ public class PrcItemPage<RS> implements IProcessor {
     if (miIdx != -1) {
       itemSpecLst.remove(miIdx);
     }
-    itemPrice = retrieveItemPrice(pReqVars, itemId, PriceGoods.class);
+    AItemPrice<?, ?> itemPrice = getSrvCart().revealItemPrice(pReqVars, pTs,
+      pBuyer, EShopItemType.GOODS, pItemId);
     itemPlaceLst = getSrvOrm().retrieveListWithConditions(pReqVars,
-        GoodsPlace.class, " where ITEM=" + itemId);
-    if (pRequestData.getAttribute("shoppingCart") == null) {
-      Cart shoppingCart = this.srvShoppingCart
-        .getShoppingCart(pReqVars, pRequestData, false);
-      if (shoppingCart != null) {
-        pRequestData.setAttribute("shoppingCart", shoppingCart);
-      }
-    }
-    if (pRequestData.getAttribute("shoppingCart") != null) {
-      Cart shoppingCart = (Cart) pRequestData
-        .getAttribute("shoppingCart");
-      if (shoppingCart.getItems() != null) {
-        String itemTypeStr = pRequestData.getParameter("itemType");
-        for (CartLn ci : shoppingCart.getItems()) {
-          if (!ci.getDisab() && ci.getItId().equals(itemId)
-            && ci.getItTyp().toString().equals(itemTypeStr)) {
-            pRequestData.setAttribute("cartItem", ci);
-            break;
-          }
-        }
-      }
-    }
+        GoodsPlace.class, " where ITEM=" + pItemId);
     pRequestData.setAttribute("itemSpecLst", itemSpecLst);
     pRequestData.setAttribute("itemPlaceLst", itemPlaceLst);
     pRequestData.setAttribute("itemPrice", itemPrice);
@@ -169,15 +187,17 @@ public class PrcItemPage<RS> implements IProcessor {
    * <p>Process a seGood.</p>
    * @param pReqVars additional param
    * @param pRequestData Request Data
+   * @param pTs TradingSettings
+   * @param pBuyer Buyer
+   * @param pItemId Item ID
    * @throws Exception - an exception
    **/
   public final void processSeGoods(final Map<String, Object> pReqVars,
-    final IRequestData pRequestData) throws Exception {
-    Long itemId = Long.valueOf(pRequestData.getParameter("itemId"));
+    final IRequestData pRequestData, final TradingSettings pTs,
+      final OnlineBuyer pBuyer, final Long pItemId) throws Exception {
     List<SeGoodsSpecifics> itemSpecLst;
     List<SeGoodsPlace> itemPlaceLst;
-    SeGoodsPrice itemPrice;
-    itemSpecLst = retrieveItemSpecificsList(pReqVars, itemId,
+    itemSpecLst = retrieveItemSpecificsList(pReqVars, pTs, pItemId,
       SeGoodsSpecifics.class, SeGoods.class.getSimpleName());
     //extract main image if exist:
     int miIdx = -1;
@@ -192,30 +212,10 @@ public class PrcItemPage<RS> implements IProcessor {
     if (miIdx != -1) {
       itemSpecLst.remove(miIdx);
     }
-    itemPrice = retrieveItemPrice(pReqVars, itemId, SeGoodsPrice.class);
+    AItemPrice<?, ?> itemPrice = getSrvCart().revealItemPrice(pReqVars, pTs,
+        pBuyer, EShopItemType.SEGOODS, pItemId);
     itemPlaceLst = getSrvOrm().retrieveListWithConditions(pReqVars,
-        SeGoodsPlace.class, " where ITEM=" + itemId);
-    if (pRequestData.getAttribute("shoppingCart") == null) {
-      Cart shoppingCart = this.srvShoppingCart
-        .getShoppingCart(pReqVars, pRequestData, false);
-      if (shoppingCart != null) {
-        pRequestData.setAttribute("shoppingCart", shoppingCart);
-      }
-    }
-    if (pRequestData.getAttribute("shoppingCart") != null) {
-      Cart shoppingCart = (Cart) pRequestData
-        .getAttribute("shoppingCart");
-      if (shoppingCart.getItems() != null) {
-        String itemTypeStr = pRequestData.getParameter("itemType");
-        for (CartLn ci : shoppingCart.getItems()) {
-          if (!ci.getDisab() && ci.getItId().equals(itemId)
-            && ci.getItTyp().toString().equals(itemTypeStr)) {
-            pRequestData.setAttribute("cartItem", ci);
-            break;
-          }
-        }
-      }
-    }
+        SeGoodsPlace.class, " where ITEM=" + pItemId);
     pRequestData.setAttribute("itemSpecLst", itemSpecLst);
     pRequestData.setAttribute("itemPlaceLst", itemPlaceLst);
     pRequestData.setAttribute("itemPrice", itemPrice);
@@ -225,15 +225,17 @@ public class PrcItemPage<RS> implements IProcessor {
    * <p>Process a service.</p>
    * @param pReqVars additional param
    * @param pRequestData Request Data
+   * @param pTs TradingSettings
+   * @param pBuyer Buyer
+   * @param pItemId Item ID
    * @throws Exception - an exception
    **/
   public final void processService(final Map<String, Object> pReqVars,
-    final IRequestData pRequestData) throws Exception {
-    Long itemId = Long.valueOf(pRequestData.getParameter("itemId"));
+    final IRequestData pRequestData, final TradingSettings pTs,
+      final OnlineBuyer pBuyer, final Long pItemId) throws Exception {
     List<ServiceSpecifics> itemSpecLst;
     List<ServicePlace> itemPlaceLst;
-    ServicePrice itemPrice;
-    itemSpecLst = retrieveItemSpecificsList(pReqVars, itemId,
+    itemSpecLst = retrieveItemSpecificsList(pReqVars, pTs, pItemId,
       ServiceSpecifics.class, ServiceToSale.class.getSimpleName());
     //extract main image if exist:
     int miIdx = -1;
@@ -248,75 +250,20 @@ public class PrcItemPage<RS> implements IProcessor {
     if (miIdx != -1) {
       itemSpecLst.remove(miIdx);
     }
-    itemPrice = retrieveItemPrice(pReqVars, itemId, ServicePrice.class);
+    AItemPrice<?, ?> itemPrice = getSrvCart().revealItemPrice(pReqVars, pTs,
+      pBuyer, EShopItemType.SERVICE, pItemId);
     itemPlaceLst = getSrvOrm().retrieveListWithConditions(pReqVars,
-        ServicePlace.class, " where ITEM=" + itemId);
-    if (pRequestData.getAttribute("shoppingCart") == null) {
-      Cart shoppingCart = this.srvShoppingCart
-        .getShoppingCart(pReqVars, pRequestData, false);
-      if (shoppingCart != null) {
-        pRequestData.setAttribute("shoppingCart", shoppingCart);
-      }
-    }
-    if (pRequestData.getAttribute("shoppingCart") != null) {
-      Cart shoppingCart = (Cart) pRequestData
-        .getAttribute("shoppingCart");
-      if (shoppingCart.getItems() != null) {
-        String itemTypeStr = pRequestData.getParameter("itemType");
-        for (CartLn ci : shoppingCart.getItems()) {
-          if (!ci.getDisab() && ci.getItId().equals(itemId)
-            && ci.getItTyp().toString().equals(itemTypeStr)) {
-            pRequestData.setAttribute("cartItem", ci);
-            break;
-          }
-        }
-      }
-    }
+        ServicePlace.class, " where ITEM=" + pItemId);
     pRequestData.setAttribute("itemSpecLst", itemSpecLst);
     pRequestData.setAttribute("itemPlaceLst", itemPlaceLst);
     pRequestData.setAttribute("itemPrice", itemPrice);
   }
 
   /**
-   * <p>Retrieve item price.</p>
-   * @param <T> item price type
-   * @param pReqVars additional param
-   * @param pItemId item ID
-   * @param pItemPriceCl item price class
-   * @return item price, null in case of price mistakes
-   * @throws Exception - an exception
-   **/
-  public final <T extends AItemPrice<?, ?>> T retrieveItemPrice(
-    final Map<String, Object> pReqVars, final Long pItemId,
-      final Class<T> pItemPriceCl) throws Exception {
-    TradingSettings ts = (TradingSettings) pReqVars.get("tradSet");
-    if (ts.getIsUsePriceForCustomer()) {
-      throw new Exception(
-        "Method price depends of customer's category not yet implemented!");
-    }
-    // same price for all customers - only record exist:
-    List<T> lst = getSrvOrm().retrieveListWithConditions(pReqVars,
-          pItemPriceCl, " where ITEM=" + pItemId);
-    if (lst.size() == 1) {
-      return lst.get(0);
-    } else {
-      String itemName;
-      if (lst.size() > 0) {
-        itemName = lst.get(0).getItem().getItsName();
-      } else {
-        itemName = "?";
-      }
-      this.logger.error(null, PrcItemPage.class,
-        "It must be only price for goods/service: ID/Name/prices count/class"
-          + pItemId + "/" + itemName + "/" + lst.size() + "/" + pItemPriceCl);
-      return null;
-    }
-  }
-
-  /**
    * <p>Retrieve Item Specifics list for item.</p>
    * @param <T> item type
    * @param pReqVars additional param
+   * @param pTs TradingSettings
    * @param pItemId item ID
    * @param pItemSpecCl item specifics class
    * @param pItemSn item simple name
@@ -325,7 +272,7 @@ public class PrcItemPage<RS> implements IProcessor {
    **/
   public final <T extends AItemSpecifics<?, ?>> List<T>
     retrieveItemSpecificsList(final Map<String, Object> pReqVars,
-      final Long pItemId, final Class<T> pItemSpecCl,
+      final TradingSettings pTs, final Long pItemId, final Class<T> pItemSpecCl,
         final String pItemSn) throws Exception {
     //HTML templates full
     pReqVars.put(pItemSpecCl.getSimpleName() + "specificsdeepLevel", 3);
@@ -352,10 +299,8 @@ public class PrcItemPage<RS> implements IProcessor {
     htmTmFldNms.add("itsId");
     htmTmFldNms.add("htmlTemplate");
     pReqVars.put("HtmlTemplateneededFields", htmTmFldNms);
-    TradingSettings tradSet = (TradingSettings)
-      pReqVars.get("tradSet");
     List<T> result = null;
-    if (tradSet.getUseAdvancedI18n()) {
+    if (pTs.getUseAdvancedI18n()) {
       String lang = (String) pReqVars.get("lang");
       String langDef = (String) pReqVars.get("langDef");
       if (!lang.equals(langDef)) {
@@ -510,19 +455,19 @@ public class PrcItemPage<RS> implements IProcessor {
   }
 
   /**
-   * <p>Getter for srvShoppingCart.</p>
+   * <p>Getter for srvCart.</p>
    * @return ISrvShoppingCart
    **/
-  public final ISrvShoppingCart getSrvShoppingCart() {
-    return this.srvShoppingCart;
+  public final ISrvShoppingCart getSrvCart() {
+    return this.srvCart;
   }
 
   /**
-   * <p>Setter for srvShoppingCart.</p>
-   * @param pSrvShoppingCart reference
+   * <p>Setter for srvCart.</p>
+   * @param pSrvCart reference
    **/
-  public final void setSrvShoppingCart(
-    final ISrvShoppingCart pSrvShoppingCart) {
-    this.srvShoppingCart = pSrvShoppingCart;
+  public final void setSrvCart(
+    final ISrvShoppingCart pSrvCart) {
+    this.srvCart = pSrvCart;
   }
 }

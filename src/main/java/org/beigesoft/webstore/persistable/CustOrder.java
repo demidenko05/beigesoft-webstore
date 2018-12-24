@@ -13,6 +13,7 @@ package org.beigesoft.webstore.persistable;
  */
 
 import java.util.List;
+import java.util.Date;
 import java.math.BigDecimal;
 
 import org.beigesoft.persistable.AHasIdLongVersion;
@@ -32,6 +33,11 @@ import org.beigesoft.webstore.model.EOrdStat;
  * @author Yury Demidenko
  */
 public class CustOrder extends AHasIdLongVersion {
+
+  /**
+   * <p>Its date, not null.</p>
+   **/
+  private Date dat;
 
   /**
    * <p>Buyer, not null.</p>
@@ -99,6 +105,22 @@ public class CustOrder extends AHasIdLongVersion {
   private String descr;
 
   //Simple getters and setters:
+  /**
+   * <p>Getter for dat.</p>
+   * @return Date
+   **/
+  public final Date getDat() {
+    return this.dat;
+  }
+
+  /**
+   * <p>Setter for dat.</p>
+   * @param pDat reference
+   **/
+  public final void setDat(final Date pDat) {
+    this.dat = pDat;
+  }
+
   /**
    * <p>Getter for buyer.</p>
    * @return OnlineBuyer

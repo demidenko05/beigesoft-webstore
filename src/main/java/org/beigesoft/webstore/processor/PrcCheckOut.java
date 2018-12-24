@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.ArrayList;
+import java.util.Date;
 import java.math.BigDecimal;
 
 import org.beigesoft.model.IRequestData;
@@ -266,6 +267,7 @@ public class PrcCheckOut<RS> implements IProcessor {
           otl.setItsOwner(co);
           Tax tx = new Tax();
           tx.setItsId(ctl.getTax().getItsId());
+          tx.setItsName(ctl.getTax().getItsName());
           otl.setTax(tx);
           otl.setTot(ctl.getTot());
           totTx = totTx.add(otl.getTot());
@@ -288,6 +290,16 @@ public class PrcCheckOut<RS> implements IProcessor {
         getSrvOrm().updateEntity(pReqVars, co);
       }
       pRequestData.setAttribute("orders", orders);
+      String listFltAp = pRequestData.getParameter("listFltAp");
+      if (listFltAp != null) {
+        listFltAp = new String(listFltAp.getBytes("ISO-8859-1"), "UTF-8");
+        pRequestData.setAttribute("listFltAp", listFltAp);
+      }
+      String itFltAp = pRequestData.getParameter("itFltAp");
+      if (itFltAp != null) {
+        itFltAp = new String(itFltAp.getBytes("ISO-8859-1"), "UTF-8");
+        pRequestData.setAttribute("itFltAp", itFltAp);
+      }
     }
   }
 
@@ -360,6 +372,7 @@ public class PrcCheckOut<RS> implements IProcessor {
       pOrders.add(cuOr);
     }
     if (isNdOrInit) {
+      cuOr.setDat(new Date());
       cuOr.setPayMeth(pTs.getDefaultPaymentMethod());
       cuOr.setBuyer(pCartLn.getItsOwner().getBuyer());
       cuOr.setPlace(pItPl.getPickUpPlace());
@@ -391,6 +404,7 @@ public class PrcCheckOut<RS> implements IProcessor {
       }
       InvItem gd = new InvItem();
       gd.setItsId(pCartLn.getItId());
+      gd.setItsName(pCartLn.getItsName());
       ogl.setGood(gd);
       if (citls.size() > 0) {
         if (ogl.getIsNew()) {
@@ -414,6 +428,7 @@ public class PrcCheckOut<RS> implements IProcessor {
           oitl.setItsOwner(ogl);
           Tax tx = new Tax();
           tx.setItsId(citl.getTax().getItsId());
+          tx.setItsName(citl.getTax().getItsName());
           oitl.setTax(tx);
           oitl.setTot(citl.getTot());
         }
@@ -436,6 +451,7 @@ public class PrcCheckOut<RS> implements IProcessor {
       }
       ServiceToSale sr = new ServiceToSale();
       sr.setItsId(pCartLn.getItId());
+      sr.setItsName(pCartLn.getItsName());
       osl.setService(sr);
       if (citls.size() > 0) {
         if (osl.getIsNew()) {
@@ -459,6 +475,7 @@ public class PrcCheckOut<RS> implements IProcessor {
           oitl.setItsOwner(osl);
           Tax tx = new Tax();
           tx.setItsId(citl.getTax().getItsId());
+          tx.setItsName(citl.getTax().getItsName());
           oitl.setTax(tx);
           oitl.setTot(citl.getTot());
         }

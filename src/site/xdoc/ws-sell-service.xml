@@ -214,7 +214,7 @@ where SERVBUSY.SERV is null
 <pre style="white-space: pre-wrap;">
 select ITEM, ITSQUANTITY, DISTANCE, PICKUPPLACE from SERVICEPLACE
 left join (
- select distinct SERV from SERBUS where SERV=:SEID and FRTM&gt=:DT1 and TITM&lt;:DT2
+ select distinct SERV from SERBUS where SERV=:SEID and FRTM&gt;=:DT1 and TITM&lt;:DT2
 ) as SERBUS on SERBUS.SERV=SERVICEPLACE.ITEM where ITEM=:SEID and ITSQUANTITY>0 and SERBUS.SERV is null;
 </pre>
       </p>

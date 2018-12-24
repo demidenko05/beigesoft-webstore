@@ -46,7 +46,7 @@ public class PrcItemInCart<RS> implements IProcessor {
   /**
    * <p>Shopping Cart service.</p>
    **/
-  private ISrvShoppingCart srvShoppingCart;
+  private ISrvShoppingCart srvCart;
 
   /**
    * <p>Processors factory.</p>
@@ -63,7 +63,7 @@ public class PrcItemInCart<RS> implements IProcessor {
   public final void process(final Map<String, Object> pReqVars,
     final IRequestData pRequestData) throws Exception {
     TradingSettings ts = (TradingSettings) pReqVars.get("tradSet");
-    Cart cart = this.srvShoppingCart
+    Cart cart = this.srvCart
       .getShoppingCart(pReqVars, pRequestData, true);
     CartLn cartLn = null;
     String lnIdStr = pRequestData.getParameter("lnId");
@@ -77,7 +77,7 @@ public class PrcItemInCart<RS> implements IProcessor {
     String itTypStr = pRequestData.getParameter("itTyp");
     Long itId = Long.valueOf(itIdStr);
     AccSettings as = (AccSettings) pReqVars.get("accSet");
-    TaxDestination txRules = this.srvShoppingCart
+    TaxDestination txRules = this.srvCart
       .revealTaxRules(pReqVars, cart, as);
     EShopItemType itTyp = EShopItemType.class.
       getEnumConstants()[Integer.parseInt(itTypStr)];
@@ -129,9 +129,9 @@ public class PrcItemInCart<RS> implements IProcessor {
       } else {
         cartLn.setTot(amount);
       }
-      this.srvShoppingCart.makeCartLine(pReqVars, cartLn, as, ts,
+      this.srvCart.makeCartLine(pReqVars, cartLn, as, ts,
        txRules, false, redoTxc);
-      this.srvShoppingCart.makeCartTotals(pReqVars, ts, cartLn, as, txRules);
+      this.srvCart.makeCartTotals(pReqVars, ts, cartLn, as, txRules);
     }
     pRequestData.setAttribute("cart", cart);
     if (txRules != null) {
@@ -201,21 +201,21 @@ public class PrcItemInCart<RS> implements IProcessor {
   }
 
   /**
-   * <p>Getter for srvShoppingCart.</p>
+   * <p>Getter for srvCart.</p>
    * @return ISrvShoppingCart
    **/
-  public final ISrvShoppingCart getSrvShoppingCart() {
-    return this.srvShoppingCart;
+  public final ISrvShoppingCart getSrvCart() {
+    return this.srvCart;
   }
 
   /**
-   * <p>Setter for srvShoppingCart.</p>
-   * @param pSrvShoppingCart reference
+   * <p>Setter for srvCart.</p>
+   * @param pSrvCart reference
    **/
 
-  public final void setSrvShoppingCart(
-    final ISrvShoppingCart pSrvShoppingCart) {
-    this.srvShoppingCart = pSrvShoppingCart;
+  public final void setSrvCart(
+    final ISrvShoppingCart pSrvCart) {
+    this.srvCart = pSrvCart;
   }
 
   /**

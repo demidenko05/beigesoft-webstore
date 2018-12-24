@@ -593,8 +593,8 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         final boolean pRedoTxc) throws Exception {
     AItemPrice<?, ?> itPrice = null;
     if (pRedoPr || pRedoTxc) {
-      itPrice = revealItemPrice(pReqVars, pTs,
-        pCartLn.getItsOwner(), pCartLn.getItTyp(), pCartLn.getItId());
+      itPrice = revealItemPrice(pReqVars, pTs, pCartLn.getItsOwner().getBuyer(),
+        pCartLn.getItTyp(), pCartLn.getItId());
       pCartLn.setPrice(itPrice.getItsPrice());
       pCartLn.setItsName(itPrice.getItem().getItsName());
       BigDecimal qosr = pCartLn.getQuant().remainder(itPrice.getUnStep());
@@ -813,7 +813,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    * <p>Reveals item's price descriptor.</p>
    * @param pReqVars request scoped vars
    * @param pTs TradingSettings
-   * @param pCart cart
+   * @param pBuyer Buyer
    * @param pItType Item Type
    * @param pItId Item ID
    * @return item's price descriptor or exception
@@ -822,7 +822,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
   @Override
   public final AItemPrice<?, ?> revealItemPrice(
     final Map<String, Object> pReqVars, final TradingSettings pTs,
-      final Cart pCart, final EShopItemType pItType,
+      final OnlineBuyer pBuyer, final EShopItemType pItType,
         final Long pItId) throws Exception {
     String lang = (String) pReqVars.get("lang");
     AItemPrice<?, ?> itPrice = null;
@@ -874,11 +874,11 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     pReqVars.put(InvItemTaxCategory.class.getSimpleName() + "neededFields",
       ndFlTc);
     pReqVars.put(itemPriceCl.getSimpleName() + "itemdeepLevel", 3);
-    if (pTs.getIsUsePriceForCustomer()) {
+    if (pTs.getIsUsePriceForCustomer() && pBuyer != null) {
       //try to reveal price dedicated to customer:
       List<BuyerPriceCategory> buyerPrCats = getSrvOrm()
         .retrieveListWithConditions(pReqVars, BuyerPriceCategory.class,
-          "where BUYER=" + pCart.getBuyer().getItsId());
+          "where BUYER=" + pBuyer.getItsId());
       if (buyerPrCats.size() > 0) {
         if (pItType.equals(EShopItemType.GOODS)
           || pItType.equals(EShopItemType.SERVICE)) {
