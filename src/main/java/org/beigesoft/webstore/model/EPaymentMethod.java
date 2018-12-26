@@ -70,5 +70,15 @@ public enum EPaymentMethod {
    * e.g 50% and the rest with any methods - online, bank transfer,
    * cash or check.</p>
    **/
-  PARTIAL_ONLINE;
+  PARTIAL_ONLINE,
+
+  /**
+   * <p>9, exactly PayPal.</p>
+   **/
+  PAYPAL,
+
+  /**
+   * <p>10, PayPal or credit card (or any other method) through PayPal.</p>
+   **/
+  PAYPAL_ANY;
 }

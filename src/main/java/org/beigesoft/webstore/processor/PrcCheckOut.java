@@ -30,6 +30,7 @@ import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.accounting.persistable.ServiceToSale;
 import org.beigesoft.accounting.persistable.Tax;
 import org.beigesoft.webstore.model.EShopItemType;
+import org.beigesoft.webstore.model.EOrdStat;
 import org.beigesoft.webstore.persistable.base.AItemPlace;
 import org.beigesoft.webstore.persistable.base.ACustOrderLn;
 import org.beigesoft.webstore.persistable.Cart;
@@ -96,7 +97,42 @@ public class PrcCheckOut<RS> implements IProcessor {
       }
     }
     boolean isCompl = true;
-    List<CustOrder> orders = new ArrayList<CustOrder>();
+    Set<String> ndFl = new HashSet<String>();
+    ndFl.add("itsId");
+    ndFl.add("itsVersion");
+    pReqVars.put(CustOrder.class.getSimpleName() + "neededFields", ndFl);
+    List<CustOrder> orders = getSrvOrm().retrieveListWithConditions(pReqVars,
+      CustOrder.class, "where STAT=0 and BUYER=" + cart.getBuyer().getItsId());
+    pReqVars.remove(CustOrder.class.getSimpleName() + "neededFields");
+    for (CustOrder cuOr : orders) {
+      //redo all lines:
+      //itsOwner and other data will be set farther only for used lines!!!
+      //unused lines will be removed from DB
+     pReqVars.put(CustOrderTxLn.class.getSimpleName() + "neededFields", ndFl);
+      cuOr.setTaxes(getSrvOrm().retrieveListWithConditions(pReqVars,
+        CustOrderTxLn.class, "where ITSOWNER=" + cuOr.getItsId()));
+      pReqVars.remove(CustOrderTxLn.class.getSimpleName() + "neededFields");
+     pReqVars.put(CustOrderGdLn.class.getSimpleName() + "neededFields", ndFl);
+      cuOr.setGoods(getSrvOrm().retrieveListWithConditions(pReqVars,
+        CustOrderGdLn.class, "where ITSOWNER=" + cuOr.getItsId()));
+      pReqVars.remove(CustOrderGdLn.class.getSimpleName() + "neededFields");
+    pReqVars.put(CustOrderSrvLn.class.getSimpleName() + "neededFields", ndFl);
+      cuOr.setServs(getSrvOrm().retrieveListWithConditions(pReqVars,
+        CustOrderSrvLn.class, "where ITSOWNER=" + cuOr.getItsId()));
+      pReqVars.remove(CustOrderSrvLn.class.getSimpleName() + "neededFields");
+      for (CustOrderGdLn gl : cuOr.getGoods()) {
+        pReqVars.put(CuOrGdTxLn.class.getSimpleName() + "neededFields", ndFl);
+        gl.setItTxs(getSrvOrm().retrieveListWithConditions(pReqVars,
+          CuOrGdTxLn.class, "where ITSOWNER=" + gl.getItsId()));
+        pReqVars.remove(CuOrGdTxLn.class.getSimpleName() + "neededFields");
+      }
+      for (CustOrderSrvLn sl : cuOr.getServs()) {
+        pReqVars.put(CuOrSrTxLn.class.getSimpleName() + "neededFields", ndFl);
+        sl.setItTxs(getSrvOrm().retrieveListWithConditions(pReqVars,
+          CuOrSrTxLn.class, "where ITSOWNER=" + sl.getItsId()));
+        pReqVars.remove(CuOrSrTxLn.class.getSimpleName() + "neededFields");
+      }
+    }
     //List<SeCustOrder> seorders = new ArrayList<SeCustOrder>();
     String cond;
     for (CartLn cl : cart.getItems()) {
@@ -186,6 +222,26 @@ public class PrcCheckOut<RS> implements IProcessor {
       proc.process(pReqVars, pRequestData);
     } else {
       for (CustOrder co : orders) {
+        if (co.getPlace() == null) { //stored unused order
+          //remove it and all its lines:
+          for (CustOrderGdLn gl : co.getGoods()) {
+            for (CuOrGdTxLn gtl : gl.getItTxs()) {
+              getSrvOrm().deleteEntity(pReqVars, gtl);
+            }
+            getSrvOrm().deleteEntity(pReqVars, gl);
+          }
+          for (CustOrderSrvLn sl : co.getServs()) {
+            for (CuOrSrTxLn stl : sl.getItTxs()) {
+              getSrvOrm().deleteEntity(pReqVars, stl);
+            }
+            getSrvOrm().deleteEntity(pReqVars, sl);
+          }
+          for (CustOrderTxLn otlt : co.getTaxes()) {
+            getSrvOrm().deleteEntity(pReqVars, otlt);
+          }
+          getSrvOrm().deleteEntity(pReqVars, co);
+          continue;
+        }
         if (co.getIsNew()) {
           getSrvOrm().insertEntity(pReqVars, co);
         }
@@ -318,48 +374,19 @@ public class PrcCheckOut<RS> implements IProcessor {
     CustOrder cuOr = null;
     boolean isNdOrInit = true;
     for (CustOrder co : pOrders) {
-      if (co.getPlace().getItsId().equals(pItPl.getPickUpPlace()
-        .getItsId())) {
+      if (co.getPlace() != null && co.getPlace().getItsId()
+        .equals(pItPl.getPickUpPlace().getItsId())) {
         cuOr = co;
         isNdOrInit = false;
         break;
       }
     }
     if (cuOr == null) {
-      cuOr = getSrvOrm().retrieveEntityWithConditions(pReqVars,
-    CustOrder.class, "where STAT=0 and BUYER=" + pCartLn.getItsOwner()
-  .getBuyer().getItsId() + " and PLACE=" + pItPl.getPickUpPlace().getItsId());
-      if (cuOr != null) {
-        pOrders.add(cuOr);
-        //redo all lines:
-        //itsOwner and other data will be set farther only for used lines!!!
-        //unused lines will be removed from DB
-        Set<String> ndFl = new HashSet<String>();
-        ndFl.add("itsId");
-        ndFl.add("itsVersion");
-       pReqVars.put(CustOrderTxLn.class.getSimpleName() + "neededFields", ndFl);
-        cuOr.setTaxes(getSrvOrm().retrieveListWithConditions(pReqVars,
-          CustOrderTxLn.class, "where ITSOWNER=" + cuOr.getItsId()));
-        pReqVars.remove(CustOrderTxLn.class.getSimpleName() + "neededFields");
-       pReqVars.put(CustOrderGdLn.class.getSimpleName() + "neededFields", ndFl);
-        cuOr.setGoods(getSrvOrm().retrieveListWithConditions(pReqVars,
-          CustOrderGdLn.class, "where ITSOWNER=" + cuOr.getItsId()));
-        pReqVars.remove(CustOrderGdLn.class.getSimpleName() + "neededFields");
-      pReqVars.put(CustOrderSrvLn.class.getSimpleName() + "neededFields", ndFl);
-        cuOr.setServs(getSrvOrm().retrieveListWithConditions(pReqVars,
-          CustOrderSrvLn.class, "where ITSOWNER=" + cuOr.getItsId()));
-        pReqVars.remove(CustOrderSrvLn.class.getSimpleName() + "neededFields");
-        for (CustOrderGdLn gl : cuOr.getGoods()) {
-          pReqVars.put(CuOrGdTxLn.class.getSimpleName() + "neededFields", ndFl);
-          gl.setItTxs(getSrvOrm().retrieveListWithConditions(pReqVars,
-            CuOrGdTxLn.class, "where ITSOWNER=" + gl.getItsId()));
-          pReqVars.remove(CuOrGdTxLn.class.getSimpleName() + "neededFields");
-        }
-        for (CustOrderSrvLn sl : cuOr.getServs()) {
-          pReqVars.put(CuOrSrTxLn.class.getSimpleName() + "neededFields", ndFl);
-          sl.setItTxs(getSrvOrm().retrieveListWithConditions(pReqVars,
-            CuOrSrTxLn.class, "where ITSOWNER=" + sl.getItsId()));
-          pReqVars.remove(CuOrSrTxLn.class.getSimpleName() + "neededFields");
+      for (CustOrder co : pOrders) {
+        if (co.getPlace() == null) {
+          cuOr = co;
+          isNdOrInit = true;
+          break;
         }
       }
     }
@@ -373,6 +400,7 @@ public class PrcCheckOut<RS> implements IProcessor {
     }
     if (isNdOrInit) {
       cuOr.setDat(new Date());
+      cuOr.setStat(EOrdStat.NEW);
       cuOr.setPayMeth(pTs.getDefaultPaymentMethod());
       cuOr.setBuyer(pCartLn.getItsOwner().getBuyer());
       cuOr.setPlace(pItPl.getPickUpPlace());
@@ -453,6 +481,8 @@ public class PrcCheckOut<RS> implements IProcessor {
       sr.setItsId(pCartLn.getItId());
       sr.setItsName(pCartLn.getItsName());
       osl.setService(sr);
+      osl.setDt1(pCartLn.getDt1());
+      osl.setDt2(pCartLn.getDt2());
       if (citls.size() > 0) {
         if (osl.getIsNew()) {
           osl.setItTxs(new ArrayList<CuOrSrTxLn>());

@@ -13,6 +13,7 @@ package org.beigesoft.webstore.persistable;
  */
 
 import java.util.List;
+import java.util.Date;
 
 import org.beigesoft.webstore.persistable.base.ACustOrderLn;
 import org.beigesoft.accounting.persistable.ServiceToSale;
@@ -35,6 +36,16 @@ public class CustOrderSrvLn extends ACustOrderLn {
    * <p>Item taxes for item basis non-aggregate method.</p>
    **/
   private List<CuOrSrTxLn> itTxs;
+
+  /**
+   * <p>Nullable, booking from date1 (include) for bookable service only.</p>
+   **/
+  private Date dt1;
+
+  /**
+   * <p>Nullable, booking till date2 (exclude) for bookable service only.</p>
+   **/
+  private Date dt2;
 
   //Simple getters and setters:
   /**
@@ -67,5 +78,37 @@ public class CustOrderSrvLn extends ACustOrderLn {
    **/
   public final void setItTxs(final List<CuOrSrTxLn> pItTxs) {
     this.itTxs = pItTxs;
+  }
+
+  /**
+   * <p>Getter for dt1.</p>
+   * @return Date
+   **/
+  public final Date getDt1() {
+    return this.dt1;
+  }
+
+  /**
+   * <p>Setter for dt1.</p>
+   * @param pDt1 reference
+   **/
+  public final void setDt1(final Date pDt1) {
+    this.dt1 = pDt1;
+  }
+
+  /**
+   * <p>Getter for dt2.</p>
+   * @return Date
+   **/
+  public final Date getDt2() {
+    return this.dt2;
+  }
+
+  /**
+   * <p>Setter for dt2.</p>
+   * @param pDt2 reference
+   **/
+  public final void setDt2(final Date pDt2) {
+    this.dt2 = pDt2;
   }
 }
