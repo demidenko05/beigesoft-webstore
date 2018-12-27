@@ -20,22 +20,27 @@ package org.beigesoft.webstore.model;
 public enum EOrdStat {
 
   /**
-   * <p>0, new.</p>
+   * <p>0, new, non-booked yet.</p>
    **/
   NEW,
 
   /**
-   * <p>1, pending.</p>
+   * <p>1, all items are booked.</p>
    **/
-  PENDING,
+  BOOKED,
 
   /**
-   * <p>2, closed.</p>
+   * <p>2, payed.</p>
+   **/
+  PAYED,
+
+  /**
+   * <p>3, closed, payed and shipped.</p>
    **/
   CLOSED,
 
   /**
-   * <p>3, canceled.</p>
+   * <p>4, canceled.</p>
    **/
   CANCELED,
 }

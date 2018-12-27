@@ -326,6 +326,7 @@ public class PrcCheckOut<RS> implements IProcessor {
           tx.setItsName(ctl.getTax().getItsName());
           otl.setTax(tx);
           otl.setTot(ctl.getTot());
+          otl.setTaxab(ctl.getTaxab());
           totTx = totTx.add(otl.getTot());
           if (otl.getIsNew()) {
             getSrvOrm().insertEntity(pReqVars, otl);

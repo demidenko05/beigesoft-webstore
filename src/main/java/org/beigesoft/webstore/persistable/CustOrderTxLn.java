@@ -12,6 +12,8 @@ package org.beigesoft.webstore.persistable;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
+import java.math.BigDecimal;
+
 import org.beigesoft.model.IOwned;
 import org.beigesoft.webstore.persistable.base.ATaxLn;
 
@@ -30,6 +32,11 @@ public class CustOrderTxLn extends ATaxLn implements IOwned<CustOrder> {
   private CustOrder itsOwner;
 
   /**
+   * <p>Taxable amount for invoice basis, 0 - item basis..</p>
+   **/
+  private BigDecimal taxab = BigDecimal.ZERO;
+
+  /**
    * <p>Getter for itsOwner.</p>
    * @return CustOrder
    **/
@@ -45,5 +52,21 @@ public class CustOrderTxLn extends ATaxLn implements IOwned<CustOrder> {
   @Override
   public final void setItsOwner(final CustOrder pItsOwner) {
     this.itsOwner = pItsOwner;
+  }
+
+  /**
+   * <p>Getter for taxab.</p>
+   * @return BigDecimal
+   **/
+  public final BigDecimal getTaxab() {
+    return this.taxab;
+  }
+
+  /**
+   * <p>Setter for taxab.</p>
+   * @param pTaxab reference
+   **/
+  public final void setTaxab(final BigDecimal pTaxab) {
+    this.taxab = pTaxab;
   }
 }

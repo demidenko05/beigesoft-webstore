@@ -15,7 +15,10 @@ package org.beigesoft.webstore.service;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.HashMap;
+import java.math.BigDecimal;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -24,6 +27,11 @@ import org.beigesoft.model.IRequestData;
 import org.beigesoft.log.ILogger;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.service.ISrvOrm;
+import org.beigesoft.accounting.persistable.UnitOfMeasure;
+import org.beigesoft.webstore.model.EOrdStat;
+import org.beigesoft.webstore.persistable.SerBus;
+import org.beigesoft.webstore.persistable.GoodsPlace;
+import org.beigesoft.webstore.persistable.ServicePlace;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
 import org.beigesoft.webstore.persistable.CustOrder;
 import org.beigesoft.webstore.persistable.CustOrderGdLn;
@@ -39,7 +47,7 @@ import org.beigesoft.webstore.persistable.CustOrderSrvLn;
  * @param <RS> platform dependent RDBMS recordset
  * @author Yury Demidenko
  */
-public class AcpOrd<RS> {
+public class AcpOrd<RS> implements IAcpOrd {
 
   /**
    * <p>Logger.</p>
@@ -57,9 +65,19 @@ public class AcpOrd<RS> {
   private ISrvOrm<RS> srvOrm;
 
   /**
-   * <p>I18N query goods specifics for goods.</p>
+   * <p>Query goods availability checkout.</p>
    **/
   private String quOrGdChk;
+
+  /**
+   * <p>Query non-bookable services availability checkout.</p>
+   **/
+  private String quOrSrNbChk;
+
+  /**
+   * <p>Query bookable services availability half-checkout.</p>
+   **/
+  private String quOrSrBkChk;
 
   /**
    * <p>It accepts all buyer's orders in single transaction.
@@ -73,6 +91,7 @@ public class AcpOrd<RS> {
    * @return list of accepted orders or NULL
    * @throws Exception - an exception
    **/
+  @Override
   public final List<CustOrder> accept(final Map<String, Object> pReqVars,
     final IRequestData pReqDt, final OnlineBuyer pBur) throws Exception {
     List<CustOrder> rez = null;
@@ -90,38 +109,113 @@ public class AcpOrd<RS> {
       pReqVars.remove(tbn + "buyerdeepLevel");
       pReqVars.remove(tbn + "placedeepLevel");
       pReqVars.remove(tbn + "currdeepLevel");
-      StringBuffer ordIds = new StringBuffer();
-      //Map<Long, Set<Long>> plOrIds = new HashMap<Long, Set<Long>>();
-      for (int i=0; i < rez.size(); i++) {
-        if (i == 0) {
-          ordIds.append(rez.get(i).getItsId().toString());
+      Map<Long, StringBuffer> plOrIds = new HashMap<Long, StringBuffer>();
+      for (CustOrder co : rez) {
+        StringBuffer ordIds = plOrIds.get(co.getPlace().getItsId());
+        if (ordIds == null) {
+          ordIds = new StringBuffer();
+          plOrIds.put(co.getPlace().getItsId(), ordIds);
+          ordIds.append(co.getItsId().toString());
         } else {
-          ordIds.append("," + rez.get(i).getItsId());
+          ordIds.append("," + co.getItsId());
         }
       }
       Set<String> ndFl = new HashSet<String>();
+      ndFl.add("itsId");
       ndFl.add("quant");
       ndFl.add("good");
       tbn = CustOrderGdLn.class.getSimpleName();
       pReqVars.put(tbn + "neededFields", ndFl);
       pReqVars.put(tbn + "gooddeepLevel", 1);
-      String quer = lazyGetQuOrGdChk().replace(":ORIDS", ordIds.toString());
-      List<CustOrderGdLn> allGoods = this.srvOrm.retrieveListByQuery(
-        pReqVars, CustOrderGdLn.class, quer);
+      boolean isComplete = true;
+      List<CustOrderGdLn> allGoods = new ArrayList<CustOrderGdLn>();
+      for (Map.Entry<Long, StringBuffer> ent : plOrIds.entrySet()) {
+        String quer = lazyGetQuOrGdChk().replace(":ORIDS", ent.getValue()
+          .toString()).replace(":PLACE", ent.getKey().toString());
+        List<CustOrderGdLn> allGds = this.srvOrm.retrieveListByQuery(
+          pReqVars, CustOrderGdLn.class, quer);
+        for (CustOrderGdLn gl : allGds) {
+          //UOM holds place ID for additional checking and booking:
+          UnitOfMeasure uom = new UnitOfMeasure();
+          uom.setItsId(ent.getKey());
+          gl.setUom(uom);
+          if (gl.getQuant().compareTo(BigDecimal.ZERO) == 0) {
+            isComplete = false;
+            break;
+          }
+        }
+        if (isComplete) {
+          allGoods.addAll(allGds);
+        }
+      }
       pReqVars.remove(tbn + "gooddeepLevel");
       pReqVars.remove(tbn + "neededFields");
-      ndFl.remove("good");
-      ndFl.add("service");
-      ndFl.add("dt1");
-      ndFl.add("dt2");
-      tbn = CustOrderSrvLn.class.getSimpleName();
-      pReqVars.put(tbn + "neededFields", ndFl);
-      pReqVars.put(tbn + "servicedeepLevel", 1);
-      List<CustOrderSrvLn> allServs = this.srvOrm.retrieveListWithConditions(
-        pReqVars, CustOrderSrvLn.class, "where ITSOWNER in (" + ordIds + ")");
-      pReqVars.remove(tbn + "servicedeepLevel");
-      pReqVars.remove(tbn + "neededFields");
-      this.srvDatabase.commitTransaction();
+      if (isComplete) {
+        ndFl.remove("good");
+        ndFl.add("service");
+        tbn = CustOrderSrvLn.class.getSimpleName();
+        pReqVars.put(tbn + "neededFields", ndFl);
+        pReqVars.put(tbn + "servicedeepLevel", 1);
+        for (Map.Entry<Long, StringBuffer> ent : plOrIds.entrySet()) {
+          String quer = lazyGetQuOrSrNbChk().replace(":ORIDS", ent.getValue()
+            .toString()).replace(":PLACE", ent.getKey().toString());
+          List<CustOrderSrvLn> allSrvs = this.srvOrm.retrieveListByQuery(
+            pReqVars, CustOrderSrvLn.class, quer);
+          for (CustOrderSrvLn sl : allSrvs) {
+            if (sl.getQuant().compareTo(BigDecimal.ZERO) == 0) {
+              isComplete = false;
+              break;
+            }
+          }
+        }
+        if (!isComplete) {
+          pReqVars.remove(tbn + "servicedeepLevel");
+          pReqVars.remove(tbn + "neededFields");
+        }
+      }
+      List<CustOrderSrvLn> allBkSrvs = new ArrayList<CustOrderSrvLn>();
+      if (isComplete) {
+        //bookable services half-checkout:
+        ndFl.add("dt1");
+        ndFl.add("dt2");
+        for (Map.Entry<Long, StringBuffer> ent : plOrIds.entrySet()) {
+          String quer = lazyGetQuOrSrBkChk().replace(":ORIDS", ent.getValue()
+            .toString()).replace(":PLACE", ent.getKey().toString());
+          List<CustOrderSrvLn> allSrvs = this.srvOrm.retrieveListByQuery(
+            pReqVars, CustOrderSrvLn.class, quer);
+          for (CustOrderSrvLn sl : allSrvs) {
+            //UOM holds place ID for final checkout and booking:
+            UnitOfMeasure uom = new UnitOfMeasure();
+            uom.setItsId(ent.getKey());
+            sl.setUom(uom);
+            if (sl.getQuant().compareTo(BigDecimal.ZERO) == 0) {
+              isComplete = false;
+              break;
+            }
+          }
+          if (isComplete) {
+            allBkSrvs.addAll(allSrvs);
+          } else {
+            break;
+          }
+        }
+        pReqVars.remove(tbn + "servicedeepLevel");
+        pReqVars.remove(tbn + "neededFields");
+      }
+      isComplete = adChekBook(pReqVars, allGoods, allBkSrvs);
+      if (isComplete) {
+        //change orders status:
+        for (CustOrder co : rez) {
+          co.setStat(EOrdStat.BOOKED);
+          getSrvOrm().updateEntity(pReqVars, co);
+        }
+      }
+      if (isComplete) {
+        this.srvDatabase.commitTransaction();
+      } else {
+        rez = null;
+        this.srvDatabase.rollBackTransaction();
+      }
     } catch (Exception ex) {
       if (!this.srvDatabase.getIsAutocommit()) {
         this.srvDatabase.rollBackTransaction();
@@ -131,6 +225,116 @@ public class AcpOrd<RS> {
       this.srvDatabase.releaseResources();
     }
     return rez;
+  }
+
+  //utils:
+  /**
+   * <p>It checks additionally and books items.</p>
+   * @param pReqVars additional request scoped parameters
+   * @param pGoods Goods
+   * @param pBkServs bookable services
+   * @return if complete
+   * @throws Exception - an exception
+   **/
+  public final boolean adChekBook(final Map<String, Object> pReqVars,
+    final List<CustOrderGdLn> pGoods,
+      final List<CustOrderSrvLn> pBkServs) throws Exception {
+    //additional checking:
+    boolean isComplete = true;
+    String tbn;
+    //check availability and booking for same good in different orders:
+    List<CustOrderGdLn> gljs = null;
+    List<CustOrderGdLn> glrs = null;
+    for (CustOrderGdLn gl : pGoods) {
+      //join lines with same item:
+      for (CustOrderGdLn gl0 : pGoods) {
+        if (!gl.getItsId().equals(gl0.getItsId())
+          && gl.getGood().getItsId().equals(gl0.getGood().getItsId())) {
+          if (gljs == null) {
+            gljs = new ArrayList<CustOrderGdLn>();
+            glrs = new ArrayList<CustOrderGdLn>();
+          }
+          glrs.add(gl0);
+          if (!gljs.contains(gl)) {
+            gljs.add(gl);
+          }
+          gl.setQuant(gl.getQuant().add(gl0.getQuant()));
+        }
+      }
+    }
+    if (gljs != null) {
+      for (CustOrderGdLn glr : glrs) {
+        pGoods.remove(glr);
+      }
+      tbn = GoodsPlace.class.getSimpleName();
+      pReqVars.put(tbn + "itemdeepLevel", 1); //only ID
+      pReqVars.put(tbn + "pickUpPlacedeepLevel", 1);
+      for (CustOrderGdLn gl : gljs) {
+        GoodsPlace gp = getSrvOrm().retrieveEntityWithConditions(pReqVars,
+          GoodsPlace.class, "where ITEM=" + gl.getGood().getItsId()
+            + " and PLACE=" + gl.getUom().getItsId() + " and ITSQUANTITY>="
+              + gl.getQuant());
+        if (gp == null) {
+            isComplete = false;
+            break;
+        }
+      }
+      pReqVars.remove(tbn + "itemdeepLevel");
+      pReqVars.remove(tbn + "pickUpPlacedeepLevel");
+    }
+    if (isComplete) {
+      //bookable services final-checkout:
+      String cond;
+      tbn = ServicePlace.class.getSimpleName();
+      pReqVars.put(tbn + "itemdeepLevel", 1); //only ID
+      pReqVars.put(tbn + "pickUpPlacedeepLevel", 1);
+      for (CustOrderSrvLn sl : pBkServs) {
+        cond = "left join (select distinct SERV from SERBUS where SERV="
+      + sl.getService().getItsId() + " and FRTM>=" + sl.getDt1().getTime()
+    + " and TITM<" + sl.getDt2().getTime()
+  + ") as SERBUS on SERBUS.SERV=SERVICEPLACE.ITEM where ITEM=" + sl
+.getService() + " and PLACE=" + sl.getUom().getItsId()
+  + " and ITSQUANTITY>0 and SERBUS.SERV is null";
+        ServicePlace sp = getSrvOrm()
+          .retrieveEntityWithConditions(pReqVars, ServicePlace.class, cond);
+        if (sp == null) {
+            isComplete = false;
+            break;
+        }
+      }
+      pReqVars.remove(tbn + "itemdeepLevel");
+      pReqVars.remove(tbn + "pickUpPlacedeepLevel");
+    }
+    //booking:
+    if (isComplete) {
+      //changing availability (booking):
+      tbn = GoodsPlace.class.getSimpleName();
+      pReqVars.put(tbn + "itemdeepLevel", 1); //only ID
+      pReqVars.put(tbn + "pickUpPlacedeepLevel", 1);
+      for (CustOrderGdLn gl : pGoods) {
+        GoodsPlace gp = getSrvOrm().retrieveEntityWithConditions(pReqVars,
+          GoodsPlace.class, "where ITEM=" + gl.getGood().getItsId()
+            + " and PLACE=" + gl.getUom().getItsId());
+        gp.setItsQuantity(gp.getItsQuantity().subtract(gl.getQuant()));
+        if (gp.getItsQuantity().compareTo(BigDecimal.ZERO) == -1) {
+          isComplete = false;
+          break;
+        } else {
+          getSrvOrm().updateEntity(pReqVars, gp);
+        }
+      }
+      pReqVars.remove(tbn + "itemdeepLevel");
+      pReqVars.remove(tbn + "pickUpPlacedeepLevel");
+    }
+    if (isComplete) {
+      for (CustOrderSrvLn sl : pBkServs) {
+        SerBus sb = new SerBus();
+        sb.setFrTm(sl.getDt1());
+        sb.setTiTm(sl.getDt2());
+        getSrvOrm().insertEntity(pReqVars, sb);
+      }
+    }
+    return isComplete;
   }
 
   /**
@@ -144,6 +348,32 @@ public class AcpOrd<RS> {
       this.quOrGdChk = loadString(flName);
     }
     return this.quOrGdChk;
+  }
+
+  /**
+   * <p>Lazy Getter for quOrSrNbChk.</p>
+   * @return String
+   * @throws IOException - IO exception
+   **/
+  public final String lazyGetQuOrSrNbChk() throws IOException {
+    if (this.quOrSrNbChk == null) {
+      String flName = "/webstore/ordSrNbChk.sql";
+      this.quOrSrNbChk = loadString(flName);
+    }
+    return this.quOrSrNbChk;
+  }
+
+  /**
+   * <p>Lazy Getter for quOrSrBkChk.</p>
+   * @return String
+   * @throws IOException - IO exception
+   **/
+  public final String lazyGetQuOrSrBkChk() throws IOException {
+    if (this.quOrSrBkChk == null) {
+      String flName = "/webstore/ordSrBkChk.sql";
+      this.quOrSrBkChk = loadString(flName);
+    }
+    return this.quOrSrBkChk;
   }
 
   /**
@@ -221,13 +451,5 @@ public class AcpOrd<RS> {
    **/
   public final void setSrvOrm(final ISrvOrm<RS> pSrvOrm) {
     this.srvOrm = pSrvOrm;
-  }
-
-  /**
-   * <p>Setter for quOrGdChk.</p>
-   * @param pQuOrGdChk reference
-   **/
-  public final void setQuOrGdChk(final String pQuOrGdChk) {
-    this.quOrGdChk = pQuOrGdChk;
   }
 }
