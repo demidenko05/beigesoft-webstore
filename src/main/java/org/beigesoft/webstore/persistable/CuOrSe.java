@@ -1,7 +1,7 @@
 package org.beigesoft.webstore.persistable;
 
 /*
- * Copyright (c) 2017 Beigesof ™
+ * Copyright (c) 2018 Beigesof™
  *
  * Licensed under the GNU General Public License (GPL), Version 2.0
  * (the "License");
@@ -23,7 +23,7 @@ import org.beigesoft.webstore.model.EOrdStat;
 
 /**
  * <p>
- * Model of Customer Order for web-store owner's items.
+ * Model of Customer Order for S.E. seller's items.
  * It's used to create Sales Invoice.
  * Customer order does neither accounting nor warehouse entries,
  * but it reduces "Goods Available in Place". Canceled order increases
@@ -32,12 +32,17 @@ import org.beigesoft.webstore.model.EOrdStat;
  *
  * @author Yury Demidenko
  */
-public class CustOrder extends AHasIdLongVersion {
+public class CuOrSe extends AHasIdLongVersion {
 
   /**
    * <p>Its date, not null.</p>
    **/
   private Date dat;
+
+  /**
+   * <p>S.E. seller, not null.</p>
+   **/
+  private SeSeller sel;
 
   /**
    * <p>Purchase ID is cart version, not null.</p>
@@ -92,17 +97,17 @@ public class CustOrder extends AHasIdLongVersion {
   /**
    * <p>Ordered goods.</p>
    **/
-  private List<CustOrderGdLn> goods;
+  private List<CuOrSeGdLn> goods;
 
   /**
    * <p>Ordered services.</p>
    **/
-  private List<CustOrderSrvLn> servs;
+  private List<CuOrSeSrLn> servs;
 
   /**
    * <p>Order's taxes summary.</p>
    **/
-  private List<CustOrderTxLn> taxes;
+  private List<CuOrSeTxLn> taxes;
 
   /**
    * <p>Description.</p>
@@ -124,6 +129,22 @@ public class CustOrder extends AHasIdLongVersion {
    **/
   public final void setDat(final Date pDat) {
     this.dat = pDat;
+  }
+
+  /**
+   * <p>Getter for sel.</p>
+   * @return SeSeller
+   **/
+  public final SeSeller getSel() {
+    return this.sel;
+  }
+
+  /**
+   * <p>Setter for sel.</p>
+   * @param pSel reference
+   **/
+  public final void setSel(final SeSeller pSel) {
+    this.sel = pSel;
   }
 
   /**
@@ -288,9 +309,9 @@ public class CustOrder extends AHasIdLongVersion {
 
   /**
    * <p>Getter for goods.</p>
-   * @return List<CustOrderGdLn>
+   * @return List<CuOrSeGdLn>
    **/
-  public final List<CustOrderGdLn> getGoods() {
+  public final List<CuOrSeGdLn> getGoods() {
     return this.goods;
   }
 
@@ -298,15 +319,15 @@ public class CustOrder extends AHasIdLongVersion {
    * <p>Setter for goods.</p>
    * @param pGoods reference
    **/
-  public final void setGoods(final List<CustOrderGdLn> pGoods) {
+  public final void setGoods(final List<CuOrSeGdLn> pGoods) {
     this.goods = pGoods;
   }
 
   /**
    * <p>Getter for servs.</p>
-   * @return List<CustOrderSrvLn>
+   * @return List<CuOrSeSrLn>
    **/
-  public final List<CustOrderSrvLn> getServs() {
+  public final List<CuOrSeSrLn> getServs() {
     return this.servs;
   }
 
@@ -314,15 +335,15 @@ public class CustOrder extends AHasIdLongVersion {
    * <p>Setter for servs.</p>
    * @param pServs reference
    **/
-  public final void setServs(final List<CustOrderSrvLn> pServs) {
+  public final void setServs(final List<CuOrSeSrLn> pServs) {
     this.servs = pServs;
   }
 
   /**
    * <p>Getter for taxes.</p>
-   * @return List<CustOrderTxLn>
+   * @return List<CuOrSeTxLn>
    **/
-  public final List<CustOrderTxLn> getTaxes() {
+  public final List<CuOrSeTxLn> getTaxes() {
     return this.taxes;
   }
 
@@ -330,7 +351,7 @@ public class CustOrder extends AHasIdLongVersion {
    * <p>Setter for taxes.</p>
    * @param pTaxes reference
    **/
-  public final void setTaxes(final List<CustOrderTxLn> pTaxes) {
+  public final void setTaxes(final List<CuOrSeTxLn> pTaxes) {
     this.taxes = pTaxes;
   }
 

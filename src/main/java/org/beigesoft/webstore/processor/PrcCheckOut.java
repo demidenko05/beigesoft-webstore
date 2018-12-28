@@ -405,6 +405,7 @@ public class PrcCheckOut<RS> implements IProcessor {
       cuOr.setPayMeth(pTs.getDefaultPaymentMethod());
       cuOr.setBuyer(pCartLn.getItsOwner().getBuyer());
       cuOr.setPlace(pItPl.getPickUpPlace());
+      cuOr.setPur(pCartLn.getItsOwner().getItsVersion());
       cuOr.setCurr(pCartLn.getItsOwner().getCurr());
       cuOr.setExcRt(pCartLn.getItsOwner().getExcRt());
       cuOr.setDescr(pCartLn.getItsOwner().getDescr());

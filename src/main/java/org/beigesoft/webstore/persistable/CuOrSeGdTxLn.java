@@ -1,7 +1,7 @@
-package org.beigesoft.webstore.persistable.base;
+package org.beigesoft.webstore.persistable;
 
 /*
- * Copyright (c) 2017 Beigesoft™
+ * Copyright (c) 2018 Beigesoft™
  *
  * Licensed under the GNU General Public License (GPL), Version 2.0
  * (the "License");
@@ -13,29 +13,28 @@ package org.beigesoft.webstore.persistable.base;
  */
 
 import org.beigesoft.model.IOwned;
-import org.beigesoft.webstore.persistable.CustOrder;
+import org.beigesoft.webstore.persistable.base.ATaxLn;
 
 /**
  * <p>
- * Model of Customer Order Item line.
- * Item can be goods/service.
+ * Order item's tax line for item basis multi-taxes non-aggregate rate.
  * </p>
  *
  * @author Yury Demidenko
  */
-public class ACustOrderLn extends AOrdLn implements IOwned<CustOrder> {
+public class CuOrSeGdTxLn extends ATaxLn implements IOwned<CuOrSeGdLn> {
 
   /**
-   * <p>Customer Order.</p>
+   * <p>Shopping CuOrSeGdLn.</p>
    **/
-  private CustOrder itsOwner;
+  private CuOrSeGdLn itsOwner;
 
   /**
    * <p>Getter for itsOwner.</p>
-   * @return CustOrder
+   * @return CuOrSeGdLn
    **/
   @Override
-  public final CustOrder getItsOwner() {
+  public final CuOrSeGdLn getItsOwner() {
     return this.itsOwner;
   }
 
@@ -44,7 +43,7 @@ public class ACustOrderLn extends AOrdLn implements IOwned<CustOrder> {
    * @param pItsOwner reference
    **/
   @Override
-  public final void setItsOwner(final CustOrder pItsOwner) {
+  public final void setItsOwner(final CuOrSeGdLn pItsOwner) {
     this.itsOwner = pItsOwner;
   }
 }

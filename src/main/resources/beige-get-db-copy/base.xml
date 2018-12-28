@@ -194,6 +194,12 @@
   org.beigesoft.webstore.persistable.SeServicePrice,
   org.beigesoft.webstore.persistable.SeGoodsPlace,
   org.beigesoft.webstore.persistable.SeGoodCatalog,
+  org.beigesoft.webstore.persistable.CuOrSe,
+  org.beigesoft.webstore.persistable.CuOrSeTxLn,
+  org.beigesoft.webstore.persistable.CuOrSeGdLn,
+  org.beigesoft.webstore.persistable.CuOrSeGdTxLn,
+  org.beigesoft.webstore.persistable.CuOrSeSrLn,
+  org.beigesoft.webstore.persistable.CuOrSeSrTxLn,
   org.beigesoft.webstore.persistable.CurrRate,
   org.beigesoft.webstore.persistable.SeServicePlace</entry>
 <entry key="settingsKeysForClasses">excludeFields</entry>
