@@ -12,11 +12,10 @@ package org.beigesoft.webstore.service;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import java.util.List;
 import java.util.Map;
 
 import org.beigesoft.webstore.model.EOrdStat;
-import org.beigesoft.webstore.persistable.CustOrder;
+import org.beigesoft.webstore.model.Purch;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
 
 /**
@@ -37,13 +36,13 @@ public class CncOrd implements ICncOrd {
    * Request handler must be non-transactional,
    * i.e. it mustn't be started transaction.</p>
    * @param pRqVs additional request scoped parameters
-   * @param pOrds orders
+   * @param pPurch orders
    * @param pStat NEW or CANCELED
    * @throws Exception - an exception
    **/
   @Override
   public final void cancel(final Map<String, Object> pRqVs,
-    final List<CustOrder> pOrds, final EOrdStat pStat) throws Exception {
+    final Purch pPurch, final EOrdStat pStat) throws Exception {
   }
 
 
@@ -63,5 +62,25 @@ public class CncOrd implements ICncOrd {
   public final void cancel(final Map<String, Object> pRqVs,
     final OnlineBuyer pBuyr, final EOrdStat pStFr,
       final EOrdStat pStTo) throws Exception {
+  }
+
+  /**
+   * <p>It cancels all buyer's orders with given purchase ID in single
+   * transaction.
+   * For example it's arise error during final phase online payment execution.
+   * It changes item's availability and orders status to given NEW or CANCELED.
+   * Request handler must be non-transactional,
+   * i.e. it mustn't be started transaction.</p>
+   * @param pRqVs additional request scoped parameters
+   * @param pBuyr buyer
+   * @param pPurId purchase ID
+   * @param pStFr usually BOOKED
+   * @param pStTo usually NEW
+   * @throws Exception - an exception
+   **/
+  @Override
+  public final void cancel(final Map<String, Object> pRqVs,
+    final OnlineBuyer pBuyr, final Long pPurId,
+      final EOrdStat pStFr, final EOrdStat pStTo) throws Exception {
   }
 }

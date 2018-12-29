@@ -49,6 +49,7 @@ alter table SERVICEPRICE add column UNSTEP real default 1;
 alter table PRICEGOODS add column UNSTEP real default 1;
 alter table ITEMINLIST add column UNSTEP real default 1;
 alter table TAXDESTINATION add column REGZIP text;
+alter table CURRENCY add column STCO text;
 alter table ONLINEBUYER add column TIN text;
 alter table ONLINEBUYER add column FOREIG integer not null default 0;
 alter table ONLINEBUYER add column TAXDEST integer default null references TAXDESTINATION(ITSID);

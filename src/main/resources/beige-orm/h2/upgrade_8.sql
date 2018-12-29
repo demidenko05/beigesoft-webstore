@@ -40,6 +40,7 @@ alter table PRICEGOODS add column UNSTEP decimal(9,4) default 1;
 alter table ITEMINLIST add column UNSTEP decimal(9,4) default 1;
 alter table TAXDESTINATION add column REGZIP varchar(10);
 alter table ONLINEBUYER add column TIN varchar(10);
+alter table CURRENCY add column STCO varchar(5);
 alter table ONLINEBUYER add column FOREIG tinyint not null default 0;
 alter table ONLINEBUYER add column TAXDEST bigint default null;
 alter table ONLINEBUYER add constraint fkonlbtxdest FOREIGN KEY (TAXDEST) references TAXDESTINATION(ITSID);
