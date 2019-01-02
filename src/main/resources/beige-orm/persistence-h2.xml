@@ -213,6 +213,8 @@
   org.beigesoft.webstore.persistable.CuOrSeSrTxLn,
   org.beigesoft.webstore.persistable.CurrRate,
   org.beigesoft.webstore.persistable.PayMd,
+  org.beigesoft.webstore.persistable.SePayMd,
+  org.beigesoft.webstore.persistable.Deliv,
   org.beigesoft.webstore.persistable.CustomerGoodsSeen</entry>
 <entry key="settingsKeysForClasses">idColumnsNames, idFieldName, ownerFieldName, constraintAdd, excludeFields, versionAlgorithm</entry>
 <entry key="settingsKeysForFields">definition, isNullable</entry>

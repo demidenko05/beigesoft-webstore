@@ -51,6 +51,8 @@ import org.beigesoft.accounting.persistable.DestTaxServSelLn;
 import org.beigesoft.accounting.persistable.base.AItem;
 import org.beigesoft.accounting.persistable.base.ADestTaxItemLn;
 import org.beigesoft.webstore.model.EShopItemType;
+import org.beigesoft.webstore.model.EDelivering;
+import org.beigesoft.webstore.model.EPaymentMethod;
 import org.beigesoft.webstore.persistable.base.AItemPrice;
 import org.beigesoft.webstore.persistable.CartItTxLn;
 import org.beigesoft.webstore.persistable.BuyerPriceCategory;
@@ -73,6 +75,7 @@ import org.beigesoft.webstore.persistable.CurrRate;
 import org.beigesoft.webstore.persistable.IHasSeSeller;
 import org.beigesoft.webstore.persistable.DestTaxSeGoodsLn;
 import org.beigesoft.webstore.persistable.DestTaxSeServiceLn;
+import org.beigesoft.webstore.persistable.Deliv;
 
 /**
  * <p>Service that retrieve/create buyer's shopping cart, make cart totals
@@ -150,6 +153,11 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
   private ISrvNumberToString srvNumberToString;
 
   /**
+   * <p>PPL ready class-flag.</p>
+   **/
+  private Class<?> pplCl;
+
+  /**
    * <p>Get/Create Cart.</p>
    * @param pReqVars additional param
    * @param pRequestData Request Data
@@ -215,6 +223,8 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     } else if (pIsNeedToCreate) {
       cart = new Cart();
       Currency curr = (Currency) pReqVars.get("wscurr");
+      cart.setPayMeth(ts.getDefaultPaymentMethod());
+      cart.setDeliv(EDelivering.PICKUP);
       cart.setCurr(curr);
       cart.setItems(new ArrayList<CartLn>());
       cart.setTaxes(new ArrayList<CartTxLn>());
@@ -223,9 +233,34 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       getSrvOrm().insertEntity(pReqVars, cart);
     }
     if (cart != null) {
+      if (EPaymentMethod.ANY.equals(cart.getPayMeth())
+        || EPaymentMethod.PARTIAL_ONLINE.equals(cart.getPayMeth())
+          || EPaymentMethod.ONLINE.equals(cart.getPayMeth())) {
+        cart.setPayMeth(EPaymentMethod.CASH);
+      }
+      if ((EPaymentMethod.PAYPAL.equals(cart.getPayMeth())
+        || EPaymentMethod.PAYPAL_ANY.equals(cart.getPayMeth()))
+          && pplCl == null) {
+        try {
+          pplCl = Class.forName("com.paypal.api.payments.Item");
+        } catch (ClassNotFoundException e) {
+          cart.setPayMeth(EPaymentMethod.CASH);
+        }
+      }
       cart.setBuyer(buyer);
-      if (ts.getOnlyDeliv() != null) {
-        cart.setDeliv(ts.getOnlyDeliv());
+      List<EDelivering> dlvMts = new ArrayList<EDelivering>();
+      pReqVars.put("dlvMts", dlvMts);
+      List<EPaymentMethod> payMts = new ArrayList<EPaymentMethod>();
+      pReqVars.put("payMts", payMts);
+      payMts.add(EPaymentMethod.CASH);
+      payMts.add(EPaymentMethod.BANK_TRANSFER);
+      payMts.add(EPaymentMethod.BANK_CHEQUE);
+      if (pplCl != null) {
+        payMts.add(EPaymentMethod.PAYPAL);
+      }
+      List<Deliv> dels = getSrvOrm().retrieveList(pReqVars, Deliv.class);
+      for (Deliv dl : dels) {
+        dlvMts.add(dl.getItsId());
       }
     }
     return cart;
@@ -1341,5 +1376,21 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    **/
   public final void setQuItemSePriceCat(final String pQuItemSePriceCat) {
     this.quItemSePriceCat = pQuItemSePriceCat;
+  }
+
+  /**
+   * <p>Getter for pplCl.</p>
+   * @return Class<?>
+   **/
+  public final Class<?> getPplCl() {
+    return this.pplCl;
+  }
+
+  /**
+   * <p>Setter for pplCl.</p>
+   * @param pPplCl reference
+   **/
+  public final void setPplCl(final Class<?> pPplCl) {
+    this.pplCl = pPplCl;
   }
 }

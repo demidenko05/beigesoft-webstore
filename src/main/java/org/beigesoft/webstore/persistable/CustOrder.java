@@ -55,7 +55,7 @@ public class CustOrder extends AHasIdLongVersion {
   private PickUpPlace place;
 
   /**
-   * <p>Payment Method, not null, ANY default.</p>
+   * <p>Payment Method, not null.</p>
    **/
   private EPaymentMethod payMeth;
 

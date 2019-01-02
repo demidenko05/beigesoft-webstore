@@ -19,10 +19,11 @@ import org.beigesoft.model.AEditableHasVersion;
 import org.beigesoft.model.IHasId;
 import org.beigesoft.accounting.persistable.Currency;
 import org.beigesoft.webstore.model.EDelivering;
+import org.beigesoft.webstore.model.EPaymentMethod;
 
 /**
  * <p>
- * Model of average buyer rating.
+ * Model of buyer's cart.
  * </p>
  *
  * @author Yury Demidenko
@@ -89,6 +90,11 @@ public class Cart extends AEditableHasVersion implements IHasId<OnlineBuyer> {
    * <p>Description - tax method details.</p>
    **/
   private String descr;
+
+  /**
+   * <p>Payment Method, not null, CASH default.</p>
+   **/
+  private EPaymentMethod payMeth = EPaymentMethod.CASH;
 
   /**
    * <p>Usually it's simple getter that return model ID.</p>
@@ -299,5 +305,21 @@ public class Cart extends AEditableHasVersion implements IHasId<OnlineBuyer> {
    **/
   public final void setDescr(final String pDescr) {
     this.descr = pDescr;
+  }
+
+  /**
+   * <p>Getter for payMeth.</p>
+   * @return EPaymentMethod
+   **/
+  public final EPaymentMethod getPayMeth() {
+    return this.payMeth;
+  }
+
+  /**
+   * <p>Setter for payMeth.</p>
+   * @param pPayMeth reference
+   **/
+  public final void setPayMeth(final EPaymentMethod pPayMeth) {
+    this.payMeth = pPayMeth;
   }
 }

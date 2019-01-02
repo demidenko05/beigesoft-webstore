@@ -14,7 +14,7 @@ package org.beigesoft.webstore.persistable.base;
 
 import java.math.BigDecimal;
 
-import org.beigesoft.persistable.AHasIdLongVersion;
+import org.beigesoft.persistable.AHasNameIdLongVersion;
 import org.beigesoft.accounting.persistable.InvItemTaxCategory;
 import org.beigesoft.accounting.persistable.UnitOfMeasure;
 
@@ -22,11 +22,12 @@ import org.beigesoft.accounting.persistable.UnitOfMeasure;
  * <p>
  * Model of Customer Order Item line.
  * Item can be goods/service/S.E. goods/S.E.service.
+ * Item has already I18N name same as in the cart.
  * </p>
  *
  * @author Yury Demidenko
  */
-public class AOrdLn extends AHasIdLongVersion {
+public class AOrdLn extends AHasNameIdLongVersion {
 
   /**
    * <p>Unit of measure, not null.</p>

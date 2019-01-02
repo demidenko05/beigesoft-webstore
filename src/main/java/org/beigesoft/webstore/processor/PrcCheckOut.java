@@ -54,7 +54,9 @@ import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
- * <p>Service that checkouts cart.</p>
+ * <p>Service that checkouts cart phase#1, i.e. creates orders with status NEW
+ * from cart. Next phase#2 is accepting these orders (booking bookable items)
+ * and making payments (if there is order with any online payment method).</p>
  *
  * @param <RS> platform dependent record set type
  * @author Yury Demidenko
@@ -86,6 +88,10 @@ public class PrcCheckOut<RS> implements IProcessor {
   public final void process(final Map<String, Object> pReqVars,
     final IRequestData pRequestData) throws Exception {
     Cart cart = this.srvCart.getShoppingCart(pReqVars, pRequestData, false);
+    if (cart == null) {
+      //TODO handling "it maybe swindler's bot":
+      return;
+    }
     TradingSettings ts = (TradingSettings) pReqVars.get("tradSet");
     AccSettings as = (AccSettings) pReqVars.get("accSet");
     TaxDestination txRules = this.srvCart.revealTaxRules(pReqVars, cart, as);
@@ -402,7 +408,7 @@ public class PrcCheckOut<RS> implements IProcessor {
     if (isNdOrInit) {
       cuOr.setDat(new Date());
       cuOr.setStat(EOrdStat.NEW);
-      cuOr.setPayMeth(pTs.getDefaultPaymentMethod());
+      cuOr.setPayMeth(pCartLn.getItsOwner().getPayMeth());
       cuOr.setBuyer(pCartLn.getItsOwner().getBuyer());
       cuOr.setPlace(pItPl.getPickUpPlace());
       cuOr.setPur(pCartLn.getItsOwner().getItsVersion());
@@ -514,6 +520,7 @@ public class PrcCheckOut<RS> implements IProcessor {
       }
       ol = osl;
     }
+    ol.setItsName(pCartLn.getItsName());
     ol.setDescr(pCartLn.getDescr());
     ol.setUom(pCartLn.getUom());
     ol.setPrice(pCartLn.getPrice());

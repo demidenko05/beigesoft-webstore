@@ -201,6 +201,7 @@
   org.beigesoft.webstore.persistable.CuOrSeSrLn,
   org.beigesoft.webstore.persistable.CuOrSeSrTxLn,
   org.beigesoft.webstore.persistable.CurrRate,
+  org.beigesoft.webstore.persistable.Deliv,
   org.beigesoft.webstore.persistable.SeServicePlace</entry>
 <entry key="settingsKeysForClasses">excludeFields</entry>
 <entry key="settingsKeysForFields">isEnabled, ISrvFieldWriter, ISrvEntityFieldFiller</entry>

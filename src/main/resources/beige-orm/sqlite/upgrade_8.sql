@@ -54,8 +54,5 @@ alter table ONLINEBUYER add column TIN text;
 alter table ONLINEBUYER add column FOREIG integer not null default 0;
 alter table ONLINEBUYER add column TAXDEST integer default null references TAXDESTINATION(ITSID);
 alter table TRADINGSETTINGS add column TXEXCL integer not null default 0;
-alter table TRADINGSETTINGS add column OVERSEAS integer not null default 0;
 alter table TRADINGSETTINGS add column TXDESTS integer not null default 0;
-alter table TRADINGSETTINGS add column SEVPLAC integer not null default 0;
-alter table TRADINGSETTINGS add column ONLYDELIV integer default null;
 update DATABASEINFO set DATABASEVERSION=8, DESCRIPTION='Beige Accounting OIO DB version 8';

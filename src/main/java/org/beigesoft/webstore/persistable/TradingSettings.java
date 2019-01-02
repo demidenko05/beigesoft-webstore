@@ -15,7 +15,6 @@ package org.beigesoft.webstore.persistable;
 import org.beigesoft.persistable.AHasIdLongVersion;
 import org.beigesoft.accounting.persistable.DebtorCreditorCategory;
 import org.beigesoft.webstore.model.EPaymentMethod;
-import org.beigesoft.webstore.model.EDelivering;
 
 /**
  * <pre>
@@ -128,9 +127,9 @@ public class TradingSettings extends AHasIdLongVersion {
   private Boolean useAdvancedI18n;
 
   /**
-   * <p>Default payment method, not null, ONLINE default.</p>
+   * <p>Default payment method, not null, CASH default.</p>
    **/
-  private EPaymentMethod defaultPaymentMethod = EPaymentMethod.ONLINE;
+  private EPaymentMethod defaultPaymentMethod = EPaymentMethod.CASH;
 
   /**
    * <p>If taxes excluded, default FALSE (included).</p>
@@ -138,19 +137,9 @@ public class TradingSettings extends AHasIdLongVersion {
   private Boolean txExcl = Boolean.FALSE;
 
   /**
-   * <p>Not null, false default, Use overseas shipping.</p>
-   **/
-  private Boolean overseas = Boolean.FALSE;
-
-  /**
    * <p>Not null, false default, Use "in country" tax destinations.</p>
    **/
   private Boolean txDests = Boolean.FALSE;
-
-  /**
-   * <p>Optional, only delivering for all items.</p>
-   **/
-  private EDelivering onlyDeliv;
 
   //Simple getters and setters:
   /**
@@ -468,22 +457,6 @@ public class TradingSettings extends AHasIdLongVersion {
   }
 
   /**
-   * <p>Getter for overseas.</p>
-   * @return Boolean
-   **/
-  public final Boolean getOverseas() {
-    return this.overseas;
-  }
-
-  /**
-   * <p>Setter for overseas.</p>
-   * @param pOverseas reference
-   **/
-  public final void setOverseas(final Boolean pOverseas) {
-    this.overseas = pOverseas;
-  }
-
-  /**
    * <p>Getter for txDests.</p>
    * @return Boolean
    **/
@@ -497,21 +470,5 @@ public class TradingSettings extends AHasIdLongVersion {
    **/
   public final void setTxDests(final Boolean pTxDests) {
     this.txDests = pTxDests;
-  }
-
-  /**
-   * <p>Getter for onlyDeliv.</p>
-   * @return EDelivering
-   **/
-  public final EDelivering getOnlyDeliv() {
-    return this.onlyDeliv;
-  }
-
-  /**
-   * <p>Setter for onlyDeliv.</p>
-   * @param pOnlyDeliv reference
-   **/
-  public final void setOnlyDeliv(final EDelivering pOnlyDeliv) {
-    this.onlyDeliv = pOnlyDeliv;
   }
 }
