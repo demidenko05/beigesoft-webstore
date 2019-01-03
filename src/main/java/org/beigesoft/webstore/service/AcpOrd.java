@@ -40,6 +40,7 @@ import org.beigesoft.webstore.persistable.CuOrSe;
 import org.beigesoft.webstore.persistable.CustOrder;
 import org.beigesoft.webstore.persistable.CustOrderGdLn;
 import org.beigesoft.webstore.persistable.CustOrderSrvLn;
+import org.beigesoft.webstore.persistable.SettingsAdd;
 
 /**
  * <p>It accepts all buyer's orders in single transaction.
@@ -103,10 +104,10 @@ public class AcpOrd<RS> implements IAcpOrd {
     Purch rez = null;
     List<CustOrder> ords = null;
     List<CuOrSe> sords = null;
+    SettingsAdd setAdd = (SettingsAdd) pReqVars.get("setAdd");
     try {
       this.srvDatabase.setIsAutocommit(false);
-      this.srvDatabase.setTransactionIsolation(ISrvDatabase
-        .TRANSACTION_READ_COMMITTED);
+      this.srvDatabase.setTransactionIsolation(setAdd.getBkTr());
       this.srvDatabase.beginTransaction();
       String tbn = CustOrder.class.getSimpleName();
       pReqVars.put(tbn + "buyerdeepLevel", 1);
@@ -359,8 +360,8 @@ public class AcpOrd<RS> implements IAcpOrd {
       for (CustOrderGdLn gl : gljs) {
         GoodsPlace gp = getSrvOrm().retrieveEntityWithConditions(pReqVars,
           GoodsPlace.class, "where ITEM=" + gl.getGood().getItsId()
-            + " and PLACE=" + gl.getUom().getItsId() + " and ITSQUANTITY>="
-              + gl.getQuant());
+            + " and PICKUPPLACE=" + gl.getUom().getItsId()
+              + " and ITSQUANTITY>=" + gl.getQuant());
         if (gp == null) {
             isComplete = false;
             break;
@@ -401,7 +402,7 @@ public class AcpOrd<RS> implements IAcpOrd {
       for (CustOrderGdLn gl : pGoods) {
         GoodsPlace gp = getSrvOrm().retrieveEntityWithConditions(pReqVars,
           GoodsPlace.class, "where ITEM=" + gl.getGood().getItsId()
-            + " and PLACE=" + gl.getUom().getItsId());
+            + " and PICKUPPLACE=" + gl.getUom().getItsId());
         gp.setItsQuantity(gp.getItsQuantity().subtract(gl.getQuant()));
         if (gp.getItsQuantity().compareTo(BigDecimal.ZERO) == -1) {
           isComplete = false;

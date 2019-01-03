@@ -34,6 +34,15 @@ import org.beigesoft.webstore.persistable.base.AItemPrice;
 public interface ISrvShoppingCart {
 
   /**
+   * <p>Empties Cart.</p>
+   * @param pReqVars request scoped vars
+   * @param pBuyr buyer
+   * @throws Exception - an exception
+   **/
+  void emptyCart(Map<String, Object> pReqVars,
+    OnlineBuyer pBuyr) throws Exception;
+
+  /**
    * <p>Get/Create Cart.</p>
    * @param pReqVars request scoped vars
    * @param pRequestData Request Data

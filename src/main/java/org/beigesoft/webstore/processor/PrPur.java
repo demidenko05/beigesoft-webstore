@@ -25,6 +25,7 @@ import org.beigesoft.webstore.model.Purch;
 import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.webstore.persistable.CuOrSe;
 import org.beigesoft.webstore.persistable.CustOrder;
+import org.beigesoft.webstore.persistable.SettingsAdd;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 import org.beigesoft.webstore.service.IAcpOrd;
 import org.beigesoft.webstore.service.ICncOrd;
@@ -87,10 +88,10 @@ public class PrPur<RS> implements IProcessor {
       throw new Exception("http not supported!!!");
     }
     Cart cart = null;
+    SettingsAdd setAdd = (SettingsAdd) pRqVs.get("setAdd");
     try {
       this.srvDb.setIsAutocommit(false);
-      this.srvDb.setTransactionIsolation(ISrvDatabase
-        .TRANSACTION_READ_COMMITTED);
+      this.srvDb.setTransactionIsolation(setAdd.getBkTr());
       this.srvDb.beginTransaction();
       cart = this.srvCart.getShoppingCart(pRqVs, pRqDt, false);
       if (cart != null && cart.getErr()) {
@@ -110,8 +111,13 @@ public class PrPur<RS> implements IProcessor {
       return;
     }
     Purch pur = this.acpOrd.accept(pRqVs, pRqDt, cart.getBuyer());
-    try {
-      if (pur != null) {
+    if (pur != null) {
+      try {
+        this.srvDb.setIsAutocommit(false);
+        this.srvDb.setTransactionIsolation(setAdd.getBkTr());
+        this.srvDb.beginTransaction();
+        this.srvCart.emptyCart(pRqVs, cart.getBuyer());
+        this.srvDb.commitTransaction();
         if (pur.getOrds() != null && pur.getOrds().size() > 0) {
           //checking orders with online payment:
           for (CustOrder or : pur.getOrds()) {
@@ -134,10 +140,15 @@ public class PrPur<RS> implements IProcessor {
             }
           }
         }
+      } catch (Exception ex) {
+        if (!this.srvDb.getIsAutocommit()) {
+          this.srvDb.rollBackTransaction();
+        }
+        this.cncOrd.cancel(pRqVs, pur, EOrdStat.NEW);
+        throw ex;
+      } finally {
+        this.srvDb.releaseResources();
       }
-    } catch (Exception e) {
-      this.cncOrd.cancel(pRqVs, pur, EOrdStat.NEW);
-      throw e;
     }
     pRqDt.setAttribute("pur",  pur);
   }

@@ -20,6 +20,7 @@ import org.beigesoft.persistable.AHasIdLongVersion;
 import org.beigesoft.accounting.persistable.Currency;
 import org.beigesoft.webstore.model.EPaymentMethod;
 import org.beigesoft.webstore.model.EOrdStat;
+import org.beigesoft.webstore.model.EDelivering;
 
 /**
  * <p>
@@ -113,6 +114,11 @@ public class CuOrSe extends AHasIdLongVersion {
    * <p>Description.</p>
    **/
   private String descr;
+
+  /**
+   * <p>Delivering, not null.</p>
+   **/
+  private EDelivering deliv;
 
   //Simple getters and setters:
   /**
@@ -369,5 +375,21 @@ public class CuOrSe extends AHasIdLongVersion {
    **/
   public final void setDescr(final String pDescr) {
     this.descr = pDescr;
+  }
+
+  /**
+   * <p>Getter for deliv.</p>
+   * @return EDelivering
+   **/
+  public final EDelivering getDeliv() {
+    return this.deliv;
+  }
+
+  /**
+   * <p>Setter for deliv.</p>
+   * @param pDeliv reference
+   **/
+  public final void setDeliv(final EDelivering pDeliv) {
+    this.deliv = pDeliv;
   }
 }

@@ -114,15 +114,15 @@ public class PrcCheckOut<RS> implements IProcessor {
       //redo all lines:
       //itsOwner and other data will be set farther only for used lines!!!
       //unused lines will be removed from DB
-     pReqVars.put(CustOrderTxLn.class.getSimpleName() + "neededFields", ndFl);
+      pReqVars.put(CustOrderTxLn.class.getSimpleName() + "neededFields", ndFl);
       cuOr.setTaxes(getSrvOrm().retrieveListWithConditions(pReqVars,
         CustOrderTxLn.class, "where ITSOWNER=" + cuOr.getItsId()));
       pReqVars.remove(CustOrderTxLn.class.getSimpleName() + "neededFields");
-     pReqVars.put(CustOrderGdLn.class.getSimpleName() + "neededFields", ndFl);
+      pReqVars.put(CustOrderGdLn.class.getSimpleName() + "neededFields", ndFl);
       cuOr.setGoods(getSrvOrm().retrieveListWithConditions(pReqVars,
         CustOrderGdLn.class, "where ITSOWNER=" + cuOr.getItsId()));
       pReqVars.remove(CustOrderGdLn.class.getSimpleName() + "neededFields");
-    pReqVars.put(CustOrderSrvLn.class.getSimpleName() + "neededFields", ndFl);
+      pReqVars.put(CustOrderSrvLn.class.getSimpleName() + "neededFields", ndFl);
       cuOr.setServs(getSrvOrm().retrieveListWithConditions(pReqVars,
         CustOrderSrvLn.class, "where ITSOWNER=" + cuOr.getItsId()));
       pReqVars.remove(CustOrderSrvLn.class.getSimpleName() + "neededFields");
@@ -392,7 +392,6 @@ public class PrcCheckOut<RS> implements IProcessor {
       for (CustOrder co : pOrders) {
         if (co.getPlace() == null) {
           cuOr = co;
-          isNdOrInit = true;
           break;
         }
       }
@@ -408,6 +407,7 @@ public class PrcCheckOut<RS> implements IProcessor {
     if (isNdOrInit) {
       cuOr.setDat(new Date());
       cuOr.setStat(EOrdStat.NEW);
+      cuOr.setDeliv(pCartLn.getItsOwner().getDeliv());
       cuOr.setPayMeth(pCartLn.getItsOwner().getPayMeth());
       cuOr.setBuyer(pCartLn.getItsOwner().getBuyer());
       cuOr.setPlace(pItPl.getPickUpPlace());

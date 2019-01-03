@@ -14,6 +14,9 @@ package org.beigesoft.webstore.service;
 
 import java.util.Map;
 
+import org.beigesoft.log.ILogger;
+import org.beigesoft.service.ISrvDatabase;
+import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.webstore.model.EOrdStat;
 import org.beigesoft.webstore.model.Purch;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
@@ -25,9 +28,25 @@ import org.beigesoft.webstore.persistable.OnlineBuyer;
  * Request handler must be non-transactional,
  * i.e. it mustn't be started transaction.</p>
  *
+ * @param <RS> platform dependent RDBMS recordset
  * @author Yury Demidenko
  */
-public class CncOrd implements ICncOrd {
+public class CncOrd<RS> implements ICncOrd {
+
+  /**
+   * <p>Logger.</p>
+   **/
+  private ILogger logger;
+
+  /**
+   * <p>Database service.</p>
+   */
+  private ISrvDatabase<RS> srvDatabase;
+
+  /**
+   * <p>ORM service.</p>
+   */
+  private ISrvOrm<RS> srvOrm;
 
   /**
    * <p>It cancels all given buyer's orders in single transaction.
@@ -82,5 +101,55 @@ public class CncOrd implements ICncOrd {
   public final void cancel(final Map<String, Object> pRqVs,
     final OnlineBuyer pBuyr, final Long pPurId,
       final EOrdStat pStFr, final EOrdStat pStTo) throws Exception {
+  }
+
+  //Simple getters and setters:
+  /**
+   * <p>Geter for logger.</p>
+   * @return ILogger
+   **/
+  public final ILogger getLogger() {
+    return this.logger;
+  }
+
+  /**
+   * <p>Setter for logger.</p>
+   * @param pLogger reference
+   **/
+  public final void setLogger(final ILogger pLogger) {
+    this.logger = pLogger;
+  }
+
+  /**
+   * <p>Getter for srvDatabase.</p>
+   * @return ISrvDatabase<RS>
+   **/
+  public final ISrvDatabase<RS> getSrvDatabase() {
+    return this.srvDatabase;
+  }
+
+  /**
+   * <p>Setter for srvDatabase.</p>
+   * @param pSrvDatabase reference
+   **/
+  public final void setSrvDatabase(
+    final ISrvDatabase<RS> pSrvDatabase) {
+    this.srvDatabase = pSrvDatabase;
+  }
+
+  /**
+   * <p>Getter for srvOrm.</p>
+   * @return ISrvOrm<RS>
+   **/
+  public final ISrvOrm<RS> getSrvOrm() {
+    return this.srvOrm;
+  }
+
+  /**
+   * <p>Setter for srvOrm.</p>
+   * @param pSrvOrm reference
+   **/
+  public final void setSrvOrm(final ISrvOrm<RS> pSrvOrm) {
+    this.srvOrm = pSrvOrm;
   }
 }

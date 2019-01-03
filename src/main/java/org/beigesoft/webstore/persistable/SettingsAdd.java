@@ -73,6 +73,18 @@ public class SettingsAdd extends AHasIdLongVersion {
    **/
   private Integer daOf = 365;
 
+  /**
+   * <p>Booking transaction isolation mode ISrvDatabase:
+   * <ul>
+   * <li>1 read uncommited, default.</li>
+   * <li>2 read commited.</li>
+   * <li>3 repeatable read.</li>
+   * <li>4 serializable.</li>
+   * </ul>
+   * </p>
+   **/
+  private Integer bkTr = 1;
+
   //Simple getters and setters:
   /**
    * <p>Getter for recordsPerTransaction.</p>
@@ -218,5 +230,21 @@ public class SettingsAdd extends AHasIdLongVersion {
    **/
   public final void setDaOf(final Integer pDaOf) {
     this.daOf = pDaOf;
+  }
+
+  /**
+   * <p>Getter for bkTr.</p>
+   * @return Integer
+   **/
+  public final Integer getBkTr() {
+    return this.bkTr;
+  }
+
+  /**
+   * <p>Setter for bkTr.</p>
+   * @param pBkTr reference
+   **/
+  public final void setBkTr(final Integer pBkTr) {
+    this.bkTr = pBkTr;
   }
 }

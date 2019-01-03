@@ -43,6 +43,8 @@ import org.beigesoft.webstore.persistable.ServiceSpecifics;
 import org.beigesoft.webstore.persistable.GoodsCatalog;
 import org.beigesoft.webstore.persistable.ServiceCatalog;
 import org.beigesoft.webstore.persistable.SeGoodCatalog;
+import org.beigesoft.webstore.persistable.Deliv;
+import org.beigesoft.webstore.persistable.PayMd;
 import org.beigesoft.webstore.processor.PrcSeSellerDel;
 import org.beigesoft.webstore.processor.PrcSeSellerSave;
 import org.beigesoft.webstore.processor.PrcAdvisedGoodsForGoodsSave;
@@ -78,7 +80,9 @@ public class HldTradeEntitiesProcessorNames
    **/
   @Override
   public final String getFor(final Class<?> pClass, final String pThingName) {
-    if ("entityEdit".equals(pThingName)
+    if ("entityEdit".equals(pThingName) && pClass == PayMd.class) {
+      return null;
+    } else if ("entityEdit".equals(pThingName)
       || "entityConfirmDelete".equals(pThingName)) {
       return getForRetrieveForEditDelete(pClass);
     } else if ("entityCopy".equals(pThingName)) {
@@ -125,7 +129,8 @@ public class HldTradeEntitiesProcessorNames
    * @return a thing
    **/
   protected final String getForCopy(final Class<?> pClass) {
-    if (this.seEntities.contains(pClass)) {
+    if (this.seEntities.contains(pClass) || pClass == Deliv.class
+      || pClass == PayMd.class) {
       return null;
     }
     if (pClass == ServiceSpecifics.class || pClass == GoodsSpecifics.class) {
@@ -142,6 +147,9 @@ public class HldTradeEntitiesProcessorNames
    * @return a thing
    **/
   protected final String getForPrint(final Class<?> pClass) {
+    if (pClass == PayMd.class) {
+      return null;
+    }
     if (pClass == ServiceSpecifics.class || pClass == GoodsSpecifics.class) {
       return PrcItemSpecificsRetrieve.class.getSimpleName();
     }

@@ -25,6 +25,7 @@ alter table SALESRETURNTAXLINE add column TAXABLEINVBASFC decimal(19,4) default 
 alter table SERVICETOSALE add column TMME tinyint not null default 0;
 alter table SERVICETOSALE add column TMAD int default null;
 alter table SETTINGSADD add column DAOF int not null default 365;
+alter table SETTINGSADD add column BKTR int not null default 1;
 alter table GOODSINLISTLUV add column SESERVICESPECIFICLUV bigint default null;
 alter table GOODSINLISTLUV add column SESERVICEPRICELUV bigint default null;
 alter table GOODSINLISTLUV add column SESERVICEPLACELUV bigint default null;

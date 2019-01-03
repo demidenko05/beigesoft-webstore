@@ -28,7 +28,10 @@ import org.beigesoft.webstore.processor.PrcItemPage;
 import org.beigesoft.webstore.processor.PrcDelItemFromCart;
 import org.beigesoft.webstore.processor.PrcItemInCart;
 import org.beigesoft.webstore.processor.PrcCheckOut;
+import org.beigesoft.webstore.processor.PrPur;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
+import org.beigesoft.webstore.service.IAcpOrd;
+import org.beigesoft.webstore.service.ICncOrd;
 
 /**
  * <p>Public trade processors factory.
@@ -66,6 +69,11 @@ public class FctBnPublicTradeProcessors<RS>
   private ILogger logger;
 
   /**
+   * <p>Logger security.</p>
+   **/
+  private ILogger secLog;
+
+  /**
    * <p>Converters map "converter name"-"object' s converter".</p>
    **/
   private final Map<String, IProcessor> processorsMap =
@@ -75,6 +83,16 @@ public class FctBnPublicTradeProcessors<RS>
    * <p>Shopping Cart service.</p>
    **/
   private ISrvShoppingCart srvShoppingCart;
+
+  /**
+   * <p>Accept buyer's new orders service.</p>
+   **/
+  private IAcpOrd acpOrd;
+
+  /**
+   * <p>Cancel accepted buyer's orders service.</p>
+   **/
+  private ICncOrd cncOrd;
 
   /**
    * <p>Get bean in lazy mode (if bean is null then initialize it).</p>
@@ -94,20 +112,17 @@ public class FctBnPublicTradeProcessors<RS>
         // make sure again whether it's null after locking:
         proc = this.processorsMap.get(pBeanName);
         if (proc == null) {
-          if (pBeanName.equals(PrcDelItemFromCart
-            .class.getSimpleName())) {
+          if (pBeanName.equals(PrcDelItemFromCart.class.getSimpleName())) {
             proc = lazyGetPrcDelItemFromCart(pAddParam);
-          } else if (pBeanName.equals(PrcItemInCart
-            .class.getSimpleName())) {
+          } else if (pBeanName.equals(PrcItemInCart.class.getSimpleName())) {
             proc = lazyGetPrcItemInCart(pAddParam);
-          } else if (pBeanName.equals(PrcCheckOut
-            .class.getSimpleName())) {
+          } else if (pBeanName.equals(PrcCheckOut.class.getSimpleName())) {
             proc = lazyGetPrcCheckOut(pAddParam);
-          } else if (pBeanName.equals(PrcItemPage
-            .class.getSimpleName())) {
+          } else if (pBeanName.equals(PrPur.class.getSimpleName())) {
+            proc = lazyGetPrPur(pAddParam);
+          } else if (pBeanName.equals(PrcItemPage.class.getSimpleName())) {
             proc = lazyGetPrcItemPage(pAddParam);
-          } else if (pBeanName.equals(PrcWebstorePage
-            .class.getSimpleName())) {
+          } else if (pBeanName.equals(PrcWebstorePage.class.getSimpleName())) {
             proc = lazyGetPrcWebstorePage(pAddParam);
           }
         }
@@ -149,6 +164,35 @@ public class FctBnPublicTradeProcessors<RS>
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvShoppingCart(getSrvShoppingCart());
       proc.setProcessorsFactory(this);
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnPublicTradeProcessors.class,
+        beanName + " has been created.");
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Lazy get PrPur.</p>
+   * @param pAddParam additional param
+   * @return requested PrPur
+   * @throws Exception - an exception
+   */
+  protected final PrPur<RS> lazyGetPrPur(
+    final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrPur.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrPur<RS> proc = (PrPur<RS>)
+      this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrPur<RS>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setSrvDb(getSrvDatabase());
+      proc.setSrvCart(getSrvShoppingCart());
+      proc.setLog(getLogger());
+      proc.setSecLog(getSecLog());
+      proc.setAcpOrd(getAcpOrd());
+      proc.setCncOrd(getCncOrd());
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);
       this.logger.info(null, FctBnPublicTradeProcessors.class,
@@ -356,5 +400,53 @@ public class FctBnPublicTradeProcessors<RS>
    **/
   public final void setLogger(final ILogger pLogger) {
     this.logger = pLogger;
+  }
+
+  /**
+   * <p>Getter for secLog.</p>
+   * @return ILogger
+   **/
+  public final ILogger getSecLog() {
+    return this.secLog;
+  }
+
+  /**
+   * <p>Setter for secLog.</p>
+   * @param pSecLog reference
+   **/
+  public final void setSecLog(final ILogger pSecLog) {
+    this.secLog = pSecLog;
+  }
+
+  /**
+   * <p>Getter for acpOrd.</p>
+   * @return IAcpOrd
+   **/
+  public final IAcpOrd getAcpOrd() {
+    return this.acpOrd;
+  }
+
+  /**
+   * <p>Setter for acpOrd.</p>
+   * @param pAcpOrd reference
+   **/
+  public final void setAcpOrd(final IAcpOrd pAcpOrd) {
+    this.acpOrd = pAcpOrd;
+  }
+
+  /**
+   * <p>Getter for cncOrd.</p>
+   * @return ICncOrd
+   **/
+  public final ICncOrd getCncOrd() {
+    return this.cncOrd;
+  }
+
+  /**
+   * <p>Setter for cncOrd.</p>
+   * @param pCncOrd reference
+   **/
+  public final void setCncOrd(final ICncOrd pCncOrd) {
+    this.cncOrd = pCncOrd;
   }
 }
