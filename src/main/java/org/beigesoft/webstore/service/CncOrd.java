@@ -15,18 +15,16 @@ package org.beigesoft.webstore.service;
 import java.util.Map;
 
 import org.beigesoft.log.ILogger;
-import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.webstore.model.EOrdStat;
 import org.beigesoft.webstore.model.Purch;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
 
 /**
- * <p>It cancels all given buyer's orders in single transaction.
+ * <p>It cancels all given buyer's orders.
  * E.g. buyer has not paid online after accepting (booking) orders.
  * It changes item's availability and orders status to given NEW or CANCELED.
- * Request handler must be non-transactional,
- * i.e. it mustn't be started transaction.</p>
+ * </p>
  *
  * @param <RS> platform dependent RDBMS recordset
  * @author Yury Demidenko
@@ -39,21 +37,15 @@ public class CncOrd<RS> implements ICncOrd {
   private ILogger logger;
 
   /**
-   * <p>Database service.</p>
-   */
-  private ISrvDatabase<RS> srvDatabase;
-
-  /**
    * <p>ORM service.</p>
    */
   private ISrvOrm<RS> srvOrm;
 
   /**
-   * <p>It cancels all given buyer's orders in single transaction.
+   * <p>It cancels all given buyer's orders.
    * For example buyer had not paid online after accepting (booking) orders.
    * It changes item's availability and orders status to given NEW or CANCELED.
-   * Request handler must be non-transactional,
-   * i.e. it mustn't be started transaction.</p>
+   * </p>
    * @param pRqVs additional request scoped parameters
    * @param pPurch orders
    * @param pStat NEW or CANCELED
@@ -66,11 +58,10 @@ public class CncOrd<RS> implements ICncOrd {
 
 
   /**
-   * <p>It cancels all buyer's orders in single transaction.
-   * For example it's arise error during final phase online payment execution.
+   * <p>It cancels all given buyer's orders.
+   * For example buyer had not paid online after accepting (booking) orders.
    * It changes item's availability and orders status to given NEW or CANCELED.
-   * Request handler must be non-transactional,
-   * i.e. it mustn't be started transaction.</p>
+   * </p>
    * @param pRqVs additional request scoped parameters
    * @param pBuyr buyer
    * @param pStFr usually BOOKED
@@ -84,12 +75,10 @@ public class CncOrd<RS> implements ICncOrd {
   }
 
   /**
-   * <p>It cancels all buyer's orders with given purchase ID in single
-   * transaction.
-   * For example it's arise error during final phase online payment execution.
+   * <p>It cancels all given buyer's orders.
+   * For example buyer had not paid online after accepting (booking) orders.
    * It changes item's availability and orders status to given NEW or CANCELED.
-   * Request handler must be non-transactional,
-   * i.e. it mustn't be started transaction.</p>
+   * </p>
    * @param pRqVs additional request scoped parameters
    * @param pBuyr buyer
    * @param pPurId purchase ID
@@ -118,23 +107,6 @@ public class CncOrd<RS> implements ICncOrd {
    **/
   public final void setLogger(final ILogger pLogger) {
     this.logger = pLogger;
-  }
-
-  /**
-   * <p>Getter for srvDatabase.</p>
-   * @return ISrvDatabase<RS>
-   **/
-  public final ISrvDatabase<RS> getSrvDatabase() {
-    return this.srvDatabase;
-  }
-
-  /**
-   * <p>Setter for srvDatabase.</p>
-   * @param pSrvDatabase reference
-   **/
-  public final void setSrvDatabase(
-    final ISrvDatabase<RS> pSrvDatabase) {
-    this.srvDatabase = pSrvDatabase;
   }
 
   /**

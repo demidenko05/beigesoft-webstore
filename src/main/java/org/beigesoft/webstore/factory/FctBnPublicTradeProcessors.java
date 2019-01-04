@@ -144,7 +144,12 @@ public class FctBnPublicTradeProcessors<RS>
   @Override
   public final void set(final String pBeanName,
     final IProcessor pBean) throws Exception {
-    throw new Exception("Setting is not allowed!");
+    //only PPL processor:
+    if ("PrPpl".equals(pBeanName)) {
+      this.processorsMap.put(pBeanName, pBean);
+    } else {
+      throw new Exception("Setting is not allowed!");
+    }
   }
 
   /**
@@ -192,7 +197,6 @@ public class FctBnPublicTradeProcessors<RS>
       proc.setLog(getLogger());
       proc.setSecLog(getSecLog());
       proc.setAcpOrd(getAcpOrd());
-      proc.setCncOrd(getCncOrd());
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);
       this.logger.info(null, FctBnPublicTradeProcessors.class,

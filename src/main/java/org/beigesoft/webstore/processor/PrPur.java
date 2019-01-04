@@ -19,7 +19,6 @@ import org.beigesoft.log.ILogger;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
-import org.beigesoft.webstore.model.EOrdStat;
 import org.beigesoft.webstore.model.EPaymentMethod;
 import org.beigesoft.webstore.model.Purch;
 import org.beigesoft.webstore.persistable.Cart;
@@ -28,7 +27,6 @@ import org.beigesoft.webstore.persistable.CustOrder;
 import org.beigesoft.webstore.persistable.SettingsAdd;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 import org.beigesoft.webstore.service.IAcpOrd;
-import org.beigesoft.webstore.service.ICncOrd;
 
 /**
  * <p>
@@ -71,11 +69,6 @@ public class PrPur<RS> implements IProcessor {
   private IAcpOrd acpOrd;
 
   /**
-   * <p>Cancel accepted buyer's orders service.</p>
-   **/
-  private ICncOrd cncOrd;
-
-  /**
    * <p>Process entity request.</p>
    * @param pRqVs request scoped vars
    * @param pRqDt Request Data
@@ -97,25 +90,8 @@ public class PrPur<RS> implements IProcessor {
       if (cart != null && cart.getErr()) {
         cart = null;
       }
-      this.srvDb.commitTransaction();
-    } catch (Exception ex) {
-      if (!this.srvDb.getIsAutocommit()) {
-        this.srvDb.rollBackTransaction();
-      }
-      throw ex;
-    } finally {
-      this.srvDb.releaseResources();
-    }
-    if (cart == null) {
-      //TODO handle spam
-      return;
-    }
-    Purch pur = this.acpOrd.accept(pRqVs, pRqDt, cart.getBuyer());
-    if (pur != null) {
-      try {
-        this.srvDb.setIsAutocommit(false);
-        this.srvDb.setTransactionIsolation(setAdd.getBkTr());
-        this.srvDb.beginTransaction();
+      if (cart != null) {
+        Purch pur = this.acpOrd.accept(pRqVs, pRqDt, cart.getBuyer());
         this.srvCart.emptyCart(pRqVs, cart.getBuyer());
         this.srvDb.commitTransaction();
         if (pur.getOrds() != null && pur.getOrds().size() > 0) {
@@ -139,18 +115,18 @@ public class PrPur<RS> implements IProcessor {
               throw new Exception("It must by offline payment!!");
             }
           }
-        }
-      } catch (Exception ex) {
-        if (!this.srvDb.getIsAutocommit()) {
-          this.srvDb.rollBackTransaction();
-        }
-        this.cncOrd.cancel(pRqVs, pur, EOrdStat.NEW);
-        throw ex;
-      } finally {
-        this.srvDb.releaseResources();
+        } //else TODO handle spam
+        pRqDt.setAttribute("pur",  pur);
       }
+      this.srvDb.commitTransaction();
+    } catch (Exception ex) {
+      if (!this.srvDb.getIsAutocommit()) {
+        this.srvDb.rollBackTransaction();
+      }
+      throw ex;
+    } finally {
+      this.srvDb.releaseResources();
     }
-    pRqDt.setAttribute("pur",  pur);
   }
 
   //Simple getters and setters:
@@ -248,21 +224,5 @@ public class PrPur<RS> implements IProcessor {
    **/
   public final void setAcpOrd(final IAcpOrd pAcpOrd) {
     this.acpOrd = pAcpOrd;
-  }
-
-  /**
-   * <p>Getter for cncOrd.</p>
-   * @return ICncOrd
-   **/
-  public final ICncOrd getCncOrd() {
-    return this.cncOrd;
-  }
-
-  /**
-   * <p>Setter for cncOrd.</p>
-   * @param pCncOrd reference
-   **/
-  public final void setCncOrd(final ICncOrd pCncOrd) {
-    this.cncOrd = pCncOrd;
   }
 }

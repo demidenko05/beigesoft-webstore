@@ -19,28 +19,24 @@ import org.beigesoft.webstore.model.Purch;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
 
 /**
- * <p>It accepts all buyer's orders in single transaction.
+ * <p>It accepts all buyer's orders.
  * It changes item's availability and orders status to PENDING.
- * If any item is unavailable, then that transaction will be rolled back,
- * and it returns result NULL. And so does if there are several payees for
- * online payment. Request handler must be non-transactional,
- * i.e. it mustn't be started transaction.</p>
+ * If any item is unavailable, then it throws exception.
+ * And so does if there are several payees for online payment.</p>
  *
  * @author Yury Demidenko
  */
 public interface IAcpOrd {
 
   /**
-   * <p>It accepts all buyer's orders in single transaction.
+   * <p>It accepts all buyer's orders.
    * It changes item's availability and orders status to PENDING.
-   * If any item is unavailable, then that transaction will be rolled back,
-   * and it returns result NULL. And so does if there are several payees for
-   * online payment. Request handler must be non-transactional,
-   * i.e. it mustn't be started transaction.</p>
+   * If any item is unavailable, then it throws exception.
+   * And so does if there are several payees for online payment.</p>
    * @param pReqVars additional request scoped parameters
    * @param pReqDt Request Data
    * @param pBur Buyer
-   * @return list of accepted orders or NULL
+   * @return list of accepted orders
    * @throws Exception - an exception
    **/
   Purch accept(Map<String, Object> pReqVars,
