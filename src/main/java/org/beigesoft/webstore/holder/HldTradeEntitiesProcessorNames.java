@@ -45,6 +45,10 @@ import org.beigesoft.webstore.persistable.ServiceCatalog;
 import org.beigesoft.webstore.persistable.SeGoodCatalog;
 import org.beigesoft.webstore.persistable.Deliv;
 import org.beigesoft.webstore.persistable.PayMd;
+import org.beigesoft.webstore.persistable.CustOrder;
+import org.beigesoft.webstore.persistable.CustOrderGdLn;
+import org.beigesoft.webstore.persistable.CustOrderSrvLn;
+import org.beigesoft.webstore.persistable.CustOrderTxLn;
 import org.beigesoft.webstore.processor.PrcSeSellerDel;
 import org.beigesoft.webstore.processor.PrcSeSellerSave;
 import org.beigesoft.webstore.processor.PrcAdvisedGoodsForGoodsSave;
@@ -80,7 +84,9 @@ public class HldTradeEntitiesProcessorNames
    **/
   @Override
   public final String getFor(final Class<?> pClass, final String pThingName) {
-    if ("entityEdit".equals(pThingName) && pClass == PayMd.class) {
+    if ("entityEdit".equals(pThingName) && (pClass == CustOrder.class
+      || pClass == CustOrderGdLn.class || pClass == CustOrderSrvLn.class
+        || pClass == CustOrderTxLn.class)) {
       return null;
     } else if ("entityEdit".equals(pThingName)
       || "entityConfirmDelete".equals(pThingName)) {

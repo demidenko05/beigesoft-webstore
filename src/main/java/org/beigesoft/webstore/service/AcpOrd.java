@@ -96,23 +96,19 @@ public class AcpOrd<RS> implements IAcpOrd {
     String tbn = CustOrder.class.getSimpleName();
     pReqVars.put(tbn + "buyerdeepLevel", 1);
     pReqVars.put(tbn + "placedeepLevel", 1);
-    pReqVars.put(tbn + "currdeepLevel", 1);
     ords = this.srvOrm.retrieveListWithConditions(pReqVars,
       CustOrder.class, "where STAT=0 and BUYER=" + pBur.getItsId());
     pReqVars.remove(tbn + "buyerdeepLevel");
     pReqVars.remove(tbn + "placedeepLevel");
-    pReqVars.remove(tbn + "currdeepLevel");
     tbn = CuOrSe.class.getSimpleName();
     pReqVars.put(tbn + "seldeepLevel", 1);
     pReqVars.put(tbn + "buyerdeepLevel", 1);
     pReqVars.put(tbn + "placedeepLevel", 1);
-    pReqVars.put(tbn + "currdeepLevel", 1);
     sords = this.srvOrm.retrieveListWithConditions(pReqVars,
       CuOrSe.class, "where STAT=0 and BUYER=" + pBur.getItsId());
     pReqVars.remove(tbn + "seldeepLevel");
     pReqVars.remove(tbn + "buyerdeepLevel");
     pReqVars.remove(tbn + "placedeepLevel");
-    pReqVars.remove(tbn + "currdeepLevel");
     //checking for several online payees:
     if (sords.size() > 0) {
       boolean isOwnOnlPay = false;

@@ -31,6 +31,7 @@ import org.beigesoft.accounting.persistable.ServiceToSale;
 import org.beigesoft.accounting.persistable.Tax;
 import org.beigesoft.webstore.model.EShopItemType;
 import org.beigesoft.webstore.model.EOrdStat;
+import org.beigesoft.webstore.model.EPaymentMethod;
 import org.beigesoft.webstore.persistable.base.AItemPlace;
 import org.beigesoft.webstore.persistable.base.ACustOrderLn;
 import org.beigesoft.webstore.persistable.Cart;
@@ -47,6 +48,7 @@ import org.beigesoft.webstore.persistable.CustOrderSrvLn;
 import org.beigesoft.webstore.persistable.CustOrderGdLn;
 import org.beigesoft.webstore.persistable.CuOrGdTxLn;
 import org.beigesoft.webstore.persistable.CuOrSrTxLn;
+import org.beigesoft.webstore.persistable.PayMd;
 //import org.beigesoft.webstore.persistable.SeCustOrder;
 import org.beigesoft.webstore.persistable.SerBus;
 import org.beigesoft.webstore.persistable.SeSerBus;
@@ -91,6 +93,16 @@ public class PrcCheckOut<RS> implements IProcessor {
     if (cart == null) {
       //TODO handling "it maybe swindler's bot":
       return;
+    }
+    if (EPaymentMethod.PAYPAL.equals(cart.getPayMeth())) {
+      //TODO partially online, SE
+      List<PayMd> payMds = this.srvOrm.retrieveListWithConditions(pReqVars,
+        PayMd.class, "where ITSNAME='PAYPAL'");
+      if (payMds.size() != 1) {
+        throw new Exception("There is no properly PPL PayMd");
+      } else {
+        pRequestData.setAttribute("pmde", payMds.get(0).getMde());
+      }
     }
     TradingSettings ts = (TradingSettings) pReqVars.get("tradSet");
     AccSettings as = (AccSettings) pReqVars.get("accSet");

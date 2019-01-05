@@ -27,8 +27,10 @@ import org.beigesoft.webstore.processor.PrcWebstorePage;
 import org.beigesoft.webstore.processor.PrcItemPage;
 import org.beigesoft.webstore.processor.PrcDelItemFromCart;
 import org.beigesoft.webstore.processor.PrcItemInCart;
+import org.beigesoft.webstore.processor.PrCart;
 import org.beigesoft.webstore.processor.PrcCheckOut;
 import org.beigesoft.webstore.processor.PrPur;
+import org.beigesoft.webstore.processor.PrBur;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 import org.beigesoft.webstore.service.IAcpOrd;
 import org.beigesoft.webstore.service.ICncOrd;
@@ -114,10 +116,14 @@ public class FctBnPublicTradeProcessors<RS>
         if (proc == null) {
           if (pBeanName.equals(PrcDelItemFromCart.class.getSimpleName())) {
             proc = lazyGetPrcDelItemFromCart(pAddParam);
+          } else if (pBeanName.equals(PrCart.class.getSimpleName())) {
+            proc = lazyGetPrCart(pAddParam);
           } else if (pBeanName.equals(PrcItemInCart.class.getSimpleName())) {
             proc = lazyGetPrcItemInCart(pAddParam);
           } else if (pBeanName.equals(PrcCheckOut.class.getSimpleName())) {
             proc = lazyGetPrcCheckOut(pAddParam);
+          } else if (pBeanName.equals(PrBur.class.getSimpleName())) {
+            proc = lazyGetPrBur(pAddParam);
           } else if (pBeanName.equals(PrPur.class.getSimpleName())) {
             proc = lazyGetPrPur(pAddParam);
           } else if (pBeanName.equals(PrcItemPage.class.getSimpleName())) {
@@ -178,6 +184,31 @@ public class FctBnPublicTradeProcessors<RS>
   }
 
   /**
+   * <p>Lazy get PrBur.</p>
+   * @param pAddParam additional param
+   * @return requested PrBur
+   * @throws Exception - an exception
+   */
+  protected final PrBur<RS> lazyGetPrBur(
+    final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrBur.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrBur<RS> proc = (PrBur<RS>)
+      this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrBur<RS>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setSrvDb(getSrvDatabase());
+      proc.setLog(getLogger());
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnPublicTradeProcessors.class,
+        beanName + " has been created.");
+    }
+    return proc;
+  }
+
+  /**
    * <p>Lazy get PrPur.</p>
    * @param pAddParam additional param
    * @return requested PrPur
@@ -222,6 +253,31 @@ public class FctBnPublicTradeProcessors<RS>
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvCart(getSrvShoppingCart());
       proc.setProcFac(this);
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnPublicTradeProcessors.class,
+        beanName + " has been created.");
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Lazy get PrCart.</p>
+   * @param pAddParam additional param
+   * @return requested PrCart
+   * @throws Exception - an exception
+   */
+  protected final PrCart<RS> lazyGetPrCart(
+    final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrCart.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrCart<RS> proc = (PrCart<RS>)
+      this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrCart<RS>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setSrvCart(getSrvShoppingCart());
+      proc.setProcessorsFactory(this);
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);
       this.logger.info(null, FctBnPublicTradeProcessors.class,

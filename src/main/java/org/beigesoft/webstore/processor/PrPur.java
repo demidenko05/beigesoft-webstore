@@ -93,7 +93,6 @@ public class PrPur<RS> implements IProcessor {
       if (cart != null) {
         Purch pur = this.acpOrd.accept(pRqVs, pRqDt, cart.getBuyer());
         this.srvCart.emptyCart(pRqVs, cart.getBuyer());
-        this.srvDb.commitTransaction();
         if (pur.getOrds() != null && pur.getOrds().size() > 0) {
           //checking orders with online payment:
           for (CustOrder or : pur.getOrds()) {

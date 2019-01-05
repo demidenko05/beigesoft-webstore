@@ -83,6 +83,7 @@ public class BaseTest {
     assertEquals(3, subcgs.size());
     assertEquals(3, fltCat.getItemsAll().size());
     BigDecimal quant = new BigDecimal("2.28");
+    System.out.println("Quantity=2.28 -> long=" + Long.valueOf(quant.longValue()));
     BigDecimal uStep = new BigDecimal("0.25");
     BigDecimal qosr = quant.remainder(uStep);
     assertEquals(qosr.compareTo(new BigDecimal("0.03")), 0);
