@@ -93,6 +93,13 @@ public class OnlineBuyer extends AHasNameIdLongVersion {
    **/
   private TaxDestination taxDest;
 
+  /**
+   * <p>Last time login or logged change cart, logout means 0.
+   * Buyer is logged then Now - lsTm not exceed 30 minutes.
+   * </p>
+   **/
+  private Long lsTm = 0L;
+
   //Simple getters and setters:
   /**
    * <p>Getter for registeredPassword.</p>
@@ -300,5 +307,20 @@ public class OnlineBuyer extends AHasNameIdLongVersion {
    **/
   public final void setTaxDest(final TaxDestination pTaxDest) {
     this.taxDest = pTaxDest;
+  }
+  /**
+   * <p>Getter for lsTm.</p>
+   * @return Long
+   **/
+  public final Long getLsTm() {
+    return this.lsTm;
+  }
+
+  /**
+   * <p>Setter for lsTm.</p>
+   * @param pLsTm reference
+   **/
+  public final void setLsTm(final Long pLsTm) {
+    this.lsTm = pLsTm;
   }
 }

@@ -9,6 +9,8 @@
     files="PrcRefreshItemsInList|PrcItemPage|PrcWebstorePage|HndlSeSellerReq|GoodsPriceListRetriever|ServicePriceListRetriever"/>
   <suppress checks="MagicNumberCheck"
     files="PrcItSpecEmbFlSave|HndlWebAdminReq|SeSellerFilter|PrcSeGdSpecEmbFlSave|PrcSeSrvSpecEmbFlSave|SrvShoppingCart|SettingsAdd"/>
+  <suppress checks="MagicNumberCheck"
+    files="PrcCheckOut|PrcItemInCart|PrPur|PrLog"/>
   <suppress checks="LineLength"
     files="PrcRefreshItemsInList|UtlTradeJsp|FctBnTradeEntitiesProcessors"/>
   <suppress checks="MethodLength"

@@ -31,6 +31,7 @@ import org.beigesoft.webstore.processor.PrCart;
 import org.beigesoft.webstore.processor.PrcCheckOut;
 import org.beigesoft.webstore.processor.PrPur;
 import org.beigesoft.webstore.processor.PrBur;
+import org.beigesoft.webstore.processor.PrLog;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 import org.beigesoft.webstore.service.IAcpOrd;
 import org.beigesoft.webstore.service.ICncOrd;
@@ -120,6 +121,8 @@ public class FctBnPublicTradeProcessors<RS>
             proc = lazyGetPrCart(pAddParam);
           } else if (pBeanName.equals(PrcItemInCart.class.getSimpleName())) {
             proc = lazyGetPrcItemInCart(pAddParam);
+          } else if (pBeanName.equals(PrLog.class.getSimpleName())) {
+            proc = lazyGetPrLog(pAddParam);
           } else if (pBeanName.equals(PrcCheckOut.class.getSimpleName())) {
             proc = lazyGetPrcCheckOut(pAddParam);
           } else if (pBeanName.equals(PrBur.class.getSimpleName())) {
@@ -278,6 +281,31 @@ public class FctBnPublicTradeProcessors<RS>
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvCart(getSrvShoppingCart());
       proc.setProcessorsFactory(this);
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnPublicTradeProcessors.class,
+        beanName + " has been created.");
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Lazy get PrLog.</p>
+   * @param pAddParam additional param
+   * @return requested PrLog
+   * @throws Exception - an exception
+   */
+  protected final PrLog<RS> lazyGetPrLog(
+    final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrLog.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrLog<RS> proc = (PrLog<RS>)
+      this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrLog<RS>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setLog(getLogger());
+      proc.setProcFac(this);
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);
       this.logger.info(null, FctBnPublicTradeProcessors.class,

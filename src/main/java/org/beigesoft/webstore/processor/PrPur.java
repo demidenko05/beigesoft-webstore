@@ -12,6 +12,7 @@ package org.beigesoft.webstore.processor;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
+import java.util.Date;
 import java.util.Map;
 
 import org.beigesoft.model.IRequestData;
@@ -89,6 +90,12 @@ public class PrPur<RS> implements IProcessor {
       cart = this.srvCart.getShoppingCart(pRqVs, pRqDt, false);
       if (cart != null && cart.getErr()) {
         cart = null;
+      }
+      if (cart != null) {
+        long now = new Date().getTime();
+        if (now - cart.getBuyer().getLsTm() > 1800000L) {
+          cart = null;
+        }
       }
       if (cart != null) {
         Purch pur = this.acpOrd.accept(pRqVs, pRqDt, cart.getBuyer());

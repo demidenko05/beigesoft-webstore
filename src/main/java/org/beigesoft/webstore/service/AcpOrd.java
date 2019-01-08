@@ -12,6 +12,7 @@ package org.beigesoft.webstore.service;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
+import java.util.Date;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
@@ -24,8 +25,10 @@ import java.io.InputStream;
 import java.net.URL;
 
 import org.beigesoft.model.IRequestData;
+import org.beigesoft.model.ColumnsValues;
 import org.beigesoft.log.ILogger;
 import org.beigesoft.service.ISrvOrm;
+import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.accounting.persistable.UnitOfMeasure;
 import org.beigesoft.webstore.model.EOrdStat;
 import org.beigesoft.webstore.model.EPaymentMethod;
@@ -39,6 +42,7 @@ import org.beigesoft.webstore.persistable.CuOrSe;
 import org.beigesoft.webstore.persistable.CustOrder;
 import org.beigesoft.webstore.persistable.CustOrderGdLn;
 import org.beigesoft.webstore.persistable.CustOrderSrvLn;
+import org.beigesoft.webstore.persistable.SettingsAdd;
 
 /**
  * <p>It accepts all buyer's orders.
@@ -60,6 +64,11 @@ public class AcpOrd<RS> implements IAcpOrd {
    * <p>ORM service.</p>
    */
   private ISrvOrm<RS> srvOrm;
+
+  /**
+   * <p>DB service.</p>
+   */
+  private ISrvDatabase<RS> srvDb;
 
   /**
    * <p>Query goods availability checkout.</p>
@@ -91,13 +100,15 @@ public class AcpOrd<RS> implements IAcpOrd {
   public final Purch accept(final Map<String, Object> pReqVars,
     final IRequestData pReqDt, final OnlineBuyer pBur) throws Exception {
     Purch rez = null;
+    SettingsAdd setAdd = (SettingsAdd) pReqVars.get("setAdd");
     List<CustOrder> ords = null;
     List<CuOrSe> sords = null;
     String tbn = CustOrder.class.getSimpleName();
+    String wheStBr = "where STAT=0 and BUYER=" + pBur.getItsId();
     pReqVars.put(tbn + "buyerdeepLevel", 1);
     pReqVars.put(tbn + "placedeepLevel", 1);
     ords = this.srvOrm.retrieveListWithConditions(pReqVars,
-      CustOrder.class, "where STAT=0 and BUYER=" + pBur.getItsId());
+      CustOrder.class, wheStBr);
     pReqVars.remove(tbn + "buyerdeepLevel");
     pReqVars.remove(tbn + "placedeepLevel");
     tbn = CuOrSe.class.getSimpleName();
@@ -105,7 +116,7 @@ public class AcpOrd<RS> implements IAcpOrd {
     pReqVars.put(tbn + "buyerdeepLevel", 1);
     pReqVars.put(tbn + "placedeepLevel", 1);
     sords = this.srvOrm.retrieveListWithConditions(pReqVars,
-      CuOrSe.class, "where STAT=0 and BUYER=" + pBur.getItsId());
+      CuOrSe.class, wheStBr);
     pReqVars.remove(tbn + "seldeepLevel");
     pReqVars.remove(tbn + "buyerdeepLevel");
     pReqVars.remove(tbn + "placedeepLevel");
@@ -147,9 +158,21 @@ public class AcpOrd<RS> implements IAcpOrd {
       adChekBook(pReqVars, cor.getGoods(), cor.getServs());
     }
     //change orders status:
-    for (CustOrder co : ords) {
-      co.setStat(EOrdStat.BOOKED);
-      getSrvOrm().updateEntity(pReqVars, co);
+    if (setAdd.getOpMd() == 0) {
+      String[] fieldsNames = new String[] {"itsId", "itsVersion", "stat"};
+      pReqVars.put("fieldsNames", fieldsNames);
+      for (CustOrder co : ords) {
+        co.setStat(EOrdStat.BOOKED);
+        getSrvOrm().updateEntity(pReqVars, co);
+      }
+      pReqVars.remove("fieldsNames");
+    } else {
+      ColumnsValues cvs = new ColumnsValues();
+      cvs.setIdColumnsNames(new String[] {"itsId"});
+      cvs.put("itsVersion", new Date().getTime());
+      cvs.put("stat", EOrdStat.BOOKED.ordinal());
+      this.srvDb.executeUpdate("CUSTORDER", cvs, "STAT=0 and BUYER="
+        + pBur.getItsId());
     }
     rez = new Purch();
     if (ords.size() > 0) {
@@ -454,5 +477,21 @@ public class AcpOrd<RS> implements IAcpOrd {
    **/
   public final void setSrvOrm(final ISrvOrm<RS> pSrvOrm) {
     this.srvOrm = pSrvOrm;
+  }
+
+  /**
+   * <p>Getter for srvDb.</p>
+   * @return ISrvDatabase<RS>
+   **/
+  public final ISrvDatabase<RS> getSrvDb() {
+    return this.srvDb;
+  }
+
+  /**
+   * <p>Setter for srvDb.</p>
+   * @param pSrvDb reference
+   **/
+  public final void setSrvDb(final ISrvDatabase<RS> pSrvDb) {
+    this.srvDb = pSrvDb;
   }
 }

@@ -12,6 +12,7 @@ package org.beigesoft.webstore.processor;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
+import java.util.Date;
 import java.util.Map;
 import java.math.BigDecimal;
 
@@ -136,6 +137,14 @@ public class PrcItemInCart<RS> implements IProcessor {
     pRequestData.setAttribute("cart", cart);
     if (txRules != null) {
       pRequestData.setAttribute("txRules", txRules);
+    }
+    long now = new Date().getTime();
+    if (now - cart.getBuyer().getLsTm() < 1800000L) {
+      String[] fieldsNames = new String[] {"itsId", "itsVersion", "lsTm"};
+      pReqVars.put("fieldsNames", fieldsNames);
+      cart.getBuyer().setLsTm(now);
+      this.srvOrm.updateEntity(pReqVars, cart.getBuyer());
+      pReqVars.remove("fieldsNames");
     }
     String processorName = pRequestData.getParameter("nmPrcRed");
     IProcessor proc = this.processorsFactory.lazyGet(pReqVars, processorName);

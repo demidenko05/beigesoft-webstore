@@ -194,6 +194,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
           .toString());
       }
     }
+    pRequestData.setAttribute("buyr", buyer);
     Cart cart = retrCart(pReqVars, buyer, false);
     if (cart == null && pIsNeedToCreate) {
       cart = new Cart();
@@ -1026,6 +1027,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       for (CartTot cttl : cart.getTotals()) {
         cttl.setItsOwner(cart);
       }
+      cart.setBuyer(pBuyr);
     }
     return cart;
   }

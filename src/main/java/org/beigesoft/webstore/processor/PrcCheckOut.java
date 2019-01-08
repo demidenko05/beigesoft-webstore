@@ -94,6 +94,10 @@ public class PrcCheckOut<RS> implements IProcessor {
       //TODO handling "it maybe swindler's bot":
       return;
     }
+    long now = new Date().getTime();
+    if (now - cart.getBuyer().getLsTm() > 1800000L) {
+      return;
+    }
     if (EPaymentMethod.PAYPAL.equals(cart.getPayMeth())) {
       //TODO partially online, SE
       List<PayMd> payMds = this.srvOrm.retrieveListWithConditions(pReqVars,

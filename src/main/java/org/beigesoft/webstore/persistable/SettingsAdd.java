@@ -85,6 +85,27 @@ public class SettingsAdd extends AHasIdLongVersion {
    **/
   private Integer bkTr = 1;
 
+  /**
+   * <p>Optimistic locking mode:
+   * <ul>
+   * <li>0 use OL.</li>
+   * <li>1 don't use OL (fast update).</li>
+   * </ul>
+   * </p>
+   **/
+  private Integer opMd = 0;
+
+  /**
+   * <p>Online payment mode:
+   * <ul>
+   * <li>0 any seller is payee.</li>
+   * <li>1 only owner is payee,
+   *   i.e. itself sent part of payment to S.E.Seller(s).</li>
+   * </ul>
+   * </p>
+   **/
+  private Integer onlMd = 0;
+
   //Simple getters and setters:
   /**
    * <p>Getter for recordsPerTransaction.</p>
@@ -246,5 +267,36 @@ public class SettingsAdd extends AHasIdLongVersion {
    **/
   public final void setBkTr(final Integer pBkTr) {
     this.bkTr = pBkTr;
+  }
+
+  /**
+   * <p>Getter for opMd.</p>
+   * @return Integer
+   **/
+  public final Integer getOpMd() {
+    return this.opMd;
+  }
+
+  /**
+   * <p>Setter for opMd.</p>
+   * @param pOpMd reference
+   **/
+  public final void setOpMd(final Integer pOpMd) {
+    this.opMd = pOpMd;
+  }
+  /**
+   * <p>Getter for onlMd.</p>
+   * @return Integer
+   **/
+  public final Integer getOnlMd() {
+    return this.onlMd;
+  }
+
+  /**
+   * <p>Setter for onlMd.</p>
+   * @param pOnlMd reference
+   **/
+  public final void setOnlMd(final Integer pOnlMd) {
+    this.onlMd = pOnlMd;
   }
 }
