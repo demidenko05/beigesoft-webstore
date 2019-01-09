@@ -169,44 +169,52 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
   public final Cart getShoppingCart(final Map<String, Object> pReqVars,
     final IRequestData pRequestData,
       final boolean pIsNeedToCreate) throws Exception {
-    Long buyerId = null;
-    String buyerIdStr = pRequestData.getCookieValue("cBuyerId");
-    if (buyerIdStr != null && buyerIdStr.length() > 0) {
-       buyerId = Long.valueOf(buyerIdStr);
-    }
-    OnlineBuyer buyer;
     TradingSettings ts = srvTradingSettings.lazyGetTradingSettings(pReqVars);
-    if (buyerId == null) {
-      if (pIsNeedToCreate
-        || ts.getIsCreateOnlineUserOnFirstVisit()) {
-        buyer = createOnlineBuyer(pReqVars, pRequestData);
-        pRequestData.setCookieValue("cBuyerId", buyer.getItsId()
-          .toString());
+    OnlineBuyer buyer = (OnlineBuyer) pRequestData.getAttribute("buyr");
+    if (buyer == null) {
+      Long buyerId = null;
+      String buyerIdStr = pRequestData.getCookieValue("cBuyerId");
+      if (buyerIdStr != null && buyerIdStr.length() > 0) {
+         buyerId = Long.valueOf(buyerIdStr);
+      }
+      if (buyerId == null) {
+        if (pIsNeedToCreate
+          || ts.getIsCreateOnlineUserOnFirstVisit()) {
+          buyer = createOnlineBuyer(pReqVars, pRequestData);
+          pRequestData.setCookieValue("cBuyerId", buyer.getItsId()
+            .toString());
+        } else {
+          return null;
+        }
       } else {
-        return null;
+        buyer = getSrvOrm()
+          .retrieveEntityById(pReqVars, OnlineBuyer.class, buyerId);
+        if (buyer == null) { // deleted for any reason, so create new:
+          buyer = createOnlineBuyer(pReqVars, pRequestData);
+          pRequestData.setCookieValue("cBuyerId", buyer.getItsId()
+            .toString());
+        }
       }
-    } else {
-      buyer = getSrvOrm()
-        .retrieveEntityById(pReqVars, OnlineBuyer.class, buyerId);
-      if (buyer == null) { // deleted for any reason, so create new:
-        buyer = createOnlineBuyer(pReqVars, pRequestData);
-        pRequestData.setCookieValue("cBuyerId", buyer.getItsId()
-          .toString());
-      }
+      pRequestData.setAttribute("buyr", buyer);
     }
-    pRequestData.setAttribute("buyr", buyer);
-    Cart cart = retrCart(pReqVars, buyer, false);
-    if (cart == null && pIsNeedToCreate) {
-      cart = new Cart();
-      Currency curr = (Currency) pReqVars.get("wscurr");
-      cart.setPayMeth(ts.getDefaultPaymentMethod());
-      cart.setDeliv(EDelivering.PICKUP);
-      cart.setCurr(curr);
-      cart.setItems(new ArrayList<CartLn>());
-      cart.setTaxes(new ArrayList<CartTxLn>());
-      cart.setTotals(new ArrayList<CartTot>());
-      cart.setItsId(buyer);
-      getSrvOrm().insertEntity(pReqVars, cart);
+    Cart cart = (Cart) pRequestData.getAttribute("cart");
+    if (cart == null) {
+      cart = retrCart(pReqVars, buyer, false);
+      if (cart == null && pIsNeedToCreate) {
+        cart = new Cart();
+        Currency curr = (Currency) pReqVars.get("wscurr");
+        cart.setPayMeth(ts.getDefaultPaymentMethod());
+        cart.setDeliv(EDelivering.PICKUP);
+        cart.setCurr(curr);
+        cart.setItems(new ArrayList<CartLn>());
+        cart.setTaxes(new ArrayList<CartTxLn>());
+        cart.setTotals(new ArrayList<CartTot>());
+        cart.setItsId(buyer);
+        getSrvOrm().insertEntity(pReqVars, cart);
+      }
+      if (cart != null) {
+        pRequestData.setAttribute("cart", cart);
+      }
     }
     if (cart != null && cart.getTot().compareTo(BigDecimal.ZERO) == 1) {
       if (EPaymentMethod.ANY.equals(cart.getPayMeth())
@@ -1128,16 +1136,31 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    * <p>Create OnlineBuyer.</p>
    * @param pReqVars additional param
    * @param pRequestData Request Data
-   * @return shopping cart or null
+   * @return buyer
    * @throws Exception - an exception
    **/
   public final OnlineBuyer createOnlineBuyer(
     final Map<String, Object> pReqVars,
       final IRequestData pRequestData) throws Exception {
-    OnlineBuyer buyer = new OnlineBuyer();
-    buyer.setIsNew(true);
-    buyer.setItsName("newbe" + new Date().getTime());
-    getSrvOrm().insertEntity(pReqVars, buyer);
+    OnlineBuyer buyer = null;
+    List<OnlineBuyer> brs = getSrvOrm().retrieveListWithConditions(pReqVars,
+      OnlineBuyer.class, "where FRE=1 and REGISTEREDPASSWORD is null");
+    if (brs.size() > 0) {
+      double rd = Math.random();
+      if (rd > 0.5) {
+        buyer = brs.get(brs.size() - 1);
+      } else {
+        buyer = brs.get(0);
+      }
+      buyer.setFre(false);
+      getSrvOrm().updateEntity(pReqVars, buyer);
+    }
+    if (buyer == null) {
+      buyer = new OnlineBuyer();
+      buyer.setIsNew(true);
+      buyer.setItsName("newbe" + new Date().getTime());
+      getSrvOrm().insertEntity(pReqVars, buyer);
+    }
     return buyer;
   }
 

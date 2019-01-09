@@ -120,8 +120,8 @@ public class AcpOrd<RS> implements IAcpOrd {
     pReqVars.remove(tbn + "seldeepLevel");
     pReqVars.remove(tbn + "buyerdeepLevel");
     pReqVars.remove(tbn + "placedeepLevel");
-    //checking for several online payees:
-    if (sords.size() > 0) {
+    if (setAdd.getOnlMd() == 0 && sords.size() > 0) {
+      //checking for several online payees:
       boolean isOwnOnlPay = false;
       for (CustOrder co : ords) {
         if (co.getPayMeth().equals(EPaymentMethod.ONLINE)
@@ -196,6 +196,8 @@ public class AcpOrd<RS> implements IAcpOrd {
     final List<CustOrder> pOrds) throws Exception {
     Map<Long, StringBuffer> plOrIds = new HashMap<Long, StringBuffer>();
     for (CustOrder co : pOrds) {
+      co.setGoods(new ArrayList<CustOrderGdLn>());
+      co.setServs(new ArrayList<CustOrderSrvLn>());
       StringBuffer ordIds = plOrIds.get(co.getPlace().getItsId());
       if (ordIds == null) {
         ordIds = new StringBuffer();
@@ -205,38 +207,65 @@ public class AcpOrd<RS> implements IAcpOrd {
         ordIds.append("," + co.getItsId());
       }
     }
+    Set<String> ndFlNm = new HashSet<String>();
+    ndFlNm.add("itsId");
+    ndFlNm.add("itsName");
     Set<String> ndFl = new HashSet<String>();
     ndFl.add("itsId");
-    ndFl.add("quant");
+    ndFl.add("itsOwner");
+    ndFl.add("itsName");
     ndFl.add("good");
+    ndFl.add("uom");
+    ndFl.add("quant");
+    ndFl.add("price");
+    ndFl.add("tot");
+    ndFl.add("totTx");
     String tbn = CustOrderGdLn.class.getSimpleName();
+    String tbnUom = UnitOfMeasure.class.getSimpleName();
     pReqVars.put(tbn + "neededFields", ndFl);
     pReqVars.put(tbn + "gooddeepLevel", 1);
+    pReqVars.put(tbn + "itsOwnerLevel", 1);
+    pReqVars.put(tbnUom + "neededFields", ndFlNm);
     List<CustOrderGdLn> allGoods = new ArrayList<CustOrderGdLn>();
+    List<CustOrderSrvLn> allServs = new ArrayList<CustOrderSrvLn>();
     for (Map.Entry<Long, StringBuffer> ent : plOrIds.entrySet()) {
       String quer = lazyGetQuOrGdChk().replace(":ORIDS", ent.getValue()
         .toString()).replace(":PLACE", ent.getKey().toString());
       List<CustOrderGdLn> allGds = this.srvOrm.retrieveListByQuery(
         pReqVars, CustOrderGdLn.class, quer);
       for (CustOrderGdLn gl : allGds) {
-        //UOM holds place ID for additional checking and booking:
-        UnitOfMeasure uom = new UnitOfMeasure();
-        uom.setItsId(ent.getKey());
-        gl.setUom(uom);
         if (gl.getQuant().compareTo(BigDecimal.ZERO) == 0) {
           throw new Exception("Good is not available #"
             + gl.getGood().getItsId());
         }
       }
-      allGoods.addAll(allGds);
+      for (CustOrderGdLn gl : allGds) {
+        for (CustOrder co : pOrds) {
+          if (co.getItsId().equals(gl.getItsOwner().getItsId())) {
+            gl.setItsOwner(co);
+            co.getGoods().add(gl);
+          }
+        }
+        CustOrderGdLn cgl = new CustOrderGdLn();
+        cgl.setItsId(gl.getItsId());
+        cgl.setGood(gl.getGood());
+        cgl.setQuant(gl.getQuant());
+        //UOM holds place ID for additional checking and booking:
+        UnitOfMeasure uom = new UnitOfMeasure();
+        uom.setItsId(ent.getKey());
+        cgl.setUom(uom);
+        allGoods.add(cgl);
+      }
     }
     pReqVars.remove(tbn + "gooddeepLevel");
     pReqVars.remove(tbn + "neededFields");
+    pReqVars.remove(tbn + "itsOwnerLevel");
     ndFl.remove("good");
     ndFl.add("service");
     tbn = CustOrderSrvLn.class.getSimpleName();
     pReqVars.put(tbn + "neededFields", ndFl);
     pReqVars.put(tbn + "servicedeepLevel", 1);
+    pReqVars.put(tbn + "itsOwnerLevel", 1);
     for (Map.Entry<Long, StringBuffer> ent : plOrIds.entrySet()) {
       String quer = lazyGetQuOrSrNbChk().replace(":ORIDS", ent.getValue()
         .toString()).replace(":PLACE", ent.getKey().toString());
@@ -248,35 +277,65 @@ public class AcpOrd<RS> implements IAcpOrd {
             + sl.getService().getItsId());
         }
       }
+      for (CustOrderSrvLn sl : allSrvs) {
+        for (CustOrder co : pOrds) {
+          if (co.getItsId().equals(sl.getItsOwner().getItsId())) {
+            sl.setItsOwner(co);
+            co.getServs().add(sl);
+          }
+        }
+        CustOrderSrvLn csl = new CustOrderSrvLn();
+        csl.setItsId(sl.getItsId());
+        csl.setService(sl.getService());
+        csl.setQuant(sl.getQuant());
+        //UOM holds place ID for additional checking and booking:
+        UnitOfMeasure uom = new UnitOfMeasure();
+        uom.setItsId(ent.getKey());
+        csl.setUom(uom);
+        allServs.add(csl);
+      }
     }
-    pReqVars.remove(tbn + "servicedeepLevel");
-    pReqVars.remove(tbn + "neededFields");
-    List<CustOrderSrvLn> allBkSrvs = new ArrayList<CustOrderSrvLn>();
-    //bookable services half-checkout:
     ndFl.add("dt1");
     ndFl.add("dt2");
+    //bookable services half-checkout:
     for (Map.Entry<Long, StringBuffer> ent : plOrIds.entrySet()) {
       String quer = lazyGetQuOrSrBkChk().replace(":ORIDS", ent.getValue()
         .toString()).replace(":PLACE", ent.getKey().toString());
       List<CustOrderSrvLn> allSrvs = this.srvOrm.retrieveListByQuery(
         pReqVars, CustOrderSrvLn.class, quer);
       for (CustOrderSrvLn sl : allSrvs) {
-        //UOM holds place ID for final checkout and booking:
-        UnitOfMeasure uom = new UnitOfMeasure();
-        uom.setItsId(ent.getKey());
-        sl.setUom(uom);
         if (sl.getQuant().compareTo(BigDecimal.ZERO) == 0) {
           throw new Exception("Bookable service is not available #"
             + sl.getService().getItsId());
         }
       }
-      allBkSrvs.addAll(allSrvs);
+      for (CustOrderSrvLn sl : allSrvs) {
+        for (CustOrder co : pOrds) {
+          if (co.getItsId().equals(sl.getItsOwner().getItsId())) {
+            sl.setItsOwner(co);
+            co.getServs().add(sl);
+          }
+        }
+        CustOrderSrvLn csl = new CustOrderSrvLn();
+        csl.setItsId(sl.getItsId());
+        csl.setService(sl.getService());
+        csl.setQuant(sl.getQuant());
+        csl.setDt1(sl.getDt1());
+        csl.setDt2(sl.getDt2());
+        //UOM holds place ID for additional checking and booking:
+        UnitOfMeasure uom = new UnitOfMeasure();
+        uom.setItsId(ent.getKey());
+        csl.setUom(uom);
+        allServs.add(csl);
+      }
     }
     pReqVars.remove(tbn + "servicedeepLevel");
     pReqVars.remove(tbn + "neededFields");
+    pReqVars.remove(tbn + "itsOwnerLevel");
+    pReqVars.remove(tbnUom + "neededFields");
     CustOrder cor = new CustOrder();
     cor.setGoods(allGoods);
-    cor.setServs(allBkSrvs);
+    cor.setServs(allServs);
     return cor;
   }
 
@@ -284,12 +343,12 @@ public class AcpOrd<RS> implements IAcpOrd {
    * <p>It checks additionally and books items.</p>
    * @param pReqVars additional request scoped parameters
    * @param pGoods Goods
-   * @param pBkServs bookable services
+   * @param pServices services
    * @throws Exception - an exception if incomplete
    **/
   public final void adChekBook(final Map<String, Object> pReqVars,
     final List<CustOrderGdLn> pGoods,
-      final List<CustOrderSrvLn> pBkServs) throws Exception {
+      final List<CustOrderSrvLn> pServices) throws Exception {
     //additional checking:
     String tbn;
     //check availability and booking for same good in different orders:
@@ -337,7 +396,7 @@ public class AcpOrd<RS> implements IAcpOrd {
     tbn = ServicePlace.class.getSimpleName();
     pReqVars.put(tbn + "itemdeepLevel", 1); //only ID
     pReqVars.put(tbn + "pickUpPlacedeepLevel", 1);
-    for (CustOrderSrvLn sl : pBkServs) {
+    for (CustOrderSrvLn sl : pServices) {
       cond = "left join (select distinct SERV from SERBUS where SERV="
     + sl.getService().getItsId() + " and FRTM>=" + sl.getDt1().getTime()
   + " and TITM<" + sl.getDt2().getTime()
@@ -367,16 +426,42 @@ public class AcpOrd<RS> implements IAcpOrd {
         throw new Exception("AC. Good is not available #"
           + gl.getGood().getItsId());
       } else {
-        getSrvOrm().updateEntity(pReqVars, gp);
+        if (!gp.getIsAlways()) {
+          getSrvOrm().updateEntity(pReqVars, gp);
+        }
       }
     }
     pReqVars.remove(tbn + "itemdeepLevel");
     pReqVars.remove(tbn + "pickUpPlacedeepLevel");
-    for (CustOrderSrvLn sl : pBkServs) {
-      SerBus sb = new SerBus();
-      sb.setFrTm(sl.getDt1());
-      sb.setTiTm(sl.getDt2());
-      getSrvOrm().insertEntity(pReqVars, sb);
+    tbn = ServicePlace.class.getSimpleName();
+    pReqVars.put(tbn + "itemdeepLevel", 1); //only ID
+    pReqVars.put(tbn + "pickUpPlacedeepLevel", 1);
+    for (CustOrderSrvLn sl : pServices) {
+      if (sl.getDt1() == null) {
+        ServicePlace sp = getSrvOrm().retrieveEntityWithConditions(pReqVars,
+          ServicePlace.class, "where ITEM=" + sl.getService().getItsId()
+            + " and PICKUPPLACE=" + sl.getUom().getItsId());
+        sp.setItsQuantity(sp.getItsQuantity().subtract(sl.getQuant()));
+        if (sp.getItsQuantity().compareTo(BigDecimal.ZERO) == -1) {
+          throw new Exception("NBK service is not available #"
+            + sl.getService().getItsId());
+        } else {
+          if (!sp.getIsAlways()) {
+            getSrvOrm().updateEntity(pReqVars, sp);
+          }
+        }
+      }
+    }
+    pReqVars.remove(tbn + "itemdeepLevel");
+    pReqVars.remove(tbn + "pickUpPlacedeepLevel");
+    for (CustOrderSrvLn sl : pServices) {
+      if (sl.getDt1() != null) {
+        SerBus sb = new SerBus();
+        sb.setServ(sl.getService());
+        sb.setFrTm(sl.getDt1());
+        sb.setTiTm(sl.getDt2());
+        getSrvOrm().insertEntity(pReqVars, sb);
+      }
     }
   }
 

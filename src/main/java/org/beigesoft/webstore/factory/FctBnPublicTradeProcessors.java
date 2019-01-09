@@ -304,7 +304,9 @@ public class FctBnPublicTradeProcessors<RS>
     if (proc == null) {
       proc = new PrLog<RS>();
       proc.setSrvOrm(getSrvOrm());
-      proc.setLog(getLogger());
+      proc.setSrvDb(getSrvDatabase());
+      proc.setLog(getSecLog());
+      proc.setSrvCart(getSrvShoppingCart());
       proc.setProcFac(this);
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);

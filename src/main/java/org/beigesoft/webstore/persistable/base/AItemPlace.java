@@ -41,6 +41,11 @@ public abstract class
   private BigDecimal itsQuantity;
 
   /**
+   * <p>To switch method <b>Always available</b>.</p>
+   **/
+  private Boolean isAlways;
+
+  /**
    * <p>Setter for pPlace.</p>
    * @param pPlace reference
    **/
@@ -79,5 +84,21 @@ public abstract class
    **/
   public final void setItsQuantity(final BigDecimal pItsQuantity) {
     this.itsQuantity = pItsQuantity;
+  }
+
+  /**
+   * <p>Getter for isAlways.</p>
+   * @return Boolean
+   **/
+  public final Boolean getIsAlways() {
+    return this.isAlways;
+  }
+
+  /**
+   * <p>Setter for isAlways.</p>
+   * @param pIsAlways reference
+   **/
+  public final void setIsAlways(final Boolean pIsAlways) {
+    this.isAlways = pIsAlways;
   }
 }

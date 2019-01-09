@@ -134,7 +134,6 @@ public class PrcItemInCart<RS> implements IProcessor {
        txRules, false, redoTxc);
       this.srvCart.makeCartTotals(pReqVars, ts, cartLn, as, txRules);
     }
-    pRequestData.setAttribute("cart", cart);
     if (txRules != null) {
       pRequestData.setAttribute("txRules", txRules);
     }

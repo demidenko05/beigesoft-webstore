@@ -12,15 +12,26 @@ package org.beigesoft.webstore.processor;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
+import java.util.Set;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Date;
 
 import org.beigesoft.model.IRequestData;
+import org.beigesoft.model.ColumnsValues;
 import org.beigesoft.log.ILogger;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IProcessor;
+import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.service.ISrvOrm;
+import org.beigesoft.accounting.persistable.AccSettings;
+import org.beigesoft.accounting.persistable.TaxDestination;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
+import org.beigesoft.webstore.persistable.Cart;
+import org.beigesoft.webstore.persistable.CartLn;
+import org.beigesoft.webstore.persistable.TradingSettings;
+import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
  * <p>Processor that registers, logins, logouts buyer.</p>
@@ -41,9 +52,19 @@ public class PrLog<RS> implements IProcessor {
   private ISrvOrm<RS> srvOrm;
 
   /**
+   * <p>DB service.</p>
+   */
+  private ISrvDatabase<RS> srvDb;
+
+  /**
    * <p>Processors factory.</p>
    **/
   private IFactoryAppBeansByName<IProcessor> procFac;
+
+  /**
+   * <p>Shopping Cart service.</p>
+   **/
+  private ISrvShoppingCart srvCart;
 
   /**
    * <p>Process request.</p>
@@ -60,31 +81,52 @@ public class PrLog<RS> implements IProcessor {
        buyerId = Long.valueOf(buyerIdStr);
     }
     OnlineBuyer buyer;
+    boolean isNew = false;
     if (buyerId == null) {
-      buyer = new OnlineBuyer();
-      buyer.setIsNew(true);
+      buyer = createBuyer(pRqVs);
+      isNew = true;
     } else {
       buyer = getSrvOrm().retrieveEntityById(pRqVs, OnlineBuyer.class, buyerId);
       if (buyer == null) { // deleted for any reason, so create new:
-        buyer = new OnlineBuyer();
-        buyer.setIsNew(true);
+        buyer = createBuyer(pRqVs);
+        isNew = true;
       }
     }
     String nm = pRqDt.getParameter("nm");
     String em = pRqDt.getParameter("em");
     String pw = pRqDt.getParameter("pw");
     String pwc = pRqDt.getParameter("pwc");
-    if (buyer.getIsNew()) {
+    long now = new Date().getTime();
+    String tbn = OnlineBuyer.class.getSimpleName();
+    pRqDt.setAttribute("buyr", buyer);
+    if (isNew) {
       //creating:
       if (nm != null && pw != null && pwc != null && em != null) {
-        if (nm.length() > 5 && pw.length() > 7 && pw.equals(pwc)
+        if (nm.length() > 2 && pw.length() > 7 && pw.equals(pwc)
           && em.length() > 5) {
-          buyer.setItsName(nm);
-          buyer.setRegisteredPassword(pw);
-          buyer.setRegEmail(em);
-          buyer.setLsTm(new Date().getTime());
-          this.srvOrm.insertEntity(pRqVs, buyer);
-          pRqDt.setCookieValue("cBuyerId", buyer.getItsId().toString());
+          Set<String> ndFl = new HashSet<String>();
+          ndFl.add("itsId");
+          pRqVs.put(tbn + "neededFields", ndFl);
+          List<OnlineBuyer> brs = getSrvOrm().retrieveListWithConditions(pRqVs,
+            OnlineBuyer.class, "where REGEMAIL='" + em + "'");
+          pRqVs.remove(tbn + "neededFields");
+          if (brs.size() == 0) {
+            buyer.setItsName(nm);
+            buyer.setRegisteredPassword(pw);
+            buyer.setRegEmail(em);
+            buyer.setLsTm(now);
+            if (buyer.getIsNew()) {
+              this.srvOrm.insertEntity(pRqVs, buyer);
+            } else {
+              this.srvOrm.updateEntity(pRqVs, buyer);
+            }
+            pRqDt.setCookieValue("cBuyerId", buyer.getItsId().toString());
+          } else if (brs.size() == 1) {
+            pRqDt.setAttribute("errMsg", "emBusy");
+          } else {
+            getLog().error(pRqVs, PrLog.class,
+              "Several users with same email!: " + em);
+          }
         } else {
           pRqDt.setAttribute("errMsg", "buyCrRul");
         }
@@ -92,24 +134,11 @@ public class PrLog<RS> implements IProcessor {
         spam(pRqVs, pRqDt);
       }
     } else {
-      //creating/cange all:
-      if (nm != null && pw != null && pwc != null && em != null) {
-        if (nm.length() > 5 && pw.length() > 7 && pw.equals(pwc)
-          && em.length() > 5) {
+      if (nm != null && pw == null && em == null) {
+        //change name:
+        if (nm.length() > 2) {
           buyer.setItsName(nm);
-          buyer.setRegisteredPassword(pw);
-          buyer.setRegEmail(em);
-          buyer.setLsTm(new Date().getTime());
-          this.srvOrm.updateEntity(pRqVs, buyer);
-        } else {
-          pRqDt.setAttribute("errMsg", "buyCrRul");
-        }
-      } else if (nm != null && pw == null && em != null) {
-        //change name, email:
-        if (nm.length() > 5 && em.length() > 5) {
-          buyer.setItsName(nm);
-          buyer.setRegEmail(em);
-          buyer.setLsTm(new Date().getTime());
+          buyer.setLsTm(now);
           this.srvOrm.updateEntity(pRqVs, buyer);
         } else {
           pRqDt.setAttribute("errMsg", "buyEmRul");
@@ -118,25 +147,51 @@ public class PrLog<RS> implements IProcessor {
         //change password:
         if (pw.length() > 7 && pw.equals(pwc)) {
           buyer.setRegisteredPassword(pw);
-          buyer.setLsTm(new Date().getTime());
+          buyer.setLsTm(now);
           this.srvOrm.updateEntity(pRqVs, buyer);
         } else {
           pRqDt.setAttribute("errMsg", "buyPwdRul");
         }
-      } else if (buyer.getRegisteredPassword() != null) {
+      } else if (pw != null) {
         //login/logout action:
-        long now = new Date().getTime();
-        if (now - buyer.getLsTm() > 1800000L) { //login
-          if (pw != null && pw.equals(buyer.getRegisteredPassword())) {
-            buyer.setLsTm(now);
-            this.srvOrm.updateEntity(pRqVs, buyer);
+        if (buyer.getRegisteredPassword() != null) {
+          //cookie ID is equal to buyer
+          if (now - buyer.getLsTm() > 1800000L) { //login
+            if (pw.equals(buyer.getRegisteredPassword())) {
+              buyer.setLsTm(now);
+              this.srvOrm.updateEntity(pRqVs, buyer);
+            } else {
+              pRqDt.setAttribute("errMsg", "wrong_password");
+            }
           } else {
-            pRqDt.setAttribute("errMsg", "wrong_password");
+            spam(pRqVs, pRqDt);
           }
-        } else { //logout
-          buyer.setLsTm(0L);
-          this.srvOrm.updateEntity(pRqVs, buyer);
+        } else { //login from new browser
+          if (em == null) {
+            spam(pRqVs, pRqDt);
+          } else {
+            pRqVs.put(tbn + "regCustomerdeepLevel", 1);
+            pRqVs.put(tbn + "taxDestplacedeepLevel", 1);
+            List<OnlineBuyer> brs = getSrvOrm().retrieveListWithConditions(
+              pRqVs, OnlineBuyer.class, "where REGISTEREDPASSWORD='" + pw
+                + "' and REGEMAIL='" + em + "'");
+            pRqVs.remove(tbn + "regCustomerdeepLevel");
+            pRqVs.remove(tbn + "taxDestplacedeepLevel");
+            if (brs.size() == 1) {
+              //free buyer and moving its cart by fast updates:
+              mkFreBuyr(pRqVs,  pRqDt, buyer, brs.get(0));
+            } else if (brs.size() == 0) {
+              pRqDt.setAttribute("errMsg", "wrong_em_password");
+            } else {
+              getLog().error(pRqVs, PrLog.class,
+                "Several users with same password and email!: " + em);
+            }
+          }
         }
+      } else if (buyer.getRegisteredPassword() != null) {
+        //logout action:
+        buyer.setLsTm(0L);
+        this.srvOrm.updateEntity(pRqVs, buyer);
       } else {
         spam(pRqVs, pRqDt);
       }
@@ -145,7 +200,6 @@ public class PrLog<RS> implements IProcessor {
     IProcessor proc = this.procFac.lazyGet(pRqVs, procNm);
     proc.process(pRqVs, pRqDt);
   }
-
 
   /**
    * <p>Handles spam.</p>
@@ -156,6 +210,81 @@ public class PrLog<RS> implements IProcessor {
   public final void spam(final Map<String, Object> pRqVs,
     final IRequestData pRqDt) throws Exception {
     //TODO
+  }
+
+  /**
+   * <p>Makes free buyer and moving its cart by fast updates.</p>
+   * @param pRqVs request scoped vars
+   * @param pRqDt Request Data
+   * @param pBuTmp buyer unregistered
+   * @param pBuyr buyer registered
+   * @throws Exception - an exception
+   **/
+  public final void mkFreBuyr(final Map<String, Object> pRqVs,
+    final IRequestData pRqDt, final OnlineBuyer pBuTmp,
+      final OnlineBuyer pBuyr) throws Exception {
+    long now = new Date().getTime();
+    pBuTmp.setFre(true);
+    pBuTmp.setLsTm(0L);
+    this.srvOrm.updateEntity(pRqVs, pBuTmp);
+    Long obid = pBuTmp.getItsId();
+    ColumnsValues cvs = new ColumnsValues();
+    cvs.setIdColumnsNames(new String[] {"itsId"});
+    cvs.put("itsOwner", pBuyr.getItsId());
+    this.srvDb.executeUpdate("CARTLN", cvs, "ITSOWNER=" + obid);
+    this.srvDb.executeUpdate("CARTTXLN", cvs, "ITSOWNER=" + obid);
+    this.srvDb.executeUpdate("CARTTOT", cvs, "ITSOWNER=" + obid);
+    pBuyr.setLsTm(now);
+    this.srvOrm.updateEntity(pRqVs, pBuyr);
+    pRqDt.setCookieValue("cBuyerId", pBuyr.getItsId().toString());
+    pRqDt.setAttribute("buyr", pBuyr);
+    Cart cart = this.srvCart.getShoppingCart(pRqVs, pRqDt, false);
+    TradingSettings ts = (TradingSettings) pRqVs.get("tradSet");
+    AccSettings as = (AccSettings) pRqVs.get("accSet");
+    TaxDestination txRules = this.srvCart.revealTaxRules(pRqVs, cart, as);
+    if (txRules != null) {
+      pRqDt.setAttribute("txRules", txRules);
+    }
+    //redo prices and taxes:
+    for (CartLn cl : cart.getItems()) {
+      if (!cl.getDisab()) {
+        this.srvCart.makeCartLine(pRqVs, cl, as, ts, txRules, true, true);
+        this.srvCart.makeCartTotals(pRqVs, ts, cl, as, txRules);
+      }
+    }
+  }
+
+  /**
+   * <p>Create OnlineBuyer.</p>
+   * @param pRqVs additional param
+   * @return buyer
+   * @throws Exception - an exception
+   **/
+  public final OnlineBuyer createBuyer(
+    final Map<String, Object> pRqVs) throws Exception {
+    OnlineBuyer buyer = null;
+    String tbn =  OnlineBuyer.class.getSimpleName();
+    pRqVs.put(tbn + "regCustomerdeepLevel", 1);
+    pRqVs.put(tbn + "taxDestplacedeepLevel", 1);
+    List<OnlineBuyer> brs = getSrvOrm().retrieveListWithConditions(pRqVs,
+      OnlineBuyer.class, "where FRE=1 and REGISTEREDPASSWORD is null");
+    pRqVs.remove(tbn + "regCustomerdeepLevel");
+    pRqVs.remove(tbn + "taxDestplacedeepLevel");
+    if (brs.size() > 0) {
+      double rd = Math.random();
+      if (rd > 0.5) {
+        buyer = brs.get(brs.size() - 1);
+      } else {
+        buyer = brs.get(0);
+      }
+      buyer.setFre(false);
+    }
+    if (buyer == null) {
+      buyer = new OnlineBuyer();
+      buyer.setIsNew(true);
+      buyer.setItsName("newbe" + new Date().getTime());
+    }
+    return buyer;
   }
 
   //Simple getters and setters:
@@ -184,6 +313,22 @@ public class PrLog<RS> implements IProcessor {
   }
 
   /**
+   * <p>Getter for srvDb.</p>
+   * @return ISrvDatabase<RS>
+   **/
+  public final ISrvDatabase<RS> getSrvDb() {
+    return this.srvDb;
+  }
+
+  /**
+   * <p>Setter for srvDb.</p>
+   * @param pSrvDb reference
+   **/
+  public final void setSrvDb(final ISrvDatabase<RS> pSrvDb) {
+    this.srvDb = pSrvDb;
+  }
+
+  /**
    * <p>Setter for srvOrm.</p>
    * @param pSrvOrm reference
    **/
@@ -206,5 +351,22 @@ public class PrLog<RS> implements IProcessor {
   public final void setProcFac(
     final IFactoryAppBeansByName<IProcessor> pProcFac) {
     this.procFac = pProcFac;
+  }
+
+  /**
+   * <p>Getter for srvCart.</p>
+   * @return ISrvShoppingCart
+   **/
+  public final ISrvShoppingCart getSrvCart() {
+    return this.srvCart;
+  }
+
+  /**
+   * <p>Setter for srvCart.</p>
+   * @param pSrvCart reference
+   **/
+
+  public final void setSrvCart(final ISrvShoppingCart pSrvCart) {
+    this.srvCart = pSrvCart;
   }
 }
