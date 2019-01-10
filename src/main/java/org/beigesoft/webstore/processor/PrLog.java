@@ -81,15 +81,12 @@ public class PrLog<RS> implements IProcessor {
        buyerId = Long.valueOf(buyerIdStr);
     }
     OnlineBuyer buyer;
-    boolean isNew = false;
     if (buyerId == null) {
       buyer = createBuyer(pRqVs);
-      isNew = true;
     } else {
       buyer = getSrvOrm().retrieveEntityById(pRqVs, OnlineBuyer.class, buyerId);
       if (buyer == null) { // deleted for any reason, so create new:
         buyer = createBuyer(pRqVs);
-        isNew = true;
       }
     }
     String nm = pRqDt.getParameter("nm");
@@ -99,7 +96,7 @@ public class PrLog<RS> implements IProcessor {
     long now = new Date().getTime();
     String tbn = OnlineBuyer.class.getSimpleName();
     pRqDt.setAttribute("buyr", buyer);
-    if (isNew) {
+    if (buyer.getRegEmail() == null) {
       //creating:
       if (nm != null && pw != null && pwc != null && em != null) {
         if (nm.length() > 2 && pw.length() > 7 && pw.equals(pwc)
@@ -225,31 +222,34 @@ public class PrLog<RS> implements IProcessor {
       final OnlineBuyer pBuyr) throws Exception {
     long now = new Date().getTime();
     pBuTmp.setFre(true);
+    pBuTmp.setRegEmail(null);
     pBuTmp.setLsTm(0L);
     this.srvOrm.updateEntity(pRqVs, pBuTmp);
     Long obid = pBuTmp.getItsId();
     ColumnsValues cvs = new ColumnsValues();
     cvs.setIdColumnsNames(new String[] {"itsId"});
     cvs.put("itsOwner", pBuyr.getItsId());
-    this.srvDb.executeUpdate("CARTLN", cvs, "ITSOWNER=" + obid);
+    int clc = this.srvDb.executeUpdate("CARTLN", cvs, "ITSOWNER=" + obid);
     this.srvDb.executeUpdate("CARTTXLN", cvs, "ITSOWNER=" + obid);
     this.srvDb.executeUpdate("CARTTOT", cvs, "ITSOWNER=" + obid);
     pBuyr.setLsTm(now);
     this.srvOrm.updateEntity(pRqVs, pBuyr);
     pRqDt.setCookieValue("cBuyerId", pBuyr.getItsId().toString());
     pRqDt.setAttribute("buyr", pBuyr);
-    Cart cart = this.srvCart.getShoppingCart(pRqVs, pRqDt, false);
-    TradingSettings ts = (TradingSettings) pRqVs.get("tradSet");
-    AccSettings as = (AccSettings) pRqVs.get("accSet");
-    TaxDestination txRules = this.srvCart.revealTaxRules(pRqVs, cart, as);
-    if (txRules != null) {
-      pRqDt.setAttribute("txRules", txRules);
-    }
-    //redo prices and taxes:
-    for (CartLn cl : cart.getItems()) {
-      if (!cl.getDisab()) {
-        this.srvCart.makeCartLine(pRqVs, cl, as, ts, txRules, true, true);
-        this.srvCart.makeCartTotals(pRqVs, ts, cl, as, txRules);
+    if (clc > 0) {
+      Cart cart = this.srvCart.getShoppingCart(pRqVs, pRqDt, false);
+      TradingSettings ts = (TradingSettings) pRqVs.get("tradSet");
+      AccSettings as = (AccSettings) pRqVs.get("accSet");
+      TaxDestination txRules = this.srvCart.revealTaxRules(pRqVs, cart, as);
+      if (txRules != null) {
+        pRqDt.setAttribute("txRules", txRules);
+      }
+      //redo prices and taxes:
+      for (CartLn cl : cart.getItems()) {
+        if (!cl.getDisab()) {
+          this.srvCart.makeCartLine(pRqVs, cl, as, ts, txRules, true, true);
+          this.srvCart.makeCartTotals(pRqVs, ts, cl, as, txRules);
+        }
       }
     }
   }
@@ -277,6 +277,7 @@ public class PrLog<RS> implements IProcessor {
       } else {
         buyer = brs.get(0);
       }
+      buyer.setRegEmail(null);
       buyer.setFre(false);
     }
     if (buyer == null) {

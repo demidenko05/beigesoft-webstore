@@ -82,14 +82,14 @@ public class PrcCheckOut<RS> implements IProcessor {
 
   /**
    * <p>Process entity request.</p>
-   * @param pReqVars request scoped vars
-   * @param pRequestData Request Data
+   * @param pRqVs request scoped vars
+   * @param pRqDt Request Data
    * @throws Exception - an exception
    **/
   @Override
-  public final void process(final Map<String, Object> pReqVars,
-    final IRequestData pRequestData) throws Exception {
-    Cart cart = this.srvCart.getShoppingCart(pReqVars, pRequestData, false);
+  public final void process(final Map<String, Object> pRqVs,
+    final IRequestData pRqDt) throws Exception {
+    Cart cart = this.srvCart.getShoppingCart(pRqVs, pRqDt, false);
     if (cart == null) {
       //TODO handling "it maybe swindler's bot":
       return;
@@ -100,59 +100,59 @@ public class PrcCheckOut<RS> implements IProcessor {
     }
     if (EPaymentMethod.PAYPAL.equals(cart.getPayMeth())) {
       //TODO partially online, SE
-      List<PayMd> payMds = this.srvOrm.retrieveListWithConditions(pReqVars,
+      List<PayMd> payMds = this.srvOrm.retrieveListWithConditions(pRqVs,
         PayMd.class, "where ITSNAME='PAYPAL'");
       if (payMds.size() != 1) {
         throw new Exception("There is no properly PPL PayMd");
       } else {
-        pRequestData.setAttribute("pmde", payMds.get(0).getMde());
+        pRqDt.setAttribute("pmde", payMds.get(0).getMde());
       }
     }
-    TradingSettings ts = (TradingSettings) pReqVars.get("tradSet");
-    AccSettings as = (AccSettings) pReqVars.get("accSet");
-    TaxDestination txRules = this.srvCart.revealTaxRules(pReqVars, cart, as);
+    TradingSettings ts = (TradingSettings) pRqVs.get("tradSet");
+    AccSettings as = (AccSettings) pRqVs.get("accSet");
+    TaxDestination txRules = this.srvCart.revealTaxRules(pRqVs, cart, as);
     //redo prices and taxes:
     for (CartLn cl : cart.getItems()) {
       if (!cl.getDisab()) {
-        this.srvCart.makeCartLine(pReqVars, cl, as, ts, txRules, true, true);
-        this.srvCart.makeCartTotals(pReqVars, ts, cl, as, txRules);
+        this.srvCart.makeCartLine(pRqVs, cl, as, ts, txRules, true, true);
+        this.srvCart.makeCartTotals(pRqVs, ts, cl, as, txRules);
       }
     }
     boolean isCompl = true;
     Set<String> ndFl = new HashSet<String>();
     ndFl.add("itsId");
     ndFl.add("itsVersion");
-    pReqVars.put(CustOrder.class.getSimpleName() + "neededFields", ndFl);
-    List<CustOrder> orders = getSrvOrm().retrieveListWithConditions(pReqVars,
+    pRqVs.put(CustOrder.class.getSimpleName() + "neededFields", ndFl);
+    List<CustOrder> orders = getSrvOrm().retrieveListWithConditions(pRqVs,
       CustOrder.class, "where STAT=0 and BUYER=" + cart.getBuyer().getItsId());
-    pReqVars.remove(CustOrder.class.getSimpleName() + "neededFields");
+    pRqVs.remove(CustOrder.class.getSimpleName() + "neededFields");
     for (CustOrder cuOr : orders) {
       //redo all lines:
       //itsOwner and other data will be set farther only for used lines!!!
       //unused lines will be removed from DB
-      pReqVars.put(CustOrderTxLn.class.getSimpleName() + "neededFields", ndFl);
-      cuOr.setTaxes(getSrvOrm().retrieveListWithConditions(pReqVars,
+      pRqVs.put(CustOrderTxLn.class.getSimpleName() + "neededFields", ndFl);
+      cuOr.setTaxes(getSrvOrm().retrieveListWithConditions(pRqVs,
         CustOrderTxLn.class, "where ITSOWNER=" + cuOr.getItsId()));
-      pReqVars.remove(CustOrderTxLn.class.getSimpleName() + "neededFields");
-      pReqVars.put(CustOrderGdLn.class.getSimpleName() + "neededFields", ndFl);
-      cuOr.setGoods(getSrvOrm().retrieveListWithConditions(pReqVars,
+      pRqVs.remove(CustOrderTxLn.class.getSimpleName() + "neededFields");
+      pRqVs.put(CustOrderGdLn.class.getSimpleName() + "neededFields", ndFl);
+      cuOr.setGoods(getSrvOrm().retrieveListWithConditions(pRqVs,
         CustOrderGdLn.class, "where ITSOWNER=" + cuOr.getItsId()));
-      pReqVars.remove(CustOrderGdLn.class.getSimpleName() + "neededFields");
-      pReqVars.put(CustOrderSrvLn.class.getSimpleName() + "neededFields", ndFl);
-      cuOr.setServs(getSrvOrm().retrieveListWithConditions(pReqVars,
+      pRqVs.remove(CustOrderGdLn.class.getSimpleName() + "neededFields");
+      pRqVs.put(CustOrderSrvLn.class.getSimpleName() + "neededFields", ndFl);
+      cuOr.setServs(getSrvOrm().retrieveListWithConditions(pRqVs,
         CustOrderSrvLn.class, "where ITSOWNER=" + cuOr.getItsId()));
-      pReqVars.remove(CustOrderSrvLn.class.getSimpleName() + "neededFields");
+      pRqVs.remove(CustOrderSrvLn.class.getSimpleName() + "neededFields");
       for (CustOrderGdLn gl : cuOr.getGoods()) {
-        pReqVars.put(CuOrGdTxLn.class.getSimpleName() + "neededFields", ndFl);
-        gl.setItTxs(getSrvOrm().retrieveListWithConditions(pReqVars,
+        pRqVs.put(CuOrGdTxLn.class.getSimpleName() + "neededFields", ndFl);
+        gl.setItTxs(getSrvOrm().retrieveListWithConditions(pRqVs,
           CuOrGdTxLn.class, "where ITSOWNER=" + gl.getItsId()));
-        pReqVars.remove(CuOrGdTxLn.class.getSimpleName() + "neededFields");
+        pRqVs.remove(CuOrGdTxLn.class.getSimpleName() + "neededFields");
       }
       for (CustOrderSrvLn sl : cuOr.getServs()) {
-        pReqVars.put(CuOrSrTxLn.class.getSimpleName() + "neededFields", ndFl);
-        sl.setItTxs(getSrvOrm().retrieveListWithConditions(pReqVars,
+        pRqVs.put(CuOrSrTxLn.class.getSimpleName() + "neededFields", ndFl);
+        sl.setItTxs(getSrvOrm().retrieveListWithConditions(pRqVs,
           CuOrSrTxLn.class, "where ITSOWNER=" + sl.getItsId()));
-        pReqVars.remove(CuOrSrTxLn.class.getSimpleName() + "neededFields");
+        pRqVs.remove(CuOrSrTxLn.class.getSimpleName() + "neededFields");
       }
     }
     //List<SeCustOrder> seorders = new ArrayList<SeCustOrder>();
@@ -184,13 +184,16 @@ public class PrcCheckOut<RS> implements IProcessor {
   + itPlCl.getSimpleName() + ".ITEM where ITEM=" + cl.getItId()
 + " and ITSQUANTITY>0 and " + serBus + ".SERV is null";
       }
-      pReqVars.put(itPlCl.getSimpleName() + "itemdeepLevel", 1); //only ID
-      pReqVars.put(itPlCl.getSimpleName() + "pickUpPlacedeepLevel", 1);
+      Set<String> ndFlNm = new HashSet<String>();
+      ndFlNm.add("itsId");
+      ndFlNm.add("itsName");
+      pRqVs.put("PickUpPlaceneededFields", ndFlNm);
+      pRqVs.put(itPlCl.getSimpleName() + "itemdeepLevel", 1); //only ID
       @SuppressWarnings("unchecked")
       List<AItemPlace<?, ?>> places = (List<AItemPlace<?, ?>>) getSrvOrm()
-        .retrieveListWithConditions(pReqVars, itPlCl, cond);
-      pReqVars.remove(itPlCl.getSimpleName() + "itemdeepLevel");
-      pReqVars.remove(itPlCl.getSimpleName() + "pickUpPlacedeepLevel");
+        .retrieveListWithConditions(pRqVs, itPlCl, cond);
+      pRqVs.remove(itPlCl.getSimpleName() + "itemdeepLevel");
+      pRqVs.remove("PickUpPlaceneededFields");
       if (places.size() > 1) {
         //for bookable service it's ambiguous - same service (e.g. appointment
         //to DR.Jonson) is available at same time in two different places)
@@ -212,7 +215,7 @@ public class PrcCheckOut<RS> implements IProcessor {
           cart.setDescr(cart.getDescr() + errs);
         }
         cart.setErr(true);
-        getSrvOrm().updateEntity(pReqVars, cart);
+        getSrvOrm().updateEntity(pRqVs, cart);
         break;
       } else if (places.size() == 1) { //only place with non-zero availability
         if (places.get(0).getItsQuantity().compareTo(cl.getQuant()) == -1) {
@@ -227,99 +230,99 @@ public class PrcCheckOut<RS> implements IProcessor {
       if (isCompl) {
         for (AItemPlace<?, ?> ip : places) {
           if (cl.getSeller() == null) {
-            makeOrdLn(pReqVars, orders, ip, cl, ts);
+            makeOrdLn(pRqVs, orders, ip, cl, ts);
           }
         }
       } else {
-        getSrvOrm().updateEntity(pReqVars, cl);
+        getSrvOrm().updateEntity(pRqVs, cl);
       }
     }
-    pRequestData.setAttribute("cart", cart);
+    pRqDt.setAttribute("cart", cart);
     if (txRules != null) {
-      pRequestData.setAttribute("txRules", txRules);
+      pRqDt.setAttribute("txRules", txRules);
     }
     if (!isCompl) {
-      String procNm = pRequestData.getParameter("nmPrcRed");
-      IProcessor proc = this.procFac.lazyGet(pReqVars, procNm);
-      proc.process(pReqVars, pRequestData);
+      String procNm = pRqDt.getParameter("nmPrcRed");
+      IProcessor proc = this.procFac.lazyGet(pRqVs, procNm);
+      proc.process(pRqVs, pRqDt);
     } else {
       for (CustOrder co : orders) {
         if (co.getPlace() == null) { //stored unused order
           //remove it and all its lines:
           for (CustOrderGdLn gl : co.getGoods()) {
             for (CuOrGdTxLn gtl : gl.getItTxs()) {
-              getSrvOrm().deleteEntity(pReqVars, gtl);
+              getSrvOrm().deleteEntity(pRqVs, gtl);
             }
-            getSrvOrm().deleteEntity(pReqVars, gl);
+            getSrvOrm().deleteEntity(pRqVs, gl);
           }
           for (CustOrderSrvLn sl : co.getServs()) {
             for (CuOrSrTxLn stl : sl.getItTxs()) {
-              getSrvOrm().deleteEntity(pReqVars, stl);
+              getSrvOrm().deleteEntity(pRqVs, stl);
             }
-            getSrvOrm().deleteEntity(pReqVars, sl);
+            getSrvOrm().deleteEntity(pRqVs, sl);
           }
           for (CustOrderTxLn otlt : co.getTaxes()) {
-            getSrvOrm().deleteEntity(pReqVars, otlt);
+            getSrvOrm().deleteEntity(pRqVs, otlt);
           }
-          getSrvOrm().deleteEntity(pReqVars, co);
+          getSrvOrm().deleteEntity(pRqVs, co);
           continue;
         }
         if (co.getIsNew()) {
-          getSrvOrm().insertEntity(pReqVars, co);
+          getSrvOrm().insertEntity(pRqVs, co);
         }
         BigDecimal tot = BigDecimal.ZERO;
         BigDecimal subt = BigDecimal.ZERO;
         for (CustOrderGdLn gl : co.getGoods()) {
           gl.setItsOwner(co);
           if (gl.getIsNew()) {
-            getSrvOrm().insertEntity(pReqVars, gl);
+            getSrvOrm().insertEntity(pRqVs, gl);
           }
           if (gl.getItTxs() != null && gl.getItTxs().size() > 0) {
             for (CuOrGdTxLn gtl : gl.getItTxs()) {
               gtl.setItsOwner(gl);
               if (gtl.getIsNew()) {
-                getSrvOrm().insertEntity(pReqVars, gtl);
+                getSrvOrm().insertEntity(pRqVs, gtl);
               } else if (gl.getGood() == null || gtl.getTax() == null) {
-                getSrvOrm().deleteEntity(pReqVars, gtl);
+                getSrvOrm().deleteEntity(pRqVs, gtl);
               } else {
-                getSrvOrm().updateEntity(pReqVars, gtl);
+                getSrvOrm().updateEntity(pRqVs, gtl);
               }
             }
           }
           if (!gl.getIsNew() && gl.getGood() == null) {
-            getSrvOrm().deleteEntity(pReqVars, gl);
+            getSrvOrm().deleteEntity(pRqVs, gl);
           } else {
             tot = tot.add(gl.getTot());
             subt = subt.add(gl.getSubt());
             if (!gl.getIsNew()) {
-              getSrvOrm().updateEntity(pReqVars, gl);
+              getSrvOrm().updateEntity(pRqVs, gl);
             }
           }
         }
         for (CustOrderSrvLn sl : co.getServs()) {
           sl.setItsOwner(co);
           if (sl.getIsNew()) {
-            getSrvOrm().insertEntity(pReqVars, sl);
+            getSrvOrm().insertEntity(pRqVs, sl);
           }
           if (sl.getItTxs() != null && sl.getItTxs().size() > 0) {
             for (CuOrSrTxLn stl : sl.getItTxs()) {
               stl.setItsOwner(sl);
               if (stl.getIsNew()) {
-                getSrvOrm().insertEntity(pReqVars, stl);
+                getSrvOrm().insertEntity(pRqVs, stl);
               } else if (sl.getService() == null || stl.getTax() == null) {
-                getSrvOrm().deleteEntity(pReqVars, stl);
+                getSrvOrm().deleteEntity(pRqVs, stl);
               } else {
-                getSrvOrm().updateEntity(pReqVars, stl);
+                getSrvOrm().updateEntity(pRqVs, stl);
               }
             }
           }
           if (!sl.getIsNew() && sl.getService() == null) {
-            getSrvOrm().deleteEntity(pReqVars, sl);
+            getSrvOrm().deleteEntity(pRqVs, sl);
           } else {
             tot = tot.add(sl.getTot());
             subt = subt.add(sl.getSubt());
             if (!sl.getIsNew()) {
-              getSrvOrm().updateEntity(pReqVars, sl);
+              getSrvOrm().updateEntity(pRqVs, sl);
             }
           }
         }
@@ -351,47 +354,47 @@ public class PrcCheckOut<RS> implements IProcessor {
           otl.setTaxab(ctl.getTaxab());
           totTx = totTx.add(otl.getTot());
           if (otl.getIsNew()) {
-            getSrvOrm().insertEntity(pReqVars, otl);
+            getSrvOrm().insertEntity(pRqVs, otl);
           } else {
-            getSrvOrm().updateEntity(pReqVars, otl);
+            getSrvOrm().updateEntity(pRqVs, otl);
           }
         }
         if (!co.getIsNew()) {
           for (CustOrderTxLn otlt : co.getTaxes()) {
             if (otlt.getTax() == null) {
-              getSrvOrm().deleteEntity(pReqVars, otlt);
+              getSrvOrm().deleteEntity(pRqVs, otlt);
             }
           }
         }
         co.setTot(tot);
         co.setSubt(subt);
         co.setTotTx(totTx);
-        getSrvOrm().updateEntity(pReqVars, co);
+        getSrvOrm().updateEntity(pRqVs, co);
       }
-      pRequestData.setAttribute("orders", orders);
-      String listFltAp = pRequestData.getParameter("listFltAp");
+      pRqDt.setAttribute("orders", orders);
+      String listFltAp = pRqDt.getParameter("listFltAp");
       if (listFltAp != null) {
         listFltAp = new String(listFltAp.getBytes("ISO-8859-1"), "UTF-8");
-        pRequestData.setAttribute("listFltAp", listFltAp);
+        pRqDt.setAttribute("listFltAp", listFltAp);
       }
-      String itFltAp = pRequestData.getParameter("itFltAp");
+      String itFltAp = pRqDt.getParameter("itFltAp");
       if (itFltAp != null) {
         itFltAp = new String(itFltAp.getBytes("ISO-8859-1"), "UTF-8");
-        pRequestData.setAttribute("itFltAp", itFltAp);
+        pRqDt.setAttribute("itFltAp", itFltAp);
       }
     }
   }
 
   /**
    * <p>It makes order line.</p>
-   * @param pReqVars Request scoped Vars
+   * @param pRqVs Request scoped Vars
    * @param pOrders Orders
    * @param pItPl item place
    * @param pCartLn Cart Line
    * @param pTs trading settings
    * @throws Exception an Exception
    **/
-  public final void makeOrdLn(final Map<String, Object> pReqVars,
+  public final void makeOrdLn(final Map<String, Object> pRqVs,
     final List<CustOrder> pOrders, final AItemPlace<?, ?> pItPl,
       final CartLn pCartLn, final TradingSettings pTs) throws Exception {
     CustOrder cuOr = null;
@@ -432,12 +435,12 @@ public class PrcCheckOut<RS> implements IProcessor {
       cuOr.setExcRt(pCartLn.getItsOwner().getExcRt());
       cuOr.setDescr(pCartLn.getItsOwner().getDescr());
     }
-    pReqVars.put(CartItTxLn.class.getSimpleName() + "itsOwnerdeepLevel", 1);
-    pReqVars.put(CartItTxLn.class.getSimpleName() + "taxdeepLevel", 1);
-    List<CartItTxLn> citls = getSrvOrm().retrieveListWithConditions(pReqVars,
+    pRqVs.put(CartItTxLn.class.getSimpleName() + "itsOwnerdeepLevel", 1);
+    pRqVs.put(CartItTxLn.class.getSimpleName() + "taxdeepLevel", 1);
+    List<CartItTxLn> citls = getSrvOrm().retrieveListWithConditions(pRqVs,
       CartItTxLn.class, "where DISAB=0 and ITSOWNER=" + pCartLn.getItsId());
-    pReqVars.remove(CartItTxLn.class.getSimpleName() + "itsOwnerdeepLevel");
-    pReqVars.remove(CartItTxLn.class.getSimpleName() + "taxdeepLevel");
+    pRqVs.remove(CartItTxLn.class.getSimpleName() + "itsOwnerdeepLevel");
+    pRqVs.remove(CartItTxLn.class.getSimpleName() + "taxdeepLevel");
     ACustOrderLn ol;
     if (pCartLn.getItTyp().equals(EShopItemType.GOODS)) {
       CustOrderGdLn ogl = null;

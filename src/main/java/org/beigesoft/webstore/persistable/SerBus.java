@@ -39,6 +39,12 @@ public class SerBus extends AHasIdLongVersion {
    **/
   private Date tiTm;
 
+  /**
+   * <p>Is free (disabled), otherwise used. It's because of inserting/deleting
+   * is more expensive than updating.</p>
+   **/
+  private Boolean fre = Boolean.FALSE;
+
   //Simple getters and setters:
   /**
    * <p>Getter for serv.</p>
@@ -86,5 +92,21 @@ public class SerBus extends AHasIdLongVersion {
    **/
   public final void setTiTm(final Date pTiTm) {
     this.tiTm = pTiTm;
+  }
+
+  /**
+   * <p>Getter for fre.</p>
+   * @return Boolean
+   **/
+  public final Boolean getFre() {
+    return this.fre;
+  }
+
+  /**
+   * <p>Setter for fre.</p>
+   * @param pFre reference
+   **/
+  public final void setFre(final Boolean pFre) {
+    this.fre = pFre;
   }
 }
