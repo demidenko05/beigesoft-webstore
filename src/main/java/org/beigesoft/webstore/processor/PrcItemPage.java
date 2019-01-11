@@ -15,6 +15,7 @@ package org.beigesoft.webstore.processor;
 import java.util.Map;
 import java.util.List;
 import java.util.HashSet;
+import java.math.BigDecimal;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -86,87 +87,95 @@ public class PrcItemPage<RS> implements IProcessor {
 
   /**
    * <p>Process entity request.</p>
-   * @param pReqVars additional param
-   * @param pRequestData Request Data
+   * @param pRqVs additional param
+   * @param pRqDt Request Data
    * @throws Exception - an exception
    **/
   @Override
-  public final void process(final Map<String, Object> pReqVars,
-    final IRequestData pRequestData) throws Exception {
-    TradingSettings ts = (TradingSettings) pReqVars.get("tradSet");
-    AccSettings as = (AccSettings) pReqVars.get("accSet");
-    String itemTypeStr = pRequestData.getParameter("itemType");
-    Long itemId = Long.valueOf(pRequestData.getParameter("itemId"));
-    if (pRequestData.getAttribute("cart") == null) {
+  public final void process(final Map<String, Object> pRqVs,
+    final IRequestData pRqDt) throws Exception {
+    TradingSettings ts = (TradingSettings) pRqVs.get("tradSet");
+    AccSettings as = (AccSettings) pRqVs.get("accSet");
+    String itemTypeStr = pRqDt.getParameter("itemType");
+    Long itemId = Long.valueOf(pRqDt.getParameter("itemId"));
+    if (pRqDt.getAttribute("cart") == null) {
       Cart cart = this.srvCart
-        .getShoppingCart(pReqVars, pRequestData, false);
+        .getShoppingCart(pRqVs, pRqDt, false);
       if (cart != null) {
-        pRequestData.setAttribute("cart", cart);
-        if (pRequestData.getAttribute("txRules") == null) {
+        pRqDt.setAttribute("cart", cart);
+        if (pRqDt.getAttribute("txRules") == null) {
           TaxDestination txRules = this.srvCart
-            .revealTaxRules(pReqVars, cart, as);
-          pRequestData.setAttribute("txRules", txRules);
+            .revealTaxRules(pRqVs, cart, as);
+          pRqDt.setAttribute("txRules", txRules);
         }
       }
     }
     OnlineBuyer buyr = null;
-    if (pRequestData.getAttribute("cart") != null) {
-      Cart cart = (Cart) pRequestData.getAttribute("cart");
+    if (pRqDt.getAttribute("cart") != null) {
+      Cart cart = (Cart) pRqDt.getAttribute("cart");
       buyr = cart.getBuyer();
-      if (cart.getItems() != null) {
-        for (CartLn ci : cart.getItems()) {
-          if (!ci.getDisab() && ci.getItId().equals(itemId)
-            && ci.getItTyp().toString().equals(itemTypeStr)) {
-            pRequestData.setAttribute("cartItem", ci);
-            break;
+      if (cart.getTot().compareTo(BigDecimal.ZERO) == 0) {
+        pRqDt.setAttribute("cart", null);
+      } else {
+        if (cart.getItems() != null) {
+          for (CartLn ci : cart.getItems()) {
+            if (!ci.getDisab() && ci.getItId().equals(itemId)
+              && ci.getItTyp().toString().equals(itemTypeStr)) {
+              pRqDt.setAttribute("cartItem", ci);
+              break;
+            }
           }
         }
       }
     } else {
-      String buyerIdStr = pRequestData.getCookieValue("cBuyerId");
-      if (buyerIdStr != null && buyerIdStr.length() > 0) {
-        Long buyerId = Long.valueOf(buyerIdStr);
-        buyr = getSrvOrm()
-          .retrieveEntityById(pReqVars, OnlineBuyer.class, buyerId);
+      buyr = (OnlineBuyer) pRqDt.getAttribute("buyr");
+      if (buyr == null) {
+        String buyerIdStr = pRqDt.getCookieValue("cBuyerId");
+        if (buyerIdStr != null && buyerIdStr.length() > 0) {
+          Long buyerId = Long.valueOf(buyerIdStr);
+          buyr = getSrvOrm()
+            .retrieveEntityById(pRqVs, OnlineBuyer.class, buyerId);
+        }
+        pRqDt.setAttribute("buyr", buyr);
       }
     }
     if (EShopItemType.GOODS.toString().equals(itemTypeStr)) {
-      processGoods(pReqVars, pRequestData, ts, buyr, itemId);
+      processGoods(pRqVs, pRqDt, ts, buyr, itemId);
     } else if (EShopItemType.SERVICE.toString().equals(itemTypeStr)) {
-      processService(pReqVars, pRequestData, ts, buyr, itemId);
+      processService(pRqVs, pRqDt, ts, buyr, itemId);
     } else if (EShopItemType.SEGOODS.toString().equals(itemTypeStr)) {
-      processSeGoods(pReqVars, pRequestData, ts, buyr, itemId);
+      processSeGoods(pRqVs, pRqDt, ts, buyr, itemId);
     } else {
       throw new Exception(
         "Detail page not yet implemented for item type: " + itemTypeStr);
     }
-    String listFltAp = new String(pRequestData.getParameter("listFltAp")
+    String listFltAp = new String(pRqDt.getParameter("listFltAp")
       .getBytes("ISO-8859-1"), "UTF-8");
-    pRequestData.setAttribute("listFltAp", listFltAp);
+    pRqDt.setAttribute("listFltAp", listFltAp);
   }
 
   /**
    * <p>Process a goods from our warehouse.</p>
-   * @param pReqVars additional param
-   * @param pRequestData Request Data
+   * @param pRqVs additional param
+   * @param pRqDt Request Data
    * @param pTs TradingSettings
    * @param pBuyer Buyer
    * @param pItemId Item ID
    * @throws Exception - an exception
    **/
-  public final void processGoods(final Map<String, Object> pReqVars,
-    final IRequestData pRequestData, final TradingSettings pTs,
+  public final void processGoods(final Map<String, Object> pRqVs,
+    final IRequestData pRqDt, final TradingSettings pTs,
       final OnlineBuyer pBuyer, final Long pItemId) throws Exception {
     List<GoodsSpecifics> itemSpecLst;
     List<GoodsPlace> itemPlaceLst;
-    itemSpecLst = retrieveItemSpecificsList(pReqVars, pTs, pItemId,
+    itemSpecLst = retrieveItemSpecificsList(pRqVs, pTs, pItemId,
       GoodsSpecifics.class, InvItem.class.getSimpleName());
     //extract main image if exist:
     int miIdx = -1;
     for (int i = 0; i < itemSpecLst.size(); i++) {
       if (itemSpecLst.get(i).getSpecifics().getItsType()
         .equals(ESpecificsItemType.IMAGE)) {
-        pRequestData.setAttribute("itemImage", itemSpecLst.get(i));
+        pRqDt.setAttribute("itemImage", itemSpecLst.get(i));
         miIdx = i;
         break;
       }
@@ -174,37 +183,37 @@ public class PrcItemPage<RS> implements IProcessor {
     if (miIdx != -1) {
       itemSpecLst.remove(miIdx);
     }
-    AItemPrice<?, ?> itemPrice = getSrvCart().revealItemPrice(pReqVars, pTs,
+    AItemPrice<?, ?> itemPrice = getSrvCart().revealItemPrice(pRqVs, pTs,
       pBuyer, EShopItemType.GOODS, pItemId);
-    itemPlaceLst = getSrvOrm().retrieveListWithConditions(pReqVars,
+    itemPlaceLst = getSrvOrm().retrieveListWithConditions(pRqVs,
         GoodsPlace.class, " where ITEM=" + pItemId);
-    pRequestData.setAttribute("itemSpecLst", itemSpecLst);
-    pRequestData.setAttribute("itemPlaceLst", itemPlaceLst);
-    pRequestData.setAttribute("itemPrice", itemPrice);
+    pRqDt.setAttribute("itemSpecLst", itemSpecLst);
+    pRqDt.setAttribute("itemPlaceLst", itemPlaceLst);
+    pRqDt.setAttribute("itemPrice", itemPrice);
   }
 
   /**
    * <p>Process a seGood.</p>
-   * @param pReqVars additional param
-   * @param pRequestData Request Data
+   * @param pRqVs additional param
+   * @param pRqDt Request Data
    * @param pTs TradingSettings
    * @param pBuyer Buyer
    * @param pItemId Item ID
    * @throws Exception - an exception
    **/
-  public final void processSeGoods(final Map<String, Object> pReqVars,
-    final IRequestData pRequestData, final TradingSettings pTs,
+  public final void processSeGoods(final Map<String, Object> pRqVs,
+    final IRequestData pRqDt, final TradingSettings pTs,
       final OnlineBuyer pBuyer, final Long pItemId) throws Exception {
     List<SeGoodsSpecifics> itemSpecLst;
     List<SeGoodsPlace> itemPlaceLst;
-    itemSpecLst = retrieveItemSpecificsList(pReqVars, pTs, pItemId,
+    itemSpecLst = retrieveItemSpecificsList(pRqVs, pTs, pItemId,
       SeGoodsSpecifics.class, SeGoods.class.getSimpleName());
     //extract main image if exist:
     int miIdx = -1;
     for (int i = 0; i < itemSpecLst.size(); i++) {
       if (itemSpecLst.get(i).getSpecifics().getItsType()
         .equals(ESpecificsItemType.IMAGE)) {
-        pRequestData.setAttribute("itemImage", itemSpecLst.get(i));
+        pRqDt.setAttribute("itemImage", itemSpecLst.get(i));
         miIdx = i;
         break;
       }
@@ -212,37 +221,37 @@ public class PrcItemPage<RS> implements IProcessor {
     if (miIdx != -1) {
       itemSpecLst.remove(miIdx);
     }
-    AItemPrice<?, ?> itemPrice = getSrvCart().revealItemPrice(pReqVars, pTs,
+    AItemPrice<?, ?> itemPrice = getSrvCart().revealItemPrice(pRqVs, pTs,
         pBuyer, EShopItemType.SEGOODS, pItemId);
-    itemPlaceLst = getSrvOrm().retrieveListWithConditions(pReqVars,
+    itemPlaceLst = getSrvOrm().retrieveListWithConditions(pRqVs,
         SeGoodsPlace.class, " where ITEM=" + pItemId);
-    pRequestData.setAttribute("itemSpecLst", itemSpecLst);
-    pRequestData.setAttribute("itemPlaceLst", itemPlaceLst);
-    pRequestData.setAttribute("itemPrice", itemPrice);
+    pRqDt.setAttribute("itemSpecLst", itemSpecLst);
+    pRqDt.setAttribute("itemPlaceLst", itemPlaceLst);
+    pRqDt.setAttribute("itemPrice", itemPrice);
   }
 
   /**
    * <p>Process a service.</p>
-   * @param pReqVars additional param
-   * @param pRequestData Request Data
+   * @param pRqVs additional param
+   * @param pRqDt Request Data
    * @param pTs TradingSettings
    * @param pBuyer Buyer
    * @param pItemId Item ID
    * @throws Exception - an exception
    **/
-  public final void processService(final Map<String, Object> pReqVars,
-    final IRequestData pRequestData, final TradingSettings pTs,
+  public final void processService(final Map<String, Object> pRqVs,
+    final IRequestData pRqDt, final TradingSettings pTs,
       final OnlineBuyer pBuyer, final Long pItemId) throws Exception {
     List<ServiceSpecifics> itemSpecLst;
     List<ServicePlace> itemPlaceLst;
-    itemSpecLst = retrieveItemSpecificsList(pReqVars, pTs, pItemId,
+    itemSpecLst = retrieveItemSpecificsList(pRqVs, pTs, pItemId,
       ServiceSpecifics.class, ServiceToSale.class.getSimpleName());
     //extract main image if exist:
     int miIdx = -1;
     for (int i = 0; i < itemSpecLst.size(); i++) {
       if (itemSpecLst.get(i).getSpecifics().getItsType()
         .equals(ESpecificsItemType.IMAGE)) {
-        pRequestData.setAttribute("itemImage", itemSpecLst.get(i));
+        pRqDt.setAttribute("itemImage", itemSpecLst.get(i));
         miIdx = i;
         break;
       }
@@ -250,19 +259,19 @@ public class PrcItemPage<RS> implements IProcessor {
     if (miIdx != -1) {
       itemSpecLst.remove(miIdx);
     }
-    AItemPrice<?, ?> itemPrice = getSrvCart().revealItemPrice(pReqVars, pTs,
+    AItemPrice<?, ?> itemPrice = getSrvCart().revealItemPrice(pRqVs, pTs,
       pBuyer, EShopItemType.SERVICE, pItemId);
-    itemPlaceLst = getSrvOrm().retrieveListWithConditions(pReqVars,
+    itemPlaceLst = getSrvOrm().retrieveListWithConditions(pRqVs,
         ServicePlace.class, " where ITEM=" + pItemId);
-    pRequestData.setAttribute("itemSpecLst", itemSpecLst);
-    pRequestData.setAttribute("itemPlaceLst", itemPlaceLst);
-    pRequestData.setAttribute("itemPrice", itemPrice);
+    pRqDt.setAttribute("itemSpecLst", itemSpecLst);
+    pRqDt.setAttribute("itemPlaceLst", itemPlaceLst);
+    pRqDt.setAttribute("itemPrice", itemPrice);
   }
 
   /**
    * <p>Retrieve Item Specifics list for item.</p>
    * @param <T> item type
-   * @param pReqVars additional param
+   * @param pRqVs additional param
    * @param pTs TradingSettings
    * @param pItemId item ID
    * @param pItemSpecCl item specifics class
@@ -271,15 +280,15 @@ public class PrcItemPage<RS> implements IProcessor {
    * @throws Exception - an exception
    **/
   public final <T extends AItemSpecifics<?, ?>> List<T>
-    retrieveItemSpecificsList(final Map<String, Object> pReqVars,
+    retrieveItemSpecificsList(final Map<String, Object> pRqVs,
       final TradingSettings pTs, final Long pItemId, final Class<T> pItemSpecCl,
         final String pItemSn) throws Exception {
     //HTML templates full
-    pReqVars.put(pItemSpecCl.getSimpleName() + "specificsdeepLevel", 3);
+    pRqVs.put(pItemSpecCl.getSimpleName() + "specificsdeepLevel", 3);
     HashSet<String> goodsFldNms = new HashSet<String>();
     goodsFldNms.add("itsId");
     goodsFldNms.add("itsName");
-    pReqVars.put(pItemSn + "neededFields", goodsFldNms);
+    pRqVs.put(pItemSn + "neededFields", goodsFldNms);
     HashSet<String> soiFldNms = new HashSet<String>();
     soiFldNms.add("itsId");
     soiFldNms.add("itsName");
@@ -287,22 +296,22 @@ public class PrcItemPage<RS> implements IProcessor {
     soiFldNms.add("itsType");
     soiFldNms.add("itsGroop");
     soiFldNms.add("tempHtml");
-    pReqVars.put("SpecificsOfItemneededFields", soiFldNms);
+    pRqVs.put("SpecificsOfItemneededFields", soiFldNms);
     HashSet<String> soigFldNms = new HashSet<String>();
     soigFldNms.add("itsId");
     soigFldNms.add("itsName");
     soigFldNms.add("templateStart");
     soigFldNms.add("templateEnd");
     soigFldNms.add("templateDetail");
-    pReqVars.put("SpecificsOfItemGroupneededFields", soigFldNms);
+    pRqVs.put("SpecificsOfItemGroupneededFields", soigFldNms);
     HashSet<String> htmTmFldNms = new HashSet<String>();
     htmTmFldNms.add("itsId");
     htmTmFldNms.add("htmlTemplate");
-    pReqVars.put("HtmlTemplateneededFields", htmTmFldNms);
+    pRqVs.put("HtmlTemplateneededFields", htmTmFldNms);
     List<T> result = null;
     if (pTs.getUseAdvancedI18n()) {
-      String lang = (String) pReqVars.get("lang");
-      String langDef = (String) pReqVars.get("langDef");
+      String lang = (String) pRqVs.get("lang");
+      String langDef = (String) pRqVs.get("langDef");
       if (!lang.equals(langDef)) {
         String qd;
         if (pItemSpecCl == GoodsSpecifics.class) {
@@ -317,20 +326,20 @@ public class PrcItemPage<RS> implements IProcessor {
         } else {
           throw new Exception("NYI for " +  pItemSpecCl);
         }
-        result = getSrvOrm().retrieveListByQuery(pReqVars,
+        result = getSrvOrm().retrieveListByQuery(pRqVs,
           pItemSpecCl, qd);
       }
     }
     if (result == null) {
-      result = getSrvOrm().retrieveListWithConditions(pReqVars,
+      result = getSrvOrm().retrieveListWithConditions(pRqVs,
         pItemSpecCl, " where " + pItemSpecCl.getSimpleName()
           .toUpperCase() + ".ITEM=" + pItemId + " order by SPECIFICS.ITSINDEX");
     }
-    pReqVars.remove(pItemSpecCl.getSimpleName() + "specificsdeepLevel");
-    pReqVars.remove(pItemSn + "neededFields");
-    pReqVars.remove("SpecificsOfItemneededFields");
-    pReqVars.remove("SpecificsOfItemGroupneededFields");
-    pReqVars.remove("HtmlTemplateneededFields");
+    pRqVs.remove(pItemSpecCl.getSimpleName() + "specificsdeepLevel");
+    pRqVs.remove(pItemSn + "neededFields");
+    pRqVs.remove("SpecificsOfItemneededFields");
+    pRqVs.remove("SpecificsOfItemGroupneededFields");
+    pRqVs.remove("HtmlTemplateneededFields");
     return result;
   }
 

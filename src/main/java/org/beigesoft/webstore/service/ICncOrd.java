@@ -17,6 +17,8 @@ import java.util.Map;
 import org.beigesoft.webstore.model.EOrdStat;
 import org.beigesoft.webstore.model.Purch;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
+import org.beigesoft.webstore.persistable.CustOrder;
+import org.beigesoft.webstore.persistable.CuOrSe;
 
 /**
  * <p>It cancels all given buyer's orders.
@@ -69,4 +71,20 @@ public interface ICncOrd {
    **/
   void cancel(Map<String, Object> pRqVs, OnlineBuyer pBuyr, Long pPurId,
     EOrdStat pStFr, EOrdStat pStTo) throws Exception;
+
+  /**
+   * <p>It cancels given buyer's order.</p>
+   * @param pRqVs additional request scoped parameters
+   * @param pCuOr order
+   * @throws Exception - an exception
+   **/
+  void cancel(Map<String, Object> pRqVs, CustOrder pCuOr) throws Exception;
+
+  /**
+   * <p>It cancels given buyer's S.E.order.</p>
+   * @param pRqVs additional request scoped parameters
+   * @param pCuOr order
+   * @throws Exception - an exception
+   **/
+  void cancel(Map<String, Object> pRqVs, CuOrSe pCuOr) throws Exception;
 }

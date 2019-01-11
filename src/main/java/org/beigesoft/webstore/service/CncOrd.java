@@ -12,6 +12,9 @@ package org.beigesoft.webstore.service;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
+import java.util.Set;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import org.beigesoft.log.ILogger;
@@ -19,6 +22,13 @@ import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.webstore.model.EOrdStat;
 import org.beigesoft.webstore.model.Purch;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
+import org.beigesoft.webstore.persistable.GoodsPlace;
+import org.beigesoft.webstore.persistable.ServicePlace;
+import org.beigesoft.webstore.persistable.CustOrder;
+import org.beigesoft.webstore.persistable.CustOrderGdLn;
+import org.beigesoft.webstore.persistable.CustOrderSrvLn;
+import org.beigesoft.webstore.persistable.SerBus;
+import org.beigesoft.webstore.persistable.CuOrSe;
 
 /**
  * <p>It cancels all given buyer's orders.
@@ -34,7 +44,7 @@ public class CncOrd<RS> implements ICncOrd {
   /**
    * <p>Logger.</p>
    **/
-  private ILogger logger;
+  private ILogger log;
 
   /**
    * <p>ORM service.</p>
@@ -54,6 +64,7 @@ public class CncOrd<RS> implements ICncOrd {
   @Override
   public final void cancel(final Map<String, Object> pRqVs,
     final Purch pPurch, final EOrdStat pStat) throws Exception {
+    throw new Exception("NEI");
   }
 
 
@@ -72,6 +83,7 @@ public class CncOrd<RS> implements ICncOrd {
   public final void cancel(final Map<String, Object> pRqVs,
     final OnlineBuyer pBuyr, final EOrdStat pStFr,
       final EOrdStat pStTo) throws Exception {
+    throw new Exception("NEI");
   }
 
   /**
@@ -90,23 +102,110 @@ public class CncOrd<RS> implements ICncOrd {
   public final void cancel(final Map<String, Object> pRqVs,
     final OnlineBuyer pBuyr, final Long pPurId,
       final EOrdStat pStFr, final EOrdStat pStTo) throws Exception {
+    throw new Exception("NEI");
+  }
+
+  /**
+   * <p>It cancels given buyer's order.</p>
+   * @param pRqVs additional request scoped parameters
+   * @param pCuOr order
+   * @throws Exception - an exception
+   **/
+  @Override
+  public final void cancel(final Map<String, Object> pRqVs,
+    final CustOrder pCuOr) throws Exception {
+    Set<String> ndFl = new HashSet<String>();
+    String tbn = CustOrderGdLn.class.getSimpleName();
+    ndFl.add("itsId");
+    ndFl.add("good");
+    pRqVs.put(tbn + "neededFields", ndFl);
+    pRqVs.put(tbn + "gooddeepLevel", 1);
+    List<CustOrderGdLn> gds = this.srvOrm.retrieveListWithConditions(
+      pRqVs, CustOrderGdLn.class, "where ITSOWNER=" + pCuOr.getItsId());
+    pRqVs.remove(tbn + "neededFields");
+    pRqVs.remove(tbn + "gooddeepLevel");
+    for (CustOrderGdLn gl : gds) {
+      GoodsPlace gp = getSrvOrm().retrieveEntityWithConditions(pRqVs,
+        GoodsPlace.class, "where ISALWAYS=0 and ITEM=" + gl.getGood().getItsId()
+          + " and PICKUPPLACE=" + pCuOr.getPlace().getItsId());
+      if (gp != null) {
+        gp.setItsQuantity(gp.getItsQuantity().add(gl.getQuant()));
+        getSrvOrm().updateEntity(pRqVs, gp);
+      }
+    }
+    tbn = CustOrderSrvLn.class.getSimpleName();
+    ndFl.remove("good");
+    ndFl.add("service");
+    ndFl.add("dt1");
+    ndFl.add("dt2");
+    pRqVs.put(tbn + "neededFields", ndFl);
+    pRqVs.put(tbn + "gooddeepLevel", 1);
+    List<CustOrderSrvLn> sls = this.srvOrm.retrieveListWithConditions(
+      pRqVs, CustOrderSrvLn.class, "where ITSOWNER=" + pCuOr.getItsId());
+    pRqVs.remove(tbn + "neededFields");
+    pRqVs.remove(tbn + "gooddeepLevel");
+    for (CustOrderSrvLn sl : sls) {
+      if (sl.getDt1() == null) { //non-bookable:
+        ServicePlace sp = getSrvOrm().retrieveEntityWithConditions(pRqVs,
+          ServicePlace.class, "where ISALWAYS=0 and ITEM=" + sl.getService()
+            .getItsId() + " and PICKUPPLACE=" + pCuOr.getPlace().getItsId());
+        if (sp != null) {
+          sp.setItsQuantity(sp.getItsQuantity().add(sl.getQuant()));
+          getSrvOrm().updateEntity(pRqVs, sp);
+        }
+      } else { //bookable:
+        List<SerBus> sebs = getSrvOrm().retrieveListWithConditions(pRqVs,
+      SerBus.class, "where FRE=0 and SERV=" + sl.getService().getItsId()
++ " and FRTM=" + sl.getDt1().getTime() + " and TITM=" + sl.getDt1().getTime());
+        if (sebs.size() == 1) {
+          sebs.get(0).setFre(true);
+          getSrvOrm().updateEntity(pRqVs, sebs.get(0));
+        } else if (sebs.size() > 1) {
+          this.log.error(pRqVs, CncOrd.class,
+        "Several SERBUS for booked service: " + sl.getService().getItsId()
+      + "/"  + sl.getDt1().getTime() + "/" + sl.getDt1().getTime());
+          for (SerBus seb : sebs) {
+            seb.setFre(true);
+            getSrvOrm().updateEntity(pRqVs, seb);
+          }
+        } else {
+          this.log.error(pRqVs, CncOrd.class,
+        "There is no SERBUS for booked service: " + sl.getService().getItsId()
+      + "/"  + sl.getDt1().getTime() + "/" + sl.getDt1().getTime());
+        }
+      }
+    }
+    pCuOr.setStat(EOrdStat.CANCELED);
+    getSrvOrm().updateEntity(pRqVs, pCuOr);
+  }
+
+  /**
+   * <p>It cancels given buyer's S.E.order.</p>
+   * @param pRqVs additional request scoped parameters
+   * @param pCuOr order
+   * @throws Exception - an exception
+   **/
+  @Override
+  public final void cancel(final Map<String, Object> pRqVs,
+    final CuOrSe pCuOr) throws Exception {
+    throw new Exception("NEI");
   }
 
   //Simple getters and setters:
   /**
-   * <p>Geter for logger.</p>
+   * <p>Geter for log.</p>
    * @return ILogger
    **/
-  public final ILogger getLogger() {
-    return this.logger;
+  public final ILogger getLog() {
+    return this.log;
   }
 
   /**
-   * <p>Setter for logger.</p>
+   * <p>Setter for log.</p>
    * @param pLogger reference
    **/
-  public final void setLogger(final ILogger pLogger) {
-    this.logger = pLogger;
+  public final void setLog(final ILogger pLogger) {
+    this.log = pLogger;
   }
 
   /**

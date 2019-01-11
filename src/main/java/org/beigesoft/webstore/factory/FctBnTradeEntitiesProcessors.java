@@ -51,23 +51,19 @@ import org.beigesoft.orm.processor.PrcEntityRetrieve;
 import org.beigesoft.webstore.service.ISrvSettingsAdd;
 import org.beigesoft.webstore.service.ISrvTradingSettings;
 import org.beigesoft.webstore.service.IFindSeSeller;
+import org.beigesoft.webstore.service.ICncOrd;
 import org.beigesoft.webstore.persistable.base.AItemSpecifics;
 import org.beigesoft.webstore.persistable.base.AItemSpecificsId;
 import org.beigesoft.webstore.persistable.base.AItemCatalogId;
 import org.beigesoft.webstore.persistable.AdviseCategoryOfGs;
 import org.beigesoft.webstore.persistable.AdvisedGoodsForGoods;
 import org.beigesoft.webstore.persistable.BuyerPriceCategory;
-import org.beigesoft.webstore.persistable.CartLn;
-import org.beigesoft.webstore.persistable.CartTxLn;
 import org.beigesoft.webstore.persistable.CatalogGs;
 import org.beigesoft.webstore.persistable.CatalogSpecifics;
 import org.beigesoft.webstore.persistable.ChooseableSpecifics;
 import org.beigesoft.webstore.persistable.ChooseableSpecificsType;
 import org.beigesoft.webstore.persistable.CustomerGoodsSeen;
 import org.beigesoft.webstore.persistable.CustOrder;
-import org.beigesoft.webstore.persistable.CustOrderGdLn;
-import org.beigesoft.webstore.persistable.CustOrderSrvLn;
-import org.beigesoft.webstore.persistable.CustOrderTxLn;
 import org.beigesoft.webstore.persistable.GoodsAdviseCategories;
 import org.beigesoft.webstore.persistable.GoodsCatalog;
 import org.beigesoft.webstore.persistable.GoodsPlace;
@@ -112,6 +108,7 @@ import org.beigesoft.webstore.processor.PrcItemSpecificsSave;
 import org.beigesoft.webstore.processor.PrcItemSpecificsRetrieve;
 import org.beigesoft.webstore.processor.PrcItSpecEmbFlSave;
 import org.beigesoft.webstore.processor.PrcItSpecEmbFlDel;
+import org.beigesoft.webstore.processor.PrCuOrSv;
 
 /**
  * <p>Webstore entities processors factory.
@@ -187,6 +184,11 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
   private final Set<Class<?>> sharedEntities;
 
   /**
+   * <p>Cancel accepted buyer's orders service.</p>
+   **/
+  private ICncOrd cncOrd;
+
+  /**
    * <p>Only constructor. S.E. entities (shared) will be added
    * by Mather's factory.</p>
    **/
@@ -213,17 +215,12 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
     this.wsEntities.add(AdviseCategoryOfGs.class);
     this.wsEntities.add(AdvisedGoodsForGoods.class);
     this.wsEntities.add(BuyerPriceCategory.class);
-    this.wsEntities.add(CartLn.class);
-    this.wsEntities.add(CartTxLn.class);
     this.wsEntities.add(CatalogGs.class);
     this.wsEntities.add(CatalogSpecifics.class);
     this.wsEntities.add(ChooseableSpecifics.class);
     this.wsEntities.add(ChooseableSpecificsType.class);
     this.wsEntities.add(CustomerGoodsSeen.class);
     this.wsEntities.add(CustOrder.class);
-    this.wsEntities.add(CustOrderGdLn.class);
-    this.wsEntities.add(CustOrderSrvLn.class);
-    this.wsEntities.add(CustOrderTxLn.class);
     this.wsEntities.add(GoodsAdviseCategories.class);
     this.wsEntities.add(GoodsCatalog.class);
     this.wsEntities.add(GoodsPlace.class);
@@ -294,6 +291,8 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
             proc = lazyGetPrcSeSellerDel(pAddParam);
           } else if (pBeanName.equals(PrcSeSellerSave.class.getSimpleName())) {
             proc = lazyGetPrcSeSellerSave(pAddParam);
+          } else if (pBeanName.equals(PrCuOrSv.class.getSimpleName())) {
+            proc = lazyGetPrCuOrSv(pAddParam);
           } else if (pBeanName.equals(PrcGoodsAdviseCategoriesSave.class.getSimpleName())) {
             proc = lazyGetPrcGoodsAdviseCategoriesSave(pAddParam);
           } else if (pBeanName.equals(PrcItemSpecificsRetrieve.class.getSimpleName())) {
@@ -445,6 +444,27 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
       proc = new PrcSeSellerDel<RS>();
       proc.setSrvOrm(getSrvOrm());
       proc.setFindSeSeller(getFindSeSeller());
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnTradeEntitiesProcessors.class, beanName + " has been created.");
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Get PrCuOrSv (create and put into map).</p>
+   * @param pAddParam additional param
+   * @return requested PrCuOrSv
+   * @throws Exception - an exception
+   */
+  protected final PrCuOrSv<RS> lazyGetPrCuOrSv(final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrCuOrSv.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrCuOrSv<RS> proc = (PrCuOrSv<RS>) this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrCuOrSv<RS>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setCncOrd(getCncOrd());
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);
       this.logger.info(null, FctBnTradeEntitiesProcessors.class, beanName + " has been created.");
@@ -755,5 +775,21 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
    **/
   public final void setFindSeSeller(final IFindSeSeller pFindSeSeller) {
     this.findSeSeller = pFindSeSeller;
+  }
+
+  /**
+   * <p>Getter for cncOrd.</p>
+   * @return ICncOrd
+   **/
+  public final ICncOrd getCncOrd() {
+    return this.cncOrd;
+  }
+
+  /**
+   * <p>Setter for cncOrd.</p>
+   * @param pCncOrd reference
+   **/
+  public final void setCncOrd(final ICncOrd pCncOrd) {
+    this.cncOrd = pCncOrd;
   }
 }

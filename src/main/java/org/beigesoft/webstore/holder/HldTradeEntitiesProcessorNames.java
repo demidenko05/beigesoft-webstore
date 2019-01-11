@@ -46,9 +46,7 @@ import org.beigesoft.webstore.persistable.SeGoodCatalog;
 import org.beigesoft.webstore.persistable.Deliv;
 import org.beigesoft.webstore.persistable.PayMd;
 import org.beigesoft.webstore.persistable.CustOrder;
-import org.beigesoft.webstore.persistable.CustOrderGdLn;
-import org.beigesoft.webstore.persistable.CustOrderSrvLn;
-import org.beigesoft.webstore.persistable.CustOrderTxLn;
+import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.webstore.processor.PrcSeSellerDel;
 import org.beigesoft.webstore.processor.PrcSeSellerSave;
 import org.beigesoft.webstore.processor.PrcAdvisedGoodsForGoodsSave;
@@ -61,6 +59,7 @@ import org.beigesoft.webstore.processor.PrcItSpecEmbFlDel;
 import org.beigesoft.webstore.processor.PrcItemSpecificsRetrieve;
 import org.beigesoft.webstore.processor.PrcSettingsAddSave;
 import org.beigesoft.webstore.processor.PrcTradingSettingsSave;
+import org.beigesoft.webstore.processor.PrCuOrSv;
 
 /**
  * <p>Standalone service that assign entities processor name for class
@@ -84,9 +83,15 @@ public class HldTradeEntitiesProcessorNames
    **/
   @Override
   public final String getFor(final Class<?> pClass, final String pThingName) {
-    if ("entityEdit".equals(pThingName) && (pClass == CustOrder.class
-      || pClass == CustOrderGdLn.class || pClass == CustOrderSrvLn.class
-        || pClass == CustOrderTxLn.class)) {
+    if ("entityEdit".equals(pThingName) && pClass == Cart.class) {
+      return null;
+    } else if (pClass == CustOrder.class) {
+      if ("entitySave".equals(pThingName)) {
+        return PrCuOrSv.class.getSimpleName();
+      } else if ("entityEdit".equals(pThingName)
+        || "entityPrint".equals(pThingName)) {
+        return PrcEntityRetrieve.class.getSimpleName();
+      }
       return null;
     } else if ("entityEdit".equals(pThingName)
       || "entityConfirmDelete".equals(pThingName)) {

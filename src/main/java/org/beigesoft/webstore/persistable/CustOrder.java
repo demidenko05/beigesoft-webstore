@@ -115,6 +115,11 @@ public class CustOrder extends AHasIdLongVersion {
    **/
   private EDelivering deliv;
 
+  /**
+   * <p>Invoice ID (if it was derived).</p>
+   **/
+  private Long inId;
+
   //Simple getters and setters:
   /**
    * <p>Getter for dat.</p>
@@ -370,5 +375,21 @@ public class CustOrder extends AHasIdLongVersion {
    **/
   public final void setDeliv(final EDelivering pDeliv) {
     this.deliv = pDeliv;
+  }
+
+  /**
+   * <p>Getter for inId.</p>
+   * @return Long
+   **/
+  public final Long getInId() {
+    return this.inId;
+  }
+
+  /**
+   * <p>Setter for inId.</p>
+   * @param pInId reference
+   **/
+  public final void setInId(final Long pInId) {
+    this.inId = pInId;
   }
 }

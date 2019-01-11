@@ -229,14 +229,14 @@ public class PrLog<RS> implements IProcessor {
     ColumnsValues cvs = new ColumnsValues();
     cvs.setIdColumnsNames(new String[] {"itsId"});
     cvs.put("itsOwner", pBuyr.getItsId());
-    int clc = this.srvDb.executeUpdate("CARTLN", cvs, "ITSOWNER=" + obid);
-    this.srvDb.executeUpdate("CARTTXLN", cvs, "ITSOWNER=" + obid);
-    this.srvDb.executeUpdate("CARTTOT", cvs, "ITSOWNER=" + obid);
     pBuyr.setLsTm(now);
     this.srvOrm.updateEntity(pRqVs, pBuyr);
     pRqDt.setCookieValue("cBuyerId", pBuyr.getItsId().toString());
     pRqDt.setAttribute("buyr", pBuyr);
+    int clc = this.srvDb.executeUpdate("CARTLN", cvs, "ITSOWNER=" + obid);
     if (clc > 0) {
+      this.srvDb.executeUpdate("CARTTXLN", cvs, "ITSOWNER=" + obid);
+      this.srvDb.executeUpdate("CARTTOT", cvs, "ITSOWNER=" + obid);
       Cart cart = this.srvCart.getShoppingCart(pRqVs, pRqDt, false);
       TradingSettings ts = (TradingSettings) pRqVs.get("tradSet");
       AccSettings as = (AccSettings) pRqVs.get("accSet");
