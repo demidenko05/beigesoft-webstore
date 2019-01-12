@@ -18,9 +18,12 @@ import java.util.HashMap;
 import org.beigesoft.log.ILogger;
 import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.factory.IFactoryAppBeansByName;
+import org.beigesoft.holder.IHolderForClassByName;
+import org.beigesoft.converter.IConverterToFromString;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvPage;
 import org.beigesoft.settings.IMngSettings;
+import org.beigesoft.service.ISrvDate;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.webstore.processor.PrcWebstorePage;
@@ -31,6 +34,7 @@ import org.beigesoft.webstore.processor.PrCart;
 import org.beigesoft.webstore.processor.PrcCheckOut;
 import org.beigesoft.webstore.processor.PrPur;
 import org.beigesoft.webstore.processor.PrBur;
+import org.beigesoft.webstore.processor.PrBuOr;
 import org.beigesoft.webstore.processor.PrLog;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 import org.beigesoft.webstore.service.IAcpOrd;
@@ -98,6 +102,21 @@ public class FctBnPublicTradeProcessors<RS>
   private ICncOrd cncOrd;
 
   /**
+   * <p>Date service.</p>
+   **/
+  private ISrvDate srvDate;
+
+  /**
+   * <p>Field converter names holder.</p>
+   **/
+  private IHolderForClassByName<String> hldFldCnv;
+
+  /**
+   * <p>Fields converters factory.</p>
+   **/
+  private IFactoryAppBeansByName<IConverterToFromString<?>> facFldCnv;
+
+  /**
    * <p>Get bean in lazy mode (if bean is null then initialize it).</p>
    * @param pAddParam additional param
    * @param pBeanName - bean name
@@ -125,6 +144,8 @@ public class FctBnPublicTradeProcessors<RS>
             proc = lazyGetPrLog(pAddParam);
           } else if (pBeanName.equals(PrcCheckOut.class.getSimpleName())) {
             proc = lazyGetPrcCheckOut(pAddParam);
+          } else if (pBeanName.equals(PrBuOr.class.getSimpleName())) {
+            proc = lazyGetPrBuOr(pAddParam);
           } else if (pBeanName.equals(PrBur.class.getSimpleName())) {
             proc = lazyGetPrBur(pAddParam);
           } else if (pBeanName.equals(PrPur.class.getSimpleName())) {
@@ -178,6 +199,35 @@ public class FctBnPublicTradeProcessors<RS>
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvShoppingCart(getSrvShoppingCart());
       proc.setProcessorsFactory(this);
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnPublicTradeProcessors.class,
+        beanName + " has been created.");
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Lazy get PrBuOr.</p>
+   * @param pAddParam additional param
+   * @return requested PrBuOr
+   * @throws Exception - an exception
+   */
+  protected final PrBuOr<RS> lazyGetPrBuOr(
+    final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrBuOr.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrBuOr<RS> proc = (PrBuOr<RS>)
+      this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrBuOr<RS>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setSrvPage(getSrvPage());
+      proc.setProcFac(this);
+      proc.setMngUvd(getMngUvdSettings());
+      proc.setSrvDate(getSrvDate());
+      proc.setHldFldCnv(getHldFldCnv());
+      proc.setFacFldCnv(getFacFldCnv());
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);
       this.logger.info(null, FctBnPublicTradeProcessors.class,
@@ -539,4 +589,54 @@ public class FctBnPublicTradeProcessors<RS>
   public final void setCncOrd(final ICncOrd pCncOrd) {
     this.cncOrd = pCncOrd;
   }
-}
+
+  /**
+   * <p>Getter for srvDate.</p>
+   * @return ISrvDate
+   **/
+  public final ISrvDate getSrvDate() {
+    return this.srvDate;
+  }
+
+  /**
+   * <p>Setter for srvDate.</p>
+   * @param pSrvDate reference
+   **/
+  public final void setSrvDate(final ISrvDate pSrvDate) {
+    this.srvDate = pSrvDate;
+  }
+
+  /**
+   * <p>Getter for hldFldCnv.</p>
+   * @return IHolderForClassByName<String>
+   **/
+  public final IHolderForClassByName<String> getHldFldCnv() {
+    return this.hldFldCnv;
+  }
+
+  /**
+   * <p>Setter for hldFldCnv.</p>
+   * @param pHldFldCnv reference
+   **/
+  public final void setHldFldCnv(
+    final IHolderForClassByName<String> pHldFldCnv) {
+    this.hldFldCnv = pHldFldCnv;
+  }
+
+  /**
+   * <p>Getter for facFldCnv.</p>
+   * @return IFactoryAppBeansByName<IConverterToFromString<?>>
+   **/
+  public final IFactoryAppBeansByName<IConverterToFromString<?>>
+    getFacFldCnv() {
+    return this.facFldCnv;
+  }
+
+  /**
+   * <p>Setter for facFldCnv.</p>
+   * @param pFacFldCnv reference
+   **/
+  public final void setFacFldCnv(
+    final IFactoryAppBeansByName<IConverterToFromString<?>> pFacFldCnv) {
+    this.facFldCnv = pFacFldCnv;
+  }}

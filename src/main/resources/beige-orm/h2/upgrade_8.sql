@@ -21,6 +21,7 @@ alter table SALESRETURNLINE add column FOREIGNTOTAL decimal(19,4) default 0;
 alter table SALESRETURNGOODSTAXLINE add column FOREIGNTOTALTAXES decimal(19,4) default 0;
 alter table SALESRETURNTAXLINE add column FOREIGNTOTALTAXES decimal(19,4) default 0;
 alter table SALESRETURNTAXLINE add column TAXABLEINVBASFC decimal(19,4) default 0;
+alter table WAREHOUSEREST add column ITSVERSION bigint not null default 1;
 alter table SERVICETOSALE add column TMME tinyint not null default 0;
 alter table SERVICETOSALE add column TMAD int default null;
 alter table SESERVICE add column TMME tinyint not null default 0;
