@@ -164,7 +164,6 @@ public class AcpOrd<RS> implements IAcpOrd {
       pRqVs.remove("fieldsNames");
     } else {
       ColumnsValues cvs = new ColumnsValues();
-      cvs.setIdColumnsNames(new String[] {"itsId"});
       cvs.put("itsVersion", new Date().getTime());
       cvs.put("stat", EOrdStat.BOOKED.ordinal());
       this.srvDb.executeUpdate("CUSTORDER", cvs, "STAT=0 and BUYER="

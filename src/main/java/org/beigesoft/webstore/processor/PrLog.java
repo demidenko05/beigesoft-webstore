@@ -96,9 +96,9 @@ public class PrLog<RS> implements IProcessor {
     long now = new Date().getTime();
     String tbn = OnlineBuyer.class.getSimpleName();
     pRqDt.setAttribute("buyr", buyer);
-    if (buyer.getRegEmail() == null) {
-      //creating:
+    if (buyer.getRegEmail() == null) { //unregistered:
       if (nm != null && pw != null && pwc != null && em != null) {
+        //creating:
         if (nm.length() > 2 && pw.length() > 7 && pw.equals(pwc)
           && em.length() > 5) {
           Set<String> ndFl = new HashSet<String>();
@@ -127,10 +127,28 @@ public class PrLog<RS> implements IProcessor {
         } else {
           pRqDt.setAttribute("errMsg", "buyCrRul");
         }
+      } else if (pw != null && em != null) {
+        //login from new browser
+        pRqVs.put(tbn + "regCustomerdeepLevel", 1);
+        pRqVs.put(tbn + "taxDestplacedeepLevel", 1);
+        List<OnlineBuyer> brs = getSrvOrm().retrieveListWithConditions(
+          pRqVs, OnlineBuyer.class, "where REGISTEREDPASSWORD='" + pw
+            + "' and REGEMAIL='" + em + "'");
+        pRqVs.remove(tbn + "regCustomerdeepLevel");
+        pRqVs.remove(tbn + "taxDestplacedeepLevel");
+        if (brs.size() == 1) {
+          //free buyer and moving its cart by fast updates:
+          mkFreBuyr(pRqVs,  pRqDt, buyer, brs.get(0));
+        } else if (brs.size() == 0) {
+          pRqDt.setAttribute("errMsg", "wrong_em_password");
+        } else {
+          getLog().error(pRqVs, PrLog.class,
+            "Several users with same password and email!: " + em);
+        }
       } else {
         spam(pRqVs, pRqDt);
       }
-    } else {
+    } else { //registered:
       if (nm != null && pw == null && em == null) {
         //change name:
         if (nm.length() > 2) {
@@ -151,46 +169,21 @@ public class PrLog<RS> implements IProcessor {
         }
       } else if (pw != null) {
         //login/logout action:
-        if (buyer.getRegisteredPassword() != null) {
-          //cookie ID is equal to buyer
-          if (now - buyer.getLsTm() > 1800000L) { //login
-            if (pw.equals(buyer.getRegisteredPassword())) {
-              buyer.setLsTm(now);
-              this.srvOrm.updateEntity(pRqVs, buyer);
-            } else {
-              pRqDt.setAttribute("errMsg", "wrong_password");
-            }
+        //cookie ID is equal to buyer
+        if (now - buyer.getLsTm() > 1800000L) { //login
+          if (pw.equals(buyer.getRegisteredPassword())) {
+            buyer.setLsTm(now);
+            this.srvOrm.updateEntity(pRqVs, buyer);
           } else {
-            spam(pRqVs, pRqDt);
+            pRqDt.setAttribute("errMsg", "wrong_password");
           }
-        } else { //login from new browser
-          if (em == null) {
-            spam(pRqVs, pRqDt);
-          } else {
-            pRqVs.put(tbn + "regCustomerdeepLevel", 1);
-            pRqVs.put(tbn + "taxDestplacedeepLevel", 1);
-            List<OnlineBuyer> brs = getSrvOrm().retrieveListWithConditions(
-              pRqVs, OnlineBuyer.class, "where REGISTEREDPASSWORD='" + pw
-                + "' and REGEMAIL='" + em + "'");
-            pRqVs.remove(tbn + "regCustomerdeepLevel");
-            pRqVs.remove(tbn + "taxDestplacedeepLevel");
-            if (brs.size() == 1) {
-              //free buyer and moving its cart by fast updates:
-              mkFreBuyr(pRqVs,  pRqDt, buyer, brs.get(0));
-            } else if (brs.size() == 0) {
-              pRqDt.setAttribute("errMsg", "wrong_em_password");
-            } else {
-              getLog().error(pRqVs, PrLog.class,
-                "Several users with same password and email!: " + em);
-            }
-          }
+        } else {
+          spam(pRqVs, pRqDt);
         }
-      } else if (buyer.getRegisteredPassword() != null) {
+      } else {
         //logout action:
         buyer.setLsTm(0L);
         this.srvOrm.updateEntity(pRqVs, buyer);
-      } else {
-        spam(pRqVs, pRqDt);
       }
     }
     String procNm = pRqDt.getParameter("nmPrcRed");
@@ -223,6 +216,7 @@ public class PrLog<RS> implements IProcessor {
     long now = new Date().getTime();
     pBuTmp.setFre(true);
     pBuTmp.setRegEmail(null);
+    pBuTmp.setRegisteredPassword(null);
     pBuTmp.setLsTm(0L);
     this.srvOrm.updateEntity(pRqVs, pBuTmp);
     Long obid = pBuTmp.getItsId();
@@ -277,6 +271,7 @@ public class PrLog<RS> implements IProcessor {
       } else {
         buyer = brs.get(0);
       }
+      buyer.setRegisteredPassword(null);
       buyer.setRegEmail(null);
       buyer.setFre(false);
     }

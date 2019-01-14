@@ -639,4 +639,5 @@ public class FctBnPublicTradeProcessors<RS>
   public final void setFacFldCnv(
     final IFactoryAppBeansByName<IConverterToFromString<?>> pFacFldCnv) {
     this.facFldCnv = pFacFldCnv;
-  }}
+  }
+}

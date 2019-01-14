@@ -104,6 +104,7 @@ public class PrBuOr<RS> implements IProcessor {
       //TODO handle outdated
       return;
     }
+    pRqDt.setAttribute("buyr", buyer);
     String orIdSt = pRqDt.getParameter("orId");
     String sorIdSt = pRqDt.getParameter("sorId");
     if (orIdSt != null || sorIdSt != null) { //print:
@@ -162,7 +163,7 @@ public class PrBuOr<RS> implements IProcessor {
     } else {
       page = 1;
     }
-    String wheBr = "where BUYER=" + pBuyr.getItsId();
+    String wheBr = "BUYER=" + pBuyr.getItsId();
     Integer rowCount = this.srvOrm.evalRowCountWhere(pRqVs,
       CustOrder.class, wheBr);
     Integer itemsPerPage = ts.getItemsPerPage();
@@ -177,18 +178,8 @@ public class PrBuOr<RS> implements IProcessor {
       paginationTail);
     pRqDt.setAttribute("pgs", pages);
     List<CustOrder> orders = getSrvOrm().retrievePageWithConditions(pRqVs,
-      CustOrder.class, wheBr, firstResult, itemsPerPage);
+      CustOrder.class, "where " + wheBr, firstResult, itemsPerPage);
     pRqDt.setAttribute("ords", orders);
-    String listFltAp = pRqDt.getParameter("listFltAp");
-    if (listFltAp != null) {
-      listFltAp = new String(listFltAp.getBytes("ISO-8859-1"), "UTF-8");
-      pRqDt.setAttribute("listFltAp", listFltAp);
-    }
-    String itFltAp = pRqDt.getParameter("itFltAp");
-    if (itFltAp != null) {
-      itFltAp = new String(itFltAp.getBytes("ISO-8859-1"), "UTF-8");
-      pRqDt.setAttribute("itFltAp", itFltAp);
-    }
   }
 
   /**
