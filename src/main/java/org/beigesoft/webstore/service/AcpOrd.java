@@ -382,6 +382,8 @@ public class AcpOrd<RS> implements IAcpOrd {
     pRqVs.remove(tbn + "pickUpPlacedeepLevel");
     //booking:
     //changing availability (booking):
+    ColumnsValues cvsIil = new ColumnsValues();
+    cvsIil.getFormula().add("availableQuantity");
     tbn = GoodsPlace.class.getSimpleName();
     pRqVs.put(tbn + "itemdeepLevel", 1); //only ID
     pRqVs.put(tbn + "pickUpPlacedeepLevel", 1);
@@ -396,7 +398,12 @@ public class AcpOrd<RS> implements IAcpOrd {
           throw new Exception("AC. Good is not available #"
             + gl.getGood().getItsId());
         } else {
+          //TODO PERFORM fastupd
           getSrvOrm().updateEntity(pRqVs, gp);
+          cvsIil.put("itsVersion", new Date().getTime());
+          cvsIil.put("availableQuantity", "AVAILABLEQUANTITY-" + gl.getQuant());
+          this.srvDb.executeUpdate("ITEMINLIST", cvsIil,
+            "ITSTYPE=0 and ITEMID=" + gp.getItem().getItsId());
         }
       }
     }
@@ -418,7 +425,13 @@ public class AcpOrd<RS> implements IAcpOrd {
             throw new Exception("NBK service is not available #"
               + sl.getService().getItsId());
           } else {
+            //TODO PERFORM fastupd
             getSrvOrm().updateEntity(pRqVs, sp);
+            cvsIil.put("itsVersion", new Date().getTime());
+            cvsIil.put("availableQuantity",  "AVAILABLEQUANTITY-"
+              + sl.getQuant());
+            this.srvDb.executeUpdate("ITEMINLIST", cvsIil,
+              "ITSTYPE=1 and ITEMID=" + sp.getItem().getItsId());
           }
         }
       } else {

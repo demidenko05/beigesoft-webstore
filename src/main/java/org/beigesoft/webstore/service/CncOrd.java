@@ -16,9 +16,12 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Date;
 
 import org.beigesoft.log.ILogger;
+import org.beigesoft.model.ColumnsValues;
 import org.beigesoft.service.ISrvOrm;
+import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.webstore.model.EOrdStat;
 import org.beigesoft.webstore.model.Purch;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
@@ -50,6 +53,11 @@ public class CncOrd<RS> implements ICncOrd {
    * <p>ORM service.</p>
    */
   private ISrvOrm<RS> srvOrm;
+
+  /**
+   * <p>DB service.</p>
+   */
+  private ISrvDatabase<RS> srvDb;
 
   /**
    * <p>It cancels all given buyer's orders.
@@ -117,6 +125,7 @@ public class CncOrd<RS> implements ICncOrd {
     Set<String> ndFl = new HashSet<String>();
     String tbn = CustOrderGdLn.class.getSimpleName();
     ndFl.add("itsId");
+    ndFl.add("quant");
     ndFl.add("good");
     pRqVs.put(tbn + "neededFields", ndFl);
     pRqVs.put(tbn + "gooddeepLevel", 1);
@@ -124,6 +133,8 @@ public class CncOrd<RS> implements ICncOrd {
       pRqVs, CustOrderGdLn.class, "where ITSOWNER=" + pCuOr.getItsId());
     pRqVs.remove(tbn + "neededFields");
     pRqVs.remove(tbn + "gooddeepLevel");
+    ColumnsValues cvsIil = new ColumnsValues();
+    cvsIil.getFormula().add("availableQuantity");
     for (CustOrderGdLn gl : gds) {
       GoodsPlace gp = getSrvOrm().retrieveEntityWithConditions(pRqVs,
         GoodsPlace.class, "where ISALWAYS=0 and ITEM=" + gl.getGood().getItsId()
@@ -131,6 +142,10 @@ public class CncOrd<RS> implements ICncOrd {
       if (gp != null) {
         gp.setItsQuantity(gp.getItsQuantity().add(gl.getQuant()));
         getSrvOrm().updateEntity(pRqVs, gp);
+        cvsIil.put("itsVersion", new Date().getTime());
+        cvsIil.put("availableQuantity", "AVAILABLEQUANTITY+" + gl.getQuant());
+        this.srvDb.executeUpdate("ITEMINLIST", cvsIil,
+          "ITSTYPE=0 and ITEMID=" + gp.getItem().getItsId());
       }
     }
     tbn = CustOrderSrvLn.class.getSimpleName();
@@ -152,6 +167,10 @@ public class CncOrd<RS> implements ICncOrd {
         if (sp != null) {
           sp.setItsQuantity(sp.getItsQuantity().add(sl.getQuant()));
           getSrvOrm().updateEntity(pRqVs, sp);
+          cvsIil.put("itsVersion", new Date().getTime());
+          cvsIil.put("availableQuantity", "AVAILABLEQUANTITY+" + sl.getQuant());
+          this.srvDb.executeUpdate("ITEMINLIST", cvsIil,
+            "ITSTYPE=1 and ITEMID=" + sp.getItem().getItsId());
         }
       } else { //bookable:
         List<SerBus> sebs = getSrvOrm().retrieveListWithConditions(pRqVs,
@@ -222,5 +241,21 @@ public class CncOrd<RS> implements ICncOrd {
    **/
   public final void setSrvOrm(final ISrvOrm<RS> pSrvOrm) {
     this.srvOrm = pSrvOrm;
+  }
+
+  /**
+   * <p>Getter for srvDb.</p>
+   * @return ISrvDatabase<RS>
+   **/
+  public final ISrvDatabase<RS> getSrvDb() {
+    return this.srvDb;
+  }
+
+  /**
+   * <p>Setter for srvDb.</p>
+   * @param pSrvDb reference
+   **/
+  public final void setSrvDb(final ISrvDatabase<RS> pSrvDb) {
+    this.srvDb = pSrvDb;
   }
 }

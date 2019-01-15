@@ -99,6 +99,15 @@ public class PrBuOr<RS> implements IProcessor {
       spam(pRqVs, pRqDt);
       return;
     }
+    if (buyer.getRegEmail() == null || buyer.getBuSeId() == null) {
+      spam(pRqVs, pRqDt);
+      return;
+    }
+    String buSeId = pRqDt.getCookieValue("buSeId");
+    if (!buyer.getBuSeId().equals(buSeId)) {
+      spam(pRqVs, pRqDt);
+      return;
+    }
     long now = new Date().getTime();
     if (now - buyer.getLsTm() > 1800000L) {
       //TODO handle outdated

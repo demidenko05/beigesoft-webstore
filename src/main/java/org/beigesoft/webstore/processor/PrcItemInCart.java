@@ -66,6 +66,10 @@ public class PrcItemInCart<RS> implements IProcessor {
     TradingSettings ts = (TradingSettings) pReqVars.get("tradSet");
     Cart cart = this.srvCart
       .getShoppingCart(pReqVars, pRequestData, true);
+    if (cart == null) {
+      //TODO handling "it maybe swindler's bot":
+      return;
+    }
     CartLn cartLn = null;
     String lnIdStr = pRequestData.getParameter("lnId");
     String quantStr = pRequestData.getParameter("quant");
@@ -73,6 +77,9 @@ public class PrcItemInCart<RS> implements IProcessor {
     String unStepStr = pRequestData.getParameter("unStep");
     BigDecimal quant = new BigDecimal(quantStr);
     BigDecimal avQuan = new BigDecimal(avQuanStr);
+    if (quant.compareTo(avQuan) == 1) {
+      quant = avQuan;
+    }
     BigDecimal unStep = new BigDecimal(unStepStr);
     String itIdStr = pRequestData.getParameter("itId");
     String itTypStr = pRequestData.getParameter("itTyp");
@@ -120,8 +127,8 @@ public class PrcItemInCart<RS> implements IProcessor {
       cartLn.setItTyp(itTyp);
     }
     if (!cartLn.getForc()) {
-      cartLn.setQuant(quant);
       cartLn.setAvQuan(avQuan);
+      cartLn.setQuant(quant);
       cartLn.setUnStep(unStep);
       BigDecimal amount = cartLn.getPrice().multiply(cartLn.getQuant()).
         setScale(as.getPricePrecision(), as.getRoundingMode());

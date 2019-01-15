@@ -62,8 +62,12 @@ public class PrcDelItemFromCart<RS> implements IProcessor {
     final IRequestData pRequestData) throws Exception {
     Cart cart = this.srvShoppingCart
       .getShoppingCart(pReqVars, pRequestData, false);
+    if (cart == null) {
+      //TODO handling "it maybe swindler's bot":
+      return;
+    }
     String lnIdStr = pRequestData.getParameter("lnId");
-    if (cart != null && lnIdStr != null) {
+    if (lnIdStr != null) {
       Long lnId = Long.valueOf(lnIdStr);
       CartLn cartLn = null;
       for (CartLn ci : cart.getItems()) {

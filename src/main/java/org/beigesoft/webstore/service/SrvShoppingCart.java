@@ -159,50 +159,64 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
 
   /**
    * <p>Get/Create Cart.</p>
-   * @param pReqVars additional param
-   * @param pRequestData Request Data
+   * @param pRqVs additional param
+   * @param pRqDt Request Data
    * @param pIsNeedToCreate Is Need To Create cart
    * @return shopping cart or null
    * @throws Exception - an exception
    **/
   @Override
-  public final Cart getShoppingCart(final Map<String, Object> pReqVars,
-    final IRequestData pRequestData,
+  public final Cart getShoppingCart(final Map<String, Object> pRqVs,
+    final IRequestData pRqDt,
       final boolean pIsNeedToCreate) throws Exception {
-    TradingSettings ts = srvTradingSettings.lazyGetTradingSettings(pReqVars);
-    OnlineBuyer buyer = (OnlineBuyer) pRequestData.getAttribute("buyr");
+    TradingSettings ts = srvTradingSettings.lazyGetTradingSettings(pRqVs);
+    OnlineBuyer buyer = (OnlineBuyer) pRqDt.getAttribute("buyr");
     if (buyer == null) {
       Long buyerId = null;
-      String buyerIdStr = pRequestData.getCookieValue("cBuyerId");
+      String buyerIdStr = pRqDt.getCookieValue("cBuyerId");
       if (buyerIdStr != null && buyerIdStr.length() > 0) {
          buyerId = Long.valueOf(buyerIdStr);
       }
       if (buyerId == null) {
         if (pIsNeedToCreate
           || ts.getIsCreateOnlineUserOnFirstVisit()) {
-          buyer = createOnlineBuyer(pReqVars, pRequestData);
-          pRequestData.setCookieValue("cBuyerId", buyer.getItsId()
+          buyer = createOnlineBuyer(pRqVs, pRqDt);
+          pRqDt.setCookieValue("cBuyerId", buyer.getItsId()
             .toString());
         } else {
           return null;
         }
       } else {
         buyer = getSrvOrm()
-          .retrieveEntityById(pReqVars, OnlineBuyer.class, buyerId);
+          .retrieveEntityById(pRqVs, OnlineBuyer.class, buyerId);
         if (buyer == null) { // deleted for any reason, so create new:
-          buyer = createOnlineBuyer(pReqVars, pRequestData);
-          pRequestData.setCookieValue("cBuyerId", buyer.getItsId()
+          buyer = createOnlineBuyer(pRqVs, pRqDt);
+          pRqDt.setCookieValue("cBuyerId", buyer.getItsId()
             .toString());
         }
       }
-      pRequestData.setAttribute("buyr", buyer);
+      pRqDt.setAttribute("buyr", buyer);
     }
-    Cart cart = (Cart) pRequestData.getAttribute("cart");
+    if (buyer.getRegEmail() != null) {
+      String buSeId = pRqDt.getCookieValue("buSeId");
+      if (buyer.getBuSeId() != null && !buyer.getBuSeId().equals(buSeId)) {
+        pRqDt.setAttribute("buyr", null);
+        pRqDt.setAttribute("cart", null);
+        //TODO report scam
+        return null;
+      }
+      long now = new Date().getTime();
+      if (pIsNeedToCreate && now - buyer.getLsTm() < 1800000L) {
+        buyer.setLsTm(now);
+        this.srvOrm.updateEntity(pRqVs, buyer);
+      }
+    }
+    Cart cart = (Cart) pRqDt.getAttribute("cart");
     if (cart == null) {
-      cart = retrCart(pReqVars, buyer, false);
+      cart = retrCart(pRqVs, buyer, false);
       if (cart == null && pIsNeedToCreate) {
         cart = new Cart();
-        Currency curr = (Currency) pReqVars.get("wscurr");
+        Currency curr = (Currency) pRqVs.get("wscurr");
         cart.setPayMeth(ts.getDefaultPaymentMethod());
         cart.setDeliv(EDelivering.PICKUP);
         cart.setCurr(curr);
@@ -210,10 +224,10 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         cart.setTaxes(new ArrayList<CartTxLn>());
         cart.setTotals(new ArrayList<CartTot>());
         cart.setItsId(buyer);
-        getSrvOrm().insertEntity(pReqVars, cart);
+        getSrvOrm().insertEntity(pRqVs, cart);
       }
       if (cart != null) {
-        pRequestData.setAttribute("cart", cart);
+        pRqDt.setAttribute("cart", cart);
       }
     }
     if (cart != null && cart.getTot().compareTo(BigDecimal.ZERO) == 1) {
@@ -232,16 +246,16 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         }
       }
       List<EDelivering> dlvMts = new ArrayList<EDelivering>();
-      pReqVars.put("dlvMts", dlvMts);
+      pRqVs.put("dlvMts", dlvMts);
       List<EPaymentMethod> payMts = new ArrayList<EPaymentMethod>();
-      pReqVars.put("payMts", payMts);
+      pRqVs.put("payMts", payMts);
       payMts.add(EPaymentMethod.CASH);
       payMts.add(EPaymentMethod.BANK_TRANSFER);
       payMts.add(EPaymentMethod.BANK_CHEQUE);
       if (pplCl != null) {
         payMts.add(EPaymentMethod.PAYPAL);
       }
-      List<Deliv> dels = getSrvOrm().retrieveList(pReqVars, Deliv.class);
+      List<Deliv> dels = getSrvOrm().retrieveList(pRqVs, Deliv.class);
       for (Deliv dl : dels) {
         dlvMts.add(dl.getItsId());
       }
@@ -251,7 +265,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
 
   /**
    * <p>Refresh cart totals by seller cause line inserted/changed/deleted.</p>
-   * @param pReqVars request scoped vars
+   * @param pRqVs request scoped vars
    * @param pTs TradingSettings
    * @param pCartLn affected cart line
    * @param pAs Accounting Settings
@@ -259,7 +273,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    * @throws Exception - an exception.
    **/
   @Override
-  public final void makeCartTotals(final Map<String, Object> pReqVars,
+  public final void makeCartTotals(final Map<String, Object> pRqVs,
     final TradingSettings pTs, final CartLn pCartLn, final AccSettings pAs,
       final TaxDestination pTxRules) throws Exception {
     BigDecimal txTot = BigDecimal.ZERO;
@@ -277,7 +291,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         } else {
           txCat = "-";
         }
-        getLogger().debug(pReqVars, SrvShoppingCart.class,
+        getLogger().debug(pRqVs, SrvShoppingCart.class,
           "Item: name/tax category/disabled = " + pCartLn.getItsName() + "/"
             + txCat + "/" + pCartLn.getDisab());
       }
@@ -383,7 +397,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         && !(pTxRules.getSalTaxIsInvoiceBase() && !pTs.getTxExcl())) {
         //non-aggregate except invoice basis with included taxes:
         for (int i = 0; i < txs.size(); i++) {
-          CartTxLn ctl = findCreateTaxLine(pReqVars, pCartLn.getItsOwner(),
+          CartTxLn ctl = findCreateTaxLine(pRqVs, pCartLn.getItsOwner(),
             txs.get(i), pCartLn.getSeller(), false);
           Double txTotd;
           if (!pTxRules.getSalTaxIsInvoiceBase()) {
@@ -397,10 +411,10 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
           ctl.setTot(BigDecimal.valueOf(txTotd).setScale(pAs.
             getPricePrecision(), pTxRules.getSalTaxRoundMode()));
           if (ctl.getIsNew()) {
-            getSrvOrm().insertEntity(pReqVars, ctl);
+            getSrvOrm().insertEntity(pRqVs, ctl);
             ctl.setIsNew(false);
           } else {
-            getSrvOrm().updateEntity(pReqVars, ctl);
+            getSrvOrm().updateEntity(pRqVs, ctl);
           }
         }
       } else { //non-aggregate invoice basis with included taxes
@@ -440,7 +454,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
             } else { //the rest or only tax:
               txdLn.setTotTx(taxAggegated.subtract(taxAggrAccum));
             }
-            CartTxLn ctl = findCreateTaxLine(pReqVars, pCartLn.getItsOwner(),
+            CartTxLn ctl = findCreateTaxLine(pRqVs, pCartLn.getItsOwner(),
               itcl.getTax(), pCartLn.getSeller(), true);
             ctl.setTot(ctl.getTot().add(txdLn.getTotTx()));
             if (pTxRules.getSalTaxIsInvoiceBase()) {
@@ -451,10 +465,10 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
               }
             }
             if (ctl.getIsNew()) {
-              getSrvOrm().insertEntity(pReqVars, ctl);
+              getSrvOrm().insertEntity(pRqVs, ctl);
               ctl.setIsNew(false);
             } else {
-              getSrvOrm().updateEntity(pReqVars, ctl);
+              getSrvOrm().updateEntity(pRqVs, ctl);
             }
           }
         }
@@ -472,7 +486,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
           || ctl.getSeller() != null && pCartLn.getSeller() != null
             && pCartLn.getSeller().getItsId().getItsId()
               .equals(ctl.getSeller().getItsId().getItsId())) {
-          getSrvOrm().updateEntity(pReqVars, ctl);
+          getSrvOrm().updateEntity(pRqVs, ctl);
         }
       }
     }
@@ -493,7 +507,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     pCartLn.getItsOwner().setSubt(tot.subtract(txTot));
     pCartLn.getItsOwner().setTot(tot);
     pCartLn.getItsOwner().setDescr(descr);
-    getSrvOrm().updateEntity(pReqVars, pCartLn.getItsOwner());
+    getSrvOrm().updateEntity(pRqVs, pCartLn.getItsOwner());
     CartTot cartTot = null;
     for (CartTot ct : pCartLn.getItsOwner().getTotals()) {
       if (!ct.getDisab() && (ct.getSeller() == null && pCartLn
@@ -507,7 +521,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     if (totSe.compareTo(BigDecimal.ZERO) == 0 && cartTot != null) {
       //last seller's line has been deleted, disable enabled:
       cartTot.setDisab(true);
-      getSrvOrm().updateEntity(pReqVars, cartTot);
+      getSrvOrm().updateEntity(pRqVs, cartTot);
     } else if (totSe.compareTo(BigDecimal.ZERO) == 1) {
       if (cartTot == null) {
         for (CartTot ct : pCartLn.getItsOwner().getTotals()) {
@@ -528,23 +542,23 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       cartTot.setSubt(totSe.subtract(txTotSe));
       cartTot.setTot(totSe);
       if (cartTot.getIsNew()) {
-        getSrvOrm().insertEntity(pReqVars, cartTot);
+        getSrvOrm().insertEntity(pRqVs, cartTot);
       } else {
-        getSrvOrm().updateEntity(pReqVars, cartTot);
+        getSrvOrm().updateEntity(pRqVs, cartTot);
       }
     }
   }
 
   /**
    * <p>Reveal shared tax rules for cart. It also makes buyer-regCustomer.</p>
-   * @param pReqVars request scoped vars
+   * @param pRqVs request scoped vars
    * @param pCart cart
    * @param pAs Accounting Settings
    * @return tax rules, NULL if not taxable
    * @throws Exception - an exception.
    **/
   @Override
-  public final TaxDestination revealTaxRules(final Map<String, Object> pReqVars,
+  public final TaxDestination revealTaxRules(final Map<String, Object> pRqVs,
     final Cart pCart, final AccSettings pAs) throws Exception {
     if (pCart.getBuyer().getRegCustomer() == null) {
       //copy buyer info into non-persistable customer.
@@ -574,28 +588,28 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
 
   /**
    * <p>Handle event cart currency changed.</p>
-   * @param pReqVars request scoped vars
+   * @param pRqVs request scoped vars
    * @param pCart cart
    * @param pAs Accounting Settings
    * @param pTs TradingSettings
    * @throws Exception - an exception.
    **/
   @Override
-  public final void handleCurrencyChanged(final Map<String, Object> pReqVars,
+  public final void handleCurrencyChanged(final Map<String, Object> pRqVs,
     final Cart pCart, final AccSettings pAs,
       final TradingSettings pTs) throws Exception {
-    TaxDestination txRules = revealTaxRules(pReqVars, pCart, pAs);
+    TaxDestination txRules = revealTaxRules(pRqVs, pCart, pAs);
     for (CartLn cl : pCart.getItems()) {
       if (!cl.getDisab()) {
-        makeCartLine(pReqVars, cl, pAs, pTs, txRules, true, false);
-        makeCartTotals(pReqVars, pTs, cl, pAs, txRules);
+        makeCartLine(pRqVs, cl, pAs, pTs, txRules, true, false);
+        makeCartTotals(pRqVs, pTs, cl, pAs, txRules);
       }
     }
   }
 
   /**
    * <p>Makes cart line.</p>
-   * @param pReqVars request scoped vars
+   * @param pRqVs request scoped vars
    * @param pCartLn cart line
    * @param pAs Accounting Settings
    * @param pTs TradingSettings
@@ -605,13 +619,13 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    * @throws Exception - an exception.
    **/
   @Override
-  public final void makeCartLine(final Map<String, Object> pReqVars,
+  public final void makeCartLine(final Map<String, Object> pRqVs,
     final CartLn pCartLn, final AccSettings pAs, final TradingSettings pTs,
       final TaxDestination pTxRules, final boolean pRedoPr,
         final boolean pRedoTxc) throws Exception {
     AItemPrice<?, ?> itPrice = null;
     if (pRedoPr || pRedoTxc) {
-      itPrice = revealItemPrice(pReqVars, pTs, pCartLn.getItsOwner().getBuyer(),
+      itPrice = revealItemPrice(pRqVs, pTs, pCartLn.getItsOwner().getBuyer(),
         pCartLn.getItTyp(), pCartLn.getItId());
       pCartLn.setPrice(itPrice.getItsPrice());
       pCartLn.setItsName(itPrice.getItem().getItsName());
@@ -620,7 +634,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         pCartLn.setQuant(pCartLn.getQuant().subtract(qosr));
       }
       @SuppressWarnings("unchecked")
-      List<CurrRate> currRates = (List<CurrRate>) pReqVars.get("currRates");
+      List<CurrRate> currRates = (List<CurrRate>) pRqVs.get("currRates");
       for (CurrRate cr: currRates) {
         if (cr.getCurr().getItsId().equals(pCartLn.getItsOwner()
           .getCurr().getItsId())) {
@@ -667,12 +681,12 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
             dstTxItLnCl = DestTaxSeGoodsLn.class;
           }
           //override tax method:
-          pReqVars.put(dstTxItLnCl.getSimpleName() + "itsOwnerdeepLevel", 1);
+          pRqVs.put(dstTxItLnCl.getSimpleName() + "itsOwnerdeepLevel", 1);
           @SuppressWarnings("unchecked")
           List<ADestTaxItemLn<?>> dtls = (List<ADestTaxItemLn<?>>) getSrvOrm()
-            .retrieveListWithConditions(pReqVars, dstTxItLnCl,
+            .retrieveListWithConditions(pRqVs, dstTxItLnCl,
               "where ITSOWNER=" + pCartLn.getItId());
-          pReqVars.remove(dstTxItLnCl.getSimpleName() + "itsOwnerdeepLevel");
+          pRqVs.remove(dstTxItLnCl.getSimpleName() + "itsOwnerdeepLevel");
           for (ADestTaxItemLn<?> dtl : dtls) {
             if (dtl.getTaxDestination().getItsId().equals(pCartLn.getItsOwner()
               .getBuyer().getRegCustomer().getTaxDestination().getItsId())) {
@@ -694,12 +708,12 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         BigDecimal bd100 = new BigDecimal("100.00");
         if (!pTxRules.getSalTaxUseAggregItBas()) {
           itls = new ArrayList<CartItTxLn>();
-          pReqVars.put("InvItemTaxCategoryLineitsOwnerdeepLevel", 1);
+          pRqVs.put("InvItemTaxCategoryLineitsOwnerdeepLevel", 1);
           List<InvItemTaxCategoryLine> itcls = getSrvOrm()
-        .retrieveListWithConditions(pReqVars, InvItemTaxCategoryLine.class,
+        .retrieveListWithConditions(pRqVs, InvItemTaxCategoryLine.class,
       "where ITSOWNER=" + pCartLn.getTxCat().getItsId()
     + " order by INVITEMTAXCATEGORYLINE.ITSPERCENTAGE");
-          pReqVars.remove("InvItemTaxCategoryLineitsOwnerdeepLevel");
+          pRqVs.remove("InvItemTaxCategoryLineitsOwnerdeepLevel");
           BigDecimal taxTot = null;
           BigDecimal taxRest = null;
           if (!pTs.getTxExcl()) {
@@ -736,7 +750,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
               }
               totalTaxes = totalTaxes.add(addTx);
               itl.setTot(addTx);
-              sb.append(itl.getTax().getItsName() + " " + prn(pReqVars, addTx));
+              sb.append(itl.getTax().getItsName() + " " + prn(pRqVs, addTx));
             }
           }
           pCartLn.setTxDsc(sb.toString());
@@ -763,9 +777,9 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       pCartLn.setSubt(pCartLn.getTot().subtract(pCartLn.getTotTx()));
     }
     if (pCartLn.getIsNew()) {
-      getSrvOrm().insertEntity(pReqVars, pCartLn);
+      getSrvOrm().insertEntity(pRqVs, pCartLn);
     } else {
-      getSrvOrm().updateEntity(pReqVars, pCartLn);
+      getSrvOrm().updateEntity(pRqVs, pCartLn);
       for (int i = 0; i < pCartLn.getItsOwner().getItems().size(); i++) {
         if (pCartLn.getItsOwner().getItems().get(i).getItId()
           .equals(pCartLn.getItId()) && pCartLn.getItsOwner().getItems().get(i)
@@ -776,11 +790,11 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       }
     }
     if (itls != null) {
-      pReqVars.put("CartItTxLnitsOwnerdeepLevel", 1);
+      pRqVs.put("CartItTxLnitsOwnerdeepLevel", 1);
       List<CartItTxLn> itlsr = getSrvOrm().retrieveListWithConditions(
-          pReqVars, CartItTxLn.class, "where CARTID="
+          pRqVs, CartItTxLn.class, "where CARTID="
             + pCartLn.getItsOwner().getBuyer().getItsId());
-      pReqVars.remove("CartItTxLnitsOwnerdeepLevel");
+      pRqVs.remove("CartItTxLnitsOwnerdeepLevel");
       for (CartItTxLn itlrt : itlsr) {
         if (!itlrt.getDisab() && itlrt.getItsOwner().getItsId()
           .equals(pCartLn.getItsId())) {
@@ -803,7 +817,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
           }
           itl.setCartId(pCartLn.getItsOwner().getBuyer().getItsId());
           itl.setItsOwner(pCartLn);
-          getSrvOrm().insertEntity(pReqVars, itl);
+          getSrvOrm().insertEntity(pRqVs, itl);
           itl.setIsNew(false);
         } else {
           itlr.setTax(itl.getTax());
@@ -815,13 +829,13 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
             itlr.setSellerId(pCartLn.getSeller().getItsId().getItsId());
           }
           itlr.setCartId(pCartLn.getItsOwner().getBuyer().getItsId());
-          getSrvOrm().updateEntity(pReqVars, itlr);
+          getSrvOrm().updateEntity(pRqVs, itlr);
         }
       }
       for (CartItTxLn itlrt : itlsr) {
         if (itlrt.getDisab() && itlrt.getItsOwner().getItsId()
           .equals(pCartLn.getItsId())) {
-          getSrvOrm().updateEntity(pReqVars, itlrt);
+          getSrvOrm().updateEntity(pRqVs, itlrt);
         }
       }
     }
@@ -829,7 +843,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
 
   /**
    * <p>Reveals item's price descriptor.</p>
-   * @param pReqVars request scoped vars
+   * @param pRqVs request scoped vars
    * @param pTs TradingSettings
    * @param pBuyer Buyer
    * @param pItType Item Type
@@ -839,10 +853,10 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    **/
   @Override
   public final AItemPrice<?, ?> revealItemPrice(
-    final Map<String, Object> pReqVars, final TradingSettings pTs,
+    final Map<String, Object> pRqVs, final TradingSettings pTs,
       final OnlineBuyer pBuyer, final EShopItemType pItType,
         final Long pItId) throws Exception {
-    String lang = (String) pReqVars.get("lang");
+    String lang = (String) pRqVs.get("lang");
     AItemPrice<?, ?> itPrice = null;
     String query;
     Class<?> itemI18nCl;
@@ -870,8 +884,8 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     ndFlItPr.add("priceCategory");
     ndFlItPr.add("itsPrice");
     ndFlItPr.add("unStep");
-    pReqVars.put(itemPriceCl.getSimpleName() + "neededFields", ndFlItPr);
-    pReqVars.put(itemPriceCl.getSimpleName() + "priceCategorydeepLevel", 1);
+    pRqVs.put(itemPriceCl.getSimpleName() + "neededFields", ndFlItPr);
+    pRqVs.put(itemPriceCl.getSimpleName() + "priceCategorydeepLevel", 1);
     Set<String> ndFlIt = new HashSet<String>();
     ndFlIt.add("itsId");
     ndFlIt.add("itsName");
@@ -881,21 +895,21 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       ndFlIt.add("seller");
       Set<String> ndFlSe = new HashSet<String>();
       ndFlSe.add("seller");
-      pReqVars.put("SeSellerneededFields", ndFlSe);
-      pReqVars.put(itemCl.getSimpleName() + "sellerdeepLevel", 1);
+      pRqVs.put("SeSellerneededFields", ndFlSe);
+      pRqVs.put(itemCl.getSimpleName() + "sellerdeepLevel", 1);
     }
-    pReqVars.put(itemCl.getSimpleName() + "neededFields", ndFlIt);
+    pRqVs.put(itemCl.getSimpleName() + "neededFields", ndFlIt);
     Set<String> ndFlTc = new HashSet<String>();
     ndFlTc.add("itsId");
     ndFlTc.add("itsName");
     ndFlTc.add("aggrOnlyPercent");
-    pReqVars.put(InvItemTaxCategory.class.getSimpleName() + "neededFields",
+    pRqVs.put(InvItemTaxCategory.class.getSimpleName() + "neededFields",
       ndFlTc);
-    pReqVars.put(itemPriceCl.getSimpleName() + "itemdeepLevel", 3);
+    pRqVs.put(itemPriceCl.getSimpleName() + "itemdeepLevel", 3);
     if (pTs.getIsUsePriceForCustomer() && pBuyer != null) {
       //try to reveal price dedicated to customer:
       List<BuyerPriceCategory> buyerPrCats = getSrvOrm()
-        .retrieveListWithConditions(pReqVars, BuyerPriceCategory.class,
+        .retrieveListWithConditions(pRqVs, BuyerPriceCategory.class,
           "where BUYER=" + pBuyer.getItsId());
       if (buyerPrCats.size() > 0) {
         if (pItType.equals(EShopItemType.GOODS)
@@ -925,7 +939,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
           pccnd.append(")");
         }
         query = query.replace(":PRCATIDCOND", pccnd);
-        itPrice = (AItemPrice<?, ?>) getSrvOrm().retrieveEntity(pReqVars,
+        itPrice = (AItemPrice<?, ?>) getSrvOrm().retrieveEntity(pRqVs,
           itemPriceCl, query);
       }
     }
@@ -946,7 +960,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         .toUpperCase());
       @SuppressWarnings("unchecked")
       List<AItemPrice<?, ?>> itPrices = (List<AItemPrice<?, ?>>)
-        getSrvOrm().retrieveListByQuery(pReqVars, itemPriceCl, query);
+        getSrvOrm().retrieveListByQuery(pRqVs, itemPriceCl, query);
       if (itPrices.size() == 0) {
         throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
           "requested_item_has_no_price");
@@ -957,80 +971,80 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       }
       itPrice = itPrices.get(0);
     }
-    pReqVars.remove(itemCl.getSimpleName() + "neededFields");
-    pReqVars.remove(itemPriceCl.getSimpleName() + "priceCategorydeepLevel");
-    pReqVars.remove(itemPriceCl.getSimpleName() + "neededFields");
-    pReqVars.remove(InvItemTaxCategory.class.getSimpleName() + "neededFields");
-    pReqVars.remove(itemPriceCl.getSimpleName() + "itemdeepLevel");
+    pRqVs.remove(itemCl.getSimpleName() + "neededFields");
+    pRqVs.remove(itemPriceCl.getSimpleName() + "priceCategorydeepLevel");
+    pRqVs.remove(itemPriceCl.getSimpleName() + "neededFields");
+    pRqVs.remove(InvItemTaxCategory.class.getSimpleName() + "neededFields");
+    pRqVs.remove(itemPriceCl.getSimpleName() + "itemdeepLevel");
     if (pItType.equals(EShopItemType.SEGOODS)
       || pItType.equals(EShopItemType.SESERVICE)) {
-      pReqVars.remove("SeSellerneededFields");
-      pReqVars.remove(itemCl.getSimpleName() + "sellerdeepLevel");
+      pRqVs.remove("SeSellerneededFields");
+      pRqVs.remove(itemCl.getSimpleName() + "sellerdeepLevel");
     }
     return itPrice;
   }
 
   /**
    * <p>Empties Cart.</p>
-   * @param pReqVars request scoped vars
+   * @param pRqVs request scoped vars
    * @param pBuyr buyer
    * @throws Exception - an exception
    **/
   @Override
-  public final void emptyCart(final Map<String, Object> pReqVars,
+  public final void emptyCart(final Map<String, Object> pRqVs,
     final OnlineBuyer pBuyr) throws Exception {
-    Cart cart = retrCart(pReqVars, pBuyr, true);
+    Cart cart = retrCart(pRqVs, pBuyr, true);
     if (cart != null) {
       for (CartLn l : cart.getItems()) {
         l.setDisab(true);
-        getSrvOrm().updateEntity(pReqVars, l);
+        getSrvOrm().updateEntity(pRqVs, l);
       }
       for (CartTxLn l : cart.getTaxes()) {
         l.setDisab(true);
-        getSrvOrm().updateEntity(pReqVars, l);
+        getSrvOrm().updateEntity(pRqVs, l);
       }
       for (CartTot l : cart.getTotals()) {
         l.setDisab(true);
-        getSrvOrm().updateEntity(pReqVars, l);
+        getSrvOrm().updateEntity(pRqVs, l);
       }
       cart.setTot(BigDecimal.ZERO);
-      getSrvOrm().updateEntity(pReqVars, cart);
+      getSrvOrm().updateEntity(pRqVs, cart);
     }
   }
 
   /**
    * <p>Retrieves Cart from DB.</p>
-   * @param pReqVars additional param
+   * @param pRqVs additional param
    * @param pBuyr buyer
    * @param pChOnlId owned entities only ID
    * @return shopping cart or null
    * @throws Exception - an exception
    **/
-  public final Cart retrCart(final Map<String, Object> pReqVars,
+  public final Cart retrCart(final Map<String, Object> pRqVs,
     final OnlineBuyer pBuyr, final Boolean pChOnlId) throws Exception {
     //TODO pChOnlId
-    Cart cart = getSrvOrm().retrieveEntityById(pReqVars, Cart.class, pBuyr);
+    Cart cart = getSrvOrm().retrieveEntityById(pRqVs, Cart.class, pBuyr);
     if (cart != null) {
-      pReqVars.put("CartLnitsOwnerdeepLevel", 1);
-      List<CartLn> cartItems = getSrvOrm().retrieveListWithConditions(pReqVars,
+      pRqVs.put("CartLnitsOwnerdeepLevel", 1);
+      List<CartLn> cartItems = getSrvOrm().retrieveListWithConditions(pRqVs,
         CartLn.class, "where ITSOWNER=" + cart.getBuyer().getItsId());
       cart.setItems(cartItems);
-      pReqVars.remove("CartLnitsOwnerdeepLevel");
+      pRqVs.remove("CartLnitsOwnerdeepLevel");
       for (CartLn clt : cart.getItems()) {
         clt.setItsOwner(cart);
       }
-      pReqVars.put("CartTxLnitsOwnerdeepLevel", 1);
-      List<CartTxLn> ctls = getSrvOrm().retrieveListWithConditions(pReqVars,
+      pRqVs.put("CartTxLnitsOwnerdeepLevel", 1);
+      List<CartTxLn> ctls = getSrvOrm().retrieveListWithConditions(pRqVs,
         CartTxLn.class, "where ITSOWNER=" + cart.getBuyer().getItsId());
-      pReqVars.remove("CartTxLnitsOwnerdeepLevel");
+      pRqVs.remove("CartTxLnitsOwnerdeepLevel");
       cart.setTaxes(ctls);
       for (CartTxLn ctl : cart.getTaxes()) {
         ctl.setItsOwner(cart);
       }
-      pReqVars.put("CartTotitsOwnerdeepLevel", 1);
-      List<CartTot> ctts = getSrvOrm().retrieveListWithConditions(pReqVars,
+      pRqVs.put("CartTotitsOwnerdeepLevel", 1);
+      List<CartTot> ctts = getSrvOrm().retrieveListWithConditions(pRqVs,
         CartTot.class, "where ITSOWNER=" + cart.getBuyer().getItsId());
-      pReqVars.remove("CartTotitsOwnerdeepLevel");
+      pRqVs.remove("CartTotitsOwnerdeepLevel");
       cart.setTotals(ctts);
       for (CartTot cttl : cart.getTotals()) {
         cttl.setItsOwner(cart);
@@ -1082,7 +1096,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
   /**
    * <p>Finds (if need) enabled line with same tax and seller or any
    * disabled tax line or creates one.</p>
-   * @param pReqVars additional param
+   * @param pRqVs additional param
    * @param pCart cart
    * @param pTax tax
    * @param pSeller seller
@@ -1090,7 +1104,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    * @return line
    * @throws Exception if no need to find but line is found
    **/
-  public final CartTxLn findCreateTaxLine(final Map<String, Object> pReqVars,
+  public final CartTxLn findCreateTaxLine(final Map<String, Object> pRqVs,
     final Cart pCart, final Tax pTax, final SeSeller pSeller,
       final boolean pNeedFind) throws Exception {
     CartTxLn ctl = null;
@@ -1134,16 +1148,16 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
 
   /**
    * <p>Create OnlineBuyer.</p>
-   * @param pReqVars additional param
-   * @param pRequestData Request Data
+   * @param pRqVs additional param
+   * @param pRqDt Request Data
    * @return buyer
    * @throws Exception - an exception
    **/
   public final OnlineBuyer createOnlineBuyer(
-    final Map<String, Object> pReqVars,
-      final IRequestData pRequestData) throws Exception {
+    final Map<String, Object> pRqVs,
+      final IRequestData pRqDt) throws Exception {
     OnlineBuyer buyer = null;
-    List<OnlineBuyer> brs = getSrvOrm().retrieveListWithConditions(pReqVars,
+    List<OnlineBuyer> brs = getSrvOrm().retrieveListWithConditions(pRqVs,
       OnlineBuyer.class, "where FRE=1 and REGISTEREDPASSWORD is null");
     if (brs.size() > 0) {
       double rd = Math.random();
@@ -1153,13 +1167,13 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         buyer = brs.get(0);
       }
       buyer.setFre(false);
-      getSrvOrm().updateEntity(pReqVars, buyer);
+      getSrvOrm().updateEntity(pRqVs, buyer);
     }
     if (buyer == null) {
       buyer = new OnlineBuyer();
       buyer.setIsNew(true);
       buyer.setItsName("newbe" + new Date().getTime());
-      getSrvOrm().insertEntity(pReqVars, buyer);
+      getSrvOrm().insertEntity(pRqVs, buyer);
     }
     return buyer;
   }
@@ -1286,17 +1300,17 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
 
   /**
    * <p>Simple delegator to print number.</p>
-   * @param pReqVars additional param
+   * @param pRqVs additional param
    * @param pVal value
    * @return String
    **/
-  public final String prn(final Map<String, Object> pReqVars,
+  public final String prn(final Map<String, Object> pRqVs,
     final BigDecimal pVal) {
     return this.srvNumberToString.print(pVal.toString(),
-      (String) pReqVars.get("decSepv"), //user's preferences
-        (String) pReqVars.get("decGrSepv"),
-          (Integer) pReqVars.get("priceDp"),
-            (Integer) pReqVars.get("digInGr"));
+      (String) pRqVs.get("decSepv"), //user's preferences
+        (String) pRqVs.get("decGrSepv"),
+          (Integer) pRqVs.get("priceDp"),
+            (Integer) pRqVs.get("digInGr"));
   }
 
   //Simple getters and setters:

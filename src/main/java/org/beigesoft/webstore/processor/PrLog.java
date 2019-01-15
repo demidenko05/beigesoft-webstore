@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Date;
+import java.util.UUID;
 
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.model.ColumnsValues;
@@ -112,12 +113,15 @@ public class PrLog<RS> implements IProcessor {
             buyer.setRegisteredPassword(pw);
             buyer.setRegEmail(em);
             buyer.setLsTm(now);
+            UUID buseid = UUID.randomUUID();
+            buyer.setBuSeId(buseid.toString());
             if (buyer.getIsNew()) {
               this.srvOrm.insertEntity(pRqVs, buyer);
             } else {
               this.srvOrm.updateEntity(pRqVs, buyer);
             }
             pRqDt.setCookieValue("cBuyerId", buyer.getItsId().toString());
+            pRqDt.setCookieValue("buSeId", buyer.getBuSeId());
           } else if (brs.size() == 1) {
             pRqDt.setAttribute("errMsg", "emBusy");
           } else {
@@ -149,30 +153,46 @@ public class PrLog<RS> implements IProcessor {
         spam(pRqVs, pRqDt);
       }
     } else { //registered:
-      if (nm != null && pw == null && em == null) {
-        //change name:
-        if (nm.length() > 2) {
-          buyer.setItsName(nm);
-          buyer.setLsTm(now);
-          this.srvOrm.updateEntity(pRqVs, buyer);
-        } else {
-          pRqDt.setAttribute("errMsg", "buyEmRul");
+      if (now - buyer.getLsTm() < 1800000L && buyer.getBuSeId() != null) {
+        //there is opened session:
+        String buSeId = pRqDt.getCookieValue("buSeId");
+        if (buyer.getBuSeId().equals(buSeId)) {
+          //authorized requests:
+          if (nm != null && pw == null && em == null) {
+            //change name:
+            if (nm.length() > 2) {
+              buyer.setItsName(nm);
+              buyer.setLsTm(now);
+              this.srvOrm.updateEntity(pRqVs, buyer);
+            } else {
+              pRqDt.setAttribute("errMsg", "buyEmRul");
+            }
+          } else if (pw != null && pwc != null) {
+            //change password:
+            if (pw.length() > 7 && pw.equals(pwc)) {
+              buyer.setRegisteredPassword(pw);
+              buyer.setLsTm(now);
+              this.srvOrm.updateEntity(pRqVs, buyer);
+            } else {
+              pRqDt.setAttribute("errMsg", "buyPwdRul");
+            }
+          } else {
+            //logout action:
+            buyer.setLsTm(0L);
+            this.srvOrm.updateEntity(pRqVs, buyer);
+          }
+        } else { //either spam or buyer login from other browser without logout
+          spam(pRqVs, pRqDt);
         }
-      } else if (pw != null && pwc != null) {
-        //change password:
-        if (pw.length() > 7 && pw.equals(pwc)) {
-          buyer.setRegisteredPassword(pw);
-          buyer.setLsTm(now);
-          this.srvOrm.updateEntity(pRqVs, buyer);
-        } else {
-          pRqDt.setAttribute("errMsg", "buyPwdRul");
-        }
-      } else if (pw != null) {
-        //login/logout action:
-        //cookie ID is equal to buyer
-        if (now - buyer.getLsTm() > 1800000L) { //login
+      } else {
+        //unauthorized requests:
+        if (pw != null) {
+          //login action:
           if (pw.equals(buyer.getRegisteredPassword())) {
             buyer.setLsTm(now);
+            UUID buseid = UUID.randomUUID();
+            buyer.setBuSeId(buseid.toString());
+            pRqDt.setCookieValue("buSeId", buyer.getBuSeId());
             this.srvOrm.updateEntity(pRqVs, buyer);
           } else {
             pRqDt.setAttribute("errMsg", "wrong_password");
@@ -180,10 +200,6 @@ public class PrLog<RS> implements IProcessor {
         } else {
           spam(pRqVs, pRqDt);
         }
-      } else {
-        //logout action:
-        buyer.setLsTm(0L);
-        this.srvOrm.updateEntity(pRqVs, buyer);
       }
     }
     String procNm = pRqDt.getParameter("nmPrcRed");
@@ -224,7 +240,10 @@ public class PrLog<RS> implements IProcessor {
     cvs.setIdColumnsNames(new String[] {"itsId"});
     cvs.put("itsOwner", pBuyr.getItsId());
     pBuyr.setLsTm(now);
+    UUID buseid = UUID.randomUUID();
+    pBuyr.setBuSeId(buseid.toString());
     this.srvOrm.updateEntity(pRqVs, pBuyr);
+    pRqDt.setCookieValue("buSeId", pBuyr.getBuSeId());
     pRqDt.setCookieValue("cBuyerId", pBuyr.getItsId().toString());
     pRqDt.setAttribute("buyr", pBuyr);
     int clc = this.srvDb.executeUpdate("CARTLN", cvs, "ITSOWNER=" + obid);

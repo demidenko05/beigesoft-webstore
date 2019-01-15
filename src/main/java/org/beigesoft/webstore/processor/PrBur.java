@@ -14,6 +14,7 @@ package org.beigesoft.webstore.processor;
 
 import java.util.Map;
 import java.util.List;
+import java.util.Date;
 
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.log.ILogger;
@@ -24,10 +25,11 @@ import org.beigesoft.webstore.model.Purch;
 //import org.beigesoft.webstore.persistable.CuOrSe;
 import org.beigesoft.webstore.persistable.CustOrder;
 import org.beigesoft.webstore.persistable.SettingsAdd;
+import org.beigesoft.webstore.persistable.OnlineBuyer;
 
 /**
  * <p>
- * Service that shows buyer's orders.
+ * Service that shows buyer's orders from just made purchase.
  * </p>
  *
  * @param <RS> platform dependent record set type
@@ -59,11 +61,35 @@ public class PrBur<RS> implements IProcessor {
   @Override
   public final void process(final Map<String, Object> pRqVs,
     final IRequestData pRqDt) throws Exception {
+    String buyIdStr = pRqDt.getCookieValue("cBuyerId");
+    if (buyIdStr == null) {
+      //spam(pRqVs, pRqDt);
+      return;
+    }
+    Long buyerId = Long.valueOf(buyIdStr);
+    OnlineBuyer buyer = getSrvOrm().retrieveEntityById(pRqVs,
+      OnlineBuyer.class, buyerId);
+    if (buyer == null) {
+      //spam(pRqVs, pRqDt);
+      return;
+    }
+    if (buyer.getRegEmail() == null || buyer.getBuSeId() == null) {
+      //spam(pRqVs, pRqDt);
+      return;
+    }
+    String buSeId = pRqDt.getCookieValue("buSeId");
+    if (!buyer.getBuSeId().equals(buSeId)) {
+      //spam(pRqVs, pRqDt);
+      return;
+    }
+    long now = new Date().getTime();
+    if (now - buyer.getLsTm() > 1800000L) {
+      //TODO handle outdated
+      return;
+    }
     SettingsAdd setAdd = (SettingsAdd) pRqVs.get("setAdd");
     String purIdStr = pRqDt.getParameter("pur");
-    String buyIdStr = pRqDt.getParameter("bur");
     Long.parseLong(purIdStr);
-    Long.parseLong(buyIdStr);
     try {
       this.srvDb.setIsAutocommit(false);
       this.srvDb.setTransactionIsolation(setAdd.getBkTr());

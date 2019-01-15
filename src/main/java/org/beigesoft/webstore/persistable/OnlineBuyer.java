@@ -109,6 +109,11 @@ public class OnlineBuyer extends AHasNameIdLongVersion {
    **/
   private Boolean fre = Boolean.FALSE;
 
+  /**
+   * <p>Buyer's last/current session ID.</p>
+   **/
+  private String buSeId;
+
   //Simple getters and setters:
   /**
    * <p>Getter for registeredPassword.</p>
@@ -347,5 +352,21 @@ public class OnlineBuyer extends AHasNameIdLongVersion {
    **/
   public final void setFre(final Boolean pFre) {
     this.fre = pFre;
+  }
+
+  /**
+   * <p>Getter for buSeId.</p>
+   * @return String
+   **/
+  public final String getBuSeId() {
+    return this.buSeId;
+  }
+
+  /**
+   * <p>Setter for buSeId.</p>
+   * @param pBuSeId reference
+   **/
+  public final void setBuSeId(final String pBuSeId) {
+    this.buSeId = pBuSeId;
   }
 }
