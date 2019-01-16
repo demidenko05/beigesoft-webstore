@@ -33,6 +33,7 @@ import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.webstore.persistable.CartLn;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
+import org.beigesoft.webstore.service.IBuySr;
 
 /**
  * <p>Processor that registers, logins, logouts buyer.</p>
@@ -68,6 +69,11 @@ public class PrLog<RS> implements IProcessor {
   private ISrvShoppingCart srvCart;
 
   /**
+   * <p>Buyer service.</p>
+   **/
+  private IBuySr buySr;
+
+  /**
    * <p>Process request.</p>
    * @param pRqVs request scoped vars
    * @param pRqDt Request Data
@@ -76,19 +82,9 @@ public class PrLog<RS> implements IProcessor {
   @Override
   public final void process(final Map<String, Object> pRqVs,
     final IRequestData pRqDt) throws Exception {
-    Long buyerId = null;
-    String buyerIdStr = pRqDt.getCookieValue("cBuyerId");
-    if (buyerIdStr != null && buyerIdStr.length() > 0) {
-       buyerId = Long.valueOf(buyerIdStr);
-    }
-    OnlineBuyer buyer;
-    if (buyerId == null) {
-      buyer = createBuyer(pRqVs);
-    } else {
-      buyer = getSrvOrm().retrieveEntityById(pRqVs, OnlineBuyer.class, buyerId);
-      if (buyer == null) { // deleted for any reason, so create new:
-        buyer = createBuyer(pRqVs);
-      }
+    OnlineBuyer buyer = this.buySr.getBuyr(pRqVs, pRqDt);
+    if (buyer == null) {
+      buyer = this.buySr.createBuyr(pRqVs, pRqDt);
     }
     String nm = pRqDt.getParameter("nm");
     String em = pRqDt.getParameter("em");
@@ -250,7 +246,7 @@ public class PrLog<RS> implements IProcessor {
     if (clc > 0) {
       this.srvDb.executeUpdate("CARTTXLN", cvs, "ITSOWNER=" + obid);
       this.srvDb.executeUpdate("CARTTOT", cvs, "ITSOWNER=" + obid);
-      Cart cart = this.srvCart.getShoppingCart(pRqVs, pRqDt, false);
+      Cart cart = this.srvCart.getShoppingCart(pRqVs, pRqDt, true, false);
       TradingSettings ts = (TradingSettings) pRqVs.get("tradSet");
       AccSettings as = (AccSettings) pRqVs.get("accSet");
       TaxDestination txRules = this.srvCart.revealTaxRules(pRqVs, cart, as);
@@ -265,41 +261,6 @@ public class PrLog<RS> implements IProcessor {
         }
       }
     }
-  }
-
-  /**
-   * <p>Create OnlineBuyer.</p>
-   * @param pRqVs additional param
-   * @return buyer
-   * @throws Exception - an exception
-   **/
-  public final OnlineBuyer createBuyer(
-    final Map<String, Object> pRqVs) throws Exception {
-    OnlineBuyer buyer = null;
-    String tbn =  OnlineBuyer.class.getSimpleName();
-    pRqVs.put(tbn + "regCustomerdeepLevel", 1);
-    pRqVs.put(tbn + "taxDestplacedeepLevel", 1);
-    List<OnlineBuyer> brs = getSrvOrm().retrieveListWithConditions(pRqVs,
-      OnlineBuyer.class, "where FRE=1 and REGISTEREDPASSWORD is null");
-    pRqVs.remove(tbn + "regCustomerdeepLevel");
-    pRqVs.remove(tbn + "taxDestplacedeepLevel");
-    if (brs.size() > 0) {
-      double rd = Math.random();
-      if (rd > 0.5) {
-        buyer = brs.get(brs.size() - 1);
-      } else {
-        buyer = brs.get(0);
-      }
-      buyer.setRegisteredPassword(null);
-      buyer.setRegEmail(null);
-      buyer.setFre(false);
-    }
-    if (buyer == null) {
-      buyer = new OnlineBuyer();
-      buyer.setIsNew(true);
-      buyer.setItsName("newbe" + new Date().getTime());
-    }
-    return buyer;
   }
 
   //Simple getters and setters:
@@ -383,5 +344,20 @@ public class PrLog<RS> implements IProcessor {
 
   public final void setSrvCart(final ISrvShoppingCart pSrvCart) {
     this.srvCart = pSrvCart;
+  }
+  /**
+   * <p>Getter for buySr.</p>
+   * @return IBuySr
+   **/
+  public final IBuySr getBuySr() {
+    return this.buySr;
+  }
+
+  /**
+   * <p>Setter for buySr.</p>
+   * @param pBuySr reference
+   **/
+  public final void setBuySr(final IBuySr pBuySr) {
+    this.buySr = pBuySr;
   }
 }

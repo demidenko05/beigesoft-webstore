@@ -53,20 +53,20 @@ public class PrcDelItemFromCart<RS> implements IProcessor {
 
   /**
    * <p>Process entity request.</p>
-   * @param pReqVars request scoped vars
-   * @param pRequestData Request Data
+   * @param pRqVs request scoped vars
+   * @param pRqDt Request Data
    * @throws Exception - an exception
    **/
   @Override
-  public final void process(final Map<String, Object> pReqVars,
-    final IRequestData pRequestData) throws Exception {
+  public final void process(final Map<String, Object> pRqVs,
+    final IRequestData pRqDt) throws Exception {
     Cart cart = this.srvShoppingCart
-      .getShoppingCart(pReqVars, pRequestData, false);
+      .getShoppingCart(pRqVs, pRqDt, false, false);
     if (cart == null) {
-      //TODO handling "it maybe swindler's bot":
+      redir(pRqVs, pRqDt);
       return;
     }
-    String lnIdStr = pRequestData.getParameter("lnId");
+    String lnIdStr = pRqDt.getParameter("lnId");
     if (lnIdStr != null) {
       Long lnId = Long.valueOf(lnIdStr);
       CartLn cartLn = null;
@@ -84,42 +84,52 @@ public class PrcDelItemFromCart<RS> implements IProcessor {
         throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
           "requested_item_not_found");
       }
-      AccSettings as = (AccSettings) pReqVars.get("accSet");
-      TradingSettings ts = (TradingSettings) pReqVars.get("tradSet");
-      TaxDestination txRules = this.srvShoppingCart.revealTaxRules(pReqVars,
+      AccSettings as = (AccSettings) pRqVs.get("accSet");
+      TradingSettings ts = (TradingSettings) pRqVs.get("tradSet");
+      TaxDestination txRules = this.srvShoppingCart.revealTaxRules(pRqVs,
         cart, as);
       if (!cartLn.getForc()) {
         cartLn.setDisab(true);
-        getSrvOrm().updateEntity(pReqVars, cartLn);
+        getSrvOrm().updateEntity(pRqVs, cartLn);
         if (txRules != null && cartLn.getTxCat() != null && !txRules
           .getSalTaxIsInvoiceBase() && !txRules.getSalTaxUseAggregItBas()) {
-          pReqVars.put("CartItTxLnitsOwnerdeepLevel", 1);
+          pRqVs.put("CartItTxLnitsOwnerdeepLevel", 1);
           List<CartItTxLn> itls = getSrvOrm().retrieveListWithConditions(
-              pReqVars, CartItTxLn.class, "where DISAB=0 and ITSOWNER="
+              pRqVs, CartItTxLn.class, "where DISAB=0 and ITSOWNER="
                 + cartLn.getItsId());
-          pReqVars.remove("CartItTxLnitsOwnerdeepLevel");
+          pRqVs.remove("CartItTxLnitsOwnerdeepLevel");
           for (CartItTxLn itl : itls) {
             if (!itl.getDisab() && itl.getItsOwner().getItsId()
               .equals(cartLn.getItsId())) {
               itl.setDisab(true);
-              getSrvOrm().updateEntity(pReqVars, itl);
+              getSrvOrm().updateEntity(pRqVs, itl);
             }
           }
         }
-        this.srvShoppingCart.makeCartTotals(pReqVars, ts, cartLn, as, txRules);
+        this.srvShoppingCart.makeCartTotals(pRqVs, ts, cartLn, as, txRules);
       }
-      pRequestData.setAttribute("cart", cart);
+      pRqDt.setAttribute("cart", cart);
       if (txRules != null) {
-        pRequestData.setAttribute("txRules", txRules);
+        pRqDt.setAttribute("txRules", txRules);
       }
-      String processorName = pRequestData.getParameter("nmPrcRed");
-      IProcessor proc = this.processorsFactory
-        .lazyGet(pReqVars, processorName);
-      proc.process(pReqVars, pRequestData);
+      redir(pRqVs, pRqDt);
     } else {
       throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
         "there_is_no_cart_item_id");
     }
+  }
+
+  /**
+   * <p>Redirect.</p>
+   * @param pRqVs request scoped vars
+   * @param pRqDt Request Data
+   * @throws Exception - an exception
+   **/
+  public final void redir(final Map<String, Object> pRqVs,
+    final IRequestData pRqDt) throws Exception {
+    String procNm = pRqDt.getParameter("nmPrcRed");
+    IProcessor proc = this.processorsFactory.lazyGet(pRqVs, procNm);
+    proc.process(pRqVs, pRqDt);
   }
 
   //Simple getters and setters:

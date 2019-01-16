@@ -89,13 +89,9 @@ public class PrcCheckOut<RS> implements IProcessor {
   @Override
   public final void process(final Map<String, Object> pRqVs,
     final IRequestData pRqDt) throws Exception {
-    Cart cart = this.srvCart.getShoppingCart(pRqVs, pRqDt, false);
+    Cart cart = this.srvCart.getShoppingCart(pRqVs, pRqDt, false, true);
     if (cart == null) {
-      //TODO handling "it maybe swindler's bot":
-      return;
-    }
-    long now = new Date().getTime();
-    if (now - cart.getBuyer().getLsTm() > 1800000L) {
+      redir(pRqVs, pRqDt);
       return;
     }
     if (EPaymentMethod.PAYPAL.equals(cart.getPayMeth())) {
@@ -242,9 +238,7 @@ public class PrcCheckOut<RS> implements IProcessor {
       pRqDt.setAttribute("txRules", txRules);
     }
     if (!isCompl) {
-      String procNm = pRqDt.getParameter("nmPrcRed");
-      IProcessor proc = this.procFac.lazyGet(pRqVs, procNm);
-      proc.process(pRqVs, pRqDt);
+      redir(pRqVs, pRqDt);
     } else {
       for (CustOrder co : orders) {
         if (co.getPlace() == null) { //stored unused order
@@ -549,6 +543,19 @@ public class PrcCheckOut<RS> implements IProcessor {
     ol.setTotTx(pCartLn.getTotTx());
     ol.setTxCat(pCartLn.getTxCat());
     ol.setTxDsc(pCartLn.getTxDsc());
+  }
+
+  /**
+   * <p>Redirect.</p>
+   * @param pRqVs request scoped vars
+   * @param pRqDt Request Data
+   * @throws Exception - an exception
+   **/
+  public final void redir(final Map<String, Object> pRqVs,
+    final IRequestData pRqDt) throws Exception {
+    String procNm = pRqDt.getParameter("nmPrcRed");
+    IProcessor proc = this.procFac.lazyGet(pRqVs, procNm);
+    proc.process(pRqVs, pRqDt);
   }
 
   //Simple getters and setters:

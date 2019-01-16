@@ -15,7 +15,6 @@ package org.beigesoft.webstore.processor;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.List;
-import java.util.Date;
 
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.model.Page;
@@ -33,6 +32,7 @@ import org.beigesoft.webstore.persistable.CustOrderSrvLn;
 import org.beigesoft.webstore.persistable.CustOrderGdLn;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
+import org.beigesoft.webstore.service.IBuySr;
 
 /**
  * <p>Service that retrieve buyer's orders to print.</p>
@@ -77,6 +77,10 @@ public class PrBuOr<RS> implements IProcessor {
    **/
   private IFactoryAppBeansByName<IConverterToFromString<?>> facFldCnv;
 
+  /**
+   * <p>Buyer service.</p>
+   **/
+  private IBuySr buySr;
 
   /**
    * <p>Process entity request.</p>
@@ -87,33 +91,13 @@ public class PrBuOr<RS> implements IProcessor {
   @Override
   public final void process(final Map<String, Object> pRqVs,
     final IRequestData pRqDt) throws Exception {
-    String buyerIdStr = pRqDt.getCookieValue("cBuyerId");
-    if (buyerIdStr == null) {
-      spam(pRqVs, pRqDt);
-      return;
-    }
-    Long buyerId = Long.valueOf(buyerIdStr);
-    OnlineBuyer buyer = getSrvOrm().retrieveEntityById(pRqVs,
-      OnlineBuyer.class, buyerId);
+    OnlineBuyer buyer = this.buySr.getAuthBuyr(pRqVs, pRqDt);
     if (buyer == null) {
-      spam(pRqVs, pRqDt);
+      String procNm = pRqDt.getParameter("nmPrcRed");
+      IProcessor proc = this.procFac.lazyGet(pRqVs, procNm);
+      proc.process(pRqVs, pRqDt);
       return;
     }
-    if (buyer.getRegEmail() == null || buyer.getBuSeId() == null) {
-      spam(pRqVs, pRqDt);
-      return;
-    }
-    String buSeId = pRqDt.getCookieValue("buSeId");
-    if (!buyer.getBuSeId().equals(buSeId)) {
-      spam(pRqVs, pRqDt);
-      return;
-    }
-    long now = new Date().getTime();
-    if (now - buyer.getLsTm() > 1800000L) {
-      //TODO handle outdated
-      return;
-    }
-    pRqDt.setAttribute("buyr", buyer);
     String orIdSt = pRqDt.getParameter("orId");
     String sorIdSt = pRqDt.getParameter("sorId");
     if (orIdSt != null || sorIdSt != null) { //print:
@@ -189,17 +173,6 @@ public class PrBuOr<RS> implements IProcessor {
     List<CustOrder> orders = getSrvOrm().retrievePageWithConditions(pRqVs,
       CustOrder.class, "where " + wheBr, firstResult, itemsPerPage);
     pRqDt.setAttribute("ords", orders);
-  }
-
-  /**
-   * <p>Handles spam.</p>
-   * @param pRqVs request scoped vars
-   * @param pRqDt Request Data
-   * @throws Exception - an exception
-   **/
-  public final void spam(final Map<String, Object> pRqVs,
-    final IRequestData pRqDt) throws Exception {
-    //TODO
   }
 
   //Simple getters and setters:
@@ -317,5 +290,21 @@ public class PrBuOr<RS> implements IProcessor {
   public final void setFacFldCnv(
     final IFactoryAppBeansByName<IConverterToFromString<?>> pFacFldCnv) {
     this.facFldCnv = pFacFldCnv;
+  }
+
+  /**
+   * <p>Getter for buySr.</p>
+   * @return IBuySr
+   **/
+  public final IBuySr getBuySr() {
+    return this.buySr;
+  }
+
+  /**
+   * <p>Setter for buySr.</p>
+   * @param pBuySr reference
+   **/
+  public final void setBuySr(final IBuySr pBuySr) {
+    this.buySr = pBuySr;
   }
 }

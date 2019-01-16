@@ -12,7 +12,6 @@ package org.beigesoft.webstore.processor;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import java.util.Date;
 import java.util.Map;
 import java.math.BigDecimal;
 
@@ -56,37 +55,32 @@ public class PrcItemInCart<RS> implements IProcessor {
 
   /**
    * <p>Process entity request.</p>
-   * @param pReqVars request scoped vars
-   * @param pRequestData Request Data
+   * @param pRqVs request scoped vars
+   * @param pRqDt Request Data
    * @throws Exception - an exception
    **/
   @Override
-  public final void process(final Map<String, Object> pReqVars,
-    final IRequestData pRequestData) throws Exception {
-    TradingSettings ts = (TradingSettings) pReqVars.get("tradSet");
-    Cart cart = this.srvCart
-      .getShoppingCart(pReqVars, pRequestData, true);
-    if (cart == null) {
-      //TODO handling "it maybe swindler's bot":
-      return;
-    }
+  public final void process(final Map<String, Object> pRqVs,
+    final IRequestData pRqDt) throws Exception {
+    TradingSettings ts = (TradingSettings) pRqVs.get("tradSet");
+    Cart cart = this.srvCart.getShoppingCart(pRqVs, pRqDt, true, false);
     CartLn cartLn = null;
-    String lnIdStr = pRequestData.getParameter("lnId");
-    String quantStr = pRequestData.getParameter("quant");
-    String avQuanStr = pRequestData.getParameter("avQuan");
-    String unStepStr = pRequestData.getParameter("unStep");
+    String lnIdStr = pRqDt.getParameter("lnId");
+    String quantStr = pRqDt.getParameter("quant");
+    String avQuanStr = pRqDt.getParameter("avQuan");
+    String unStepStr = pRqDt.getParameter("unStep");
     BigDecimal quant = new BigDecimal(quantStr);
     BigDecimal avQuan = new BigDecimal(avQuanStr);
     if (quant.compareTo(avQuan) == 1) {
       quant = avQuan;
     }
     BigDecimal unStep = new BigDecimal(unStepStr);
-    String itIdStr = pRequestData.getParameter("itId");
-    String itTypStr = pRequestData.getParameter("itTyp");
+    String itIdStr = pRqDt.getParameter("itId");
+    String itTypStr = pRqDt.getParameter("itTyp");
     Long itId = Long.valueOf(itIdStr);
-    AccSettings as = (AccSettings) pReqVars.get("accSet");
+    AccSettings as = (AccSettings) pRqVs.get("accSet");
     TaxDestination txRules = this.srvCart
-      .revealTaxRules(pReqVars, cart, as);
+      .revealTaxRules(pRqVs, cart, as);
     EShopItemType itTyp = EShopItemType.class.
       getEnumConstants()[Integer.parseInt(itTypStr)];
     boolean redoTxc = false;
@@ -95,7 +89,7 @@ public class PrcItemInCart<RS> implements IProcessor {
       cartLn = findCartItemById(cart, lnId);
     } else { //add
       redoTxc = true;
-      String uomIdStr = pRequestData.getParameter("uomId");
+      String uomIdStr = pRqDt.getParameter("uomId");
       Long uomId = Long.valueOf(uomIdStr);
       for (CartLn ci : cart.getItems()) {
         //check for duplicate cause "weird" but accepted request
@@ -137,24 +131,27 @@ public class PrcItemInCart<RS> implements IProcessor {
       } else {
         cartLn.setTot(amount);
       }
-      this.srvCart.makeCartLine(pReqVars, cartLn, as, ts,
+      this.srvCart.makeCartLine(pRqVs, cartLn, as, ts,
        txRules, false, redoTxc);
-      this.srvCart.makeCartTotals(pReqVars, ts, cartLn, as, txRules);
+      this.srvCart.makeCartTotals(pRqVs, ts, cartLn, as, txRules);
     }
     if (txRules != null) {
-      pRequestData.setAttribute("txRules", txRules);
+      pRqDt.setAttribute("txRules", txRules);
     }
-    long now = new Date().getTime();
-    if (now - cart.getBuyer().getLsTm() < 1800000L) {
-      String[] fieldsNames = new String[] {"itsId", "itsVersion", "lsTm"};
-      pReqVars.put("fieldsNames", fieldsNames);
-      cart.getBuyer().setLsTm(now);
-      this.srvOrm.updateEntity(pReqVars, cart.getBuyer());
-      pReqVars.remove("fieldsNames");
-    }
-    String processorName = pRequestData.getParameter("nmPrcRed");
-    IProcessor proc = this.processorsFactory.lazyGet(pReqVars, processorName);
-    proc.process(pReqVars, pRequestData);
+    redir(pRqVs, pRqDt);
+  }
+
+  /**
+   * <p>Redirect.</p>
+   * @param pRqVs request scoped vars
+   * @param pRqDt Request Data
+   * @throws Exception - an exception
+   **/
+  public final void redir(final Map<String, Object> pRqVs,
+    final IRequestData pRqDt) throws Exception {
+    String procNm = pRqDt.getParameter("nmPrcRed");
+    IProcessor proc = this.processorsFactory.lazyGet(pRqVs, procNm);
+    proc.process(pRqVs, pRqDt);
   }
 
   /**

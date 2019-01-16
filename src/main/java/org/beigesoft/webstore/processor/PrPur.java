@@ -12,26 +12,27 @@ package org.beigesoft.webstore.processor;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import java.util.Date;
 import java.util.Map;
 import java.util.List;
 import java.math.BigDecimal;
 
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.log.ILogger;
+import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.webstore.model.EPaymentMethod;
 import org.beigesoft.webstore.model.Purch;
-import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.webstore.persistable.CuOrSeTxLn;
 import org.beigesoft.webstore.persistable.CuOrSe;
 import org.beigesoft.webstore.persistable.CustOrder;
 import org.beigesoft.webstore.persistable.CustOrderTxLn;
 import org.beigesoft.webstore.persistable.SettingsAdd;
+import org.beigesoft.webstore.persistable.OnlineBuyer;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 import org.beigesoft.webstore.service.IAcpOrd;
+import org.beigesoft.webstore.service.IBuySr;
 
 /**
  * <p>
@@ -74,6 +75,16 @@ public class PrPur<RS> implements IProcessor {
   private IAcpOrd acpOrd;
 
   /**
+   * <p>Buyer service.</p>
+   **/
+  private IBuySr buySr;
+
+  /**
+   * <p>Processors factory.</p>
+   **/
+  private IFactoryAppBeansByName<IProcessor> procFac;
+
+  /**
    * <p>Process entity request.</p>
    * @param pRqVs request scoped vars
    * @param pRqDt Request Data
@@ -85,71 +96,60 @@ public class PrPur<RS> implements IProcessor {
     if (!pRqDt.getReqUrl().toString().toLowerCase().startsWith("https")) {
       throw new Exception("http not supported!!!");
     }
-    Cart cart = null;
+    OnlineBuyer buyer = this.buySr.getAuthBuyr(pRqVs, pRqDt);
+    if (buyer == null) {
+      String procNm = pRqDt.getParameter("nmPrcRed");
+      IProcessor proc = this.procFac.lazyGet(pRqVs, procNm);
+      proc.process(pRqVs, pRqDt);
+      return;
+    }
     SettingsAdd setAdd = (SettingsAdd) pRqVs.get("setAdd");
     try {
       this.srvDb.setIsAutocommit(false);
       this.srvDb.setTransactionIsolation(setAdd.getBkTr());
       this.srvDb.beginTransaction();
-      cart = this.srvCart.getShoppingCart(pRqVs, pRqDt, false);
-      if (cart != null && cart.getErr()) {
-        cart = null;
-      }
-      if (cart != null && cart.getTot().compareTo(BigDecimal.ZERO) == 0) {
-        cart = null;
-      }
-      if (cart != null) {
-        long now = new Date().getTime();
-        if (now - cart.getBuyer().getLsTm() > 1800000L) {
-          //TODO redir to signin
-          cart = null;
+      String tbn;
+      Purch pur = this.acpOrd.accept(pRqVs, pRqDt, buyer);
+      this.srvCart.emptyCart(pRqVs, buyer);
+      if (pur.getOrds() != null && pur.getOrds().size() > 0) {
+        //checking orders with online payment:
+        tbn = CustOrderTxLn.class.getSimpleName();
+        pRqVs.put(tbn + "itsOwnerdeepLevel", 1);
+        for (CustOrder or : pur.getOrds()) { //TODO PERFORM to IAcpOrd
+          if (or.getPayMeth().equals(EPaymentMethod.PAYPAL)
+            || or.getPayMeth().equals(EPaymentMethod.PAYPAL_ANY)
+              || or.getPayMeth().equals(EPaymentMethod.PARTIAL_ONLINE)
+                || or.getPayMeth().equals(EPaymentMethod.ONLINE)) {
+            throw new Exception("It must by offline payment!!");
+          }
+          if (or.getTotTx().compareTo(BigDecimal.ZERO) == 1) {
+            List<CustOrderTxLn> tls = getSrvOrm().retrieveListWithConditions(
+              pRqVs, CustOrderTxLn.class, "where ITSOWNER=" + or.getItsId());
+            or.setTaxes(tls);
+          }
         }
+        pRqVs.remove(tbn + "itsOwnerdeepLevel");
       }
-      if (cart != null) {
-        String tbn;
-        Purch pur = this.acpOrd.accept(pRqVs, pRqDt, cart.getBuyer());
-        this.srvCart.emptyCart(pRqVs, cart.getBuyer());
-        pRqDt.setAttribute("cart", null);
-        if (pur.getOrds() != null && pur.getOrds().size() > 0) {
-          //checking orders with online payment:
-          tbn = CustOrderTxLn.class.getSimpleName();
-          pRqVs.put(tbn + "itsOwnerdeepLevel", 1);
-          for (CustOrder or : pur.getOrds()) { //TODO PERFORM to IAcpOrd
-            if (or.getPayMeth().equals(EPaymentMethod.PAYPAL)
-              || or.getPayMeth().equals(EPaymentMethod.PAYPAL_ANY)
-                || or.getPayMeth().equals(EPaymentMethod.PARTIAL_ONLINE)
-                  || or.getPayMeth().equals(EPaymentMethod.ONLINE)) {
-              throw new Exception("It must by offline payment!!");
-            }
-            if (or.getTotTx().compareTo(BigDecimal.ZERO) == 1) {
-              List<CustOrderTxLn> tls = getSrvOrm().retrieveListWithConditions(
-                pRqVs, CustOrderTxLn.class, "where ITSOWNER=" + or.getItsId());
-              or.setTaxes(tls);
-            }
+      if (pur.getSords() != null && pur.getSords().size() > 0) {
+        //checking S.E. orders with online payment:
+        tbn = CuOrSeTxLn.class.getSimpleName();
+        pRqVs.put(tbn + "itsOwnerdeepLevel", 1);
+        for (CuOrSe or : pur.getSords()) {
+          if (or.getPayMeth().equals(EPaymentMethod.PAYPAL)
+            || or.getPayMeth().equals(EPaymentMethod.PAYPAL_ANY)
+              || or.getPayMeth().equals(EPaymentMethod.PARTIAL_ONLINE)
+                || or.getPayMeth().equals(EPaymentMethod.ONLINE)) {
+            throw new Exception("It must by offline payment!!");
+          }
+          if (or.getTotTx().compareTo(BigDecimal.ZERO) == 1) {
+            List<CuOrSeTxLn> tls = getSrvOrm().retrieveListWithConditions(
+              pRqVs, CuOrSeTxLn.class, "where ITSOWNER=" + or.getItsId());
+            or.setTaxes(tls);
           }
           pRqVs.remove(tbn + "itsOwnerdeepLevel");
         }
-        if (pur.getSords() != null && pur.getSords().size() > 0) {
-          //checking S.E. orders with online payment:
-          tbn = CuOrSeTxLn.class.getSimpleName();
-          pRqVs.put(tbn + "itsOwnerdeepLevel", 1);
-          for (CuOrSe or : pur.getSords()) {
-            if (or.getPayMeth().equals(EPaymentMethod.PAYPAL)
-              || or.getPayMeth().equals(EPaymentMethod.PAYPAL_ANY)
-                || or.getPayMeth().equals(EPaymentMethod.PARTIAL_ONLINE)
-                  || or.getPayMeth().equals(EPaymentMethod.ONLINE)) {
-              throw new Exception("It must by offline payment!!");
-            }
-            if (or.getTotTx().compareTo(BigDecimal.ZERO) == 1) {
-              List<CuOrSeTxLn> tls = getSrvOrm().retrieveListWithConditions(
-                pRqVs, CuOrSeTxLn.class, "where ITSOWNER=" + or.getItsId());
-              or.setTaxes(tls);
-            }
-            pRqVs.remove(tbn + "itsOwnerdeepLevel");
-          }
-        }
-        pRqDt.setAttribute("pur",  pur);
-      } //else TODO handle spam
+      }
+      pRqDt.setAttribute("pur",  pur);
       this.srvDb.commitTransaction();
     } catch (Exception ex) {
       if (!this.srvDb.getIsAutocommit()) {
@@ -256,5 +256,38 @@ public class PrPur<RS> implements IProcessor {
    **/
   public final void setAcpOrd(final IAcpOrd pAcpOrd) {
     this.acpOrd = pAcpOrd;
+  }
+
+  /**
+   * <p>Getter for buySr.</p>
+   * @return IBuySr
+   **/
+  public final IBuySr getBuySr() {
+    return this.buySr;
+  }
+
+  /**
+   * <p>Setter for buySr.</p>
+   * @param pBuySr reference
+   **/
+  public final void setBuySr(final IBuySr pBuySr) {
+    this.buySr = pBuySr;
+  }
+
+  /**
+   * <p>Getter for procFac.</p>
+   * @return IFactoryAppBeansByName<IProcessor>
+   **/
+  public final IFactoryAppBeansByName<IProcessor> getProcFac() {
+    return this.procFac;
+  }
+
+  /**
+   * <p>Setter for procFac.</p>
+   * @param pProcFac reference
+   **/
+  public final void setProcFac(
+    final IFactoryAppBeansByName<IProcessor> pProcFac) {
+    this.procFac = pProcFac;
   }
 }

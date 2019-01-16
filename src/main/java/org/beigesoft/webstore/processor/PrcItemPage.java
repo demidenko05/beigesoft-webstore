@@ -100,7 +100,7 @@ public class PrcItemPage<RS> implements IProcessor {
     Long itemId = Long.valueOf(pRqDt.getParameter("itemId"));
     if (pRqDt.getAttribute("cart") == null) {
       Cart cart = this.srvCart
-        .getShoppingCart(pRqVs, pRqDt, false);
+        .getShoppingCart(pRqVs, pRqDt, false, false);
       if (cart != null) {
         pRqDt.setAttribute("cart", cart);
         if (pRqDt.getAttribute("txRules") == null) {

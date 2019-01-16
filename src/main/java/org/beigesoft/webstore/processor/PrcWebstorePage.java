@@ -389,7 +389,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
     }
     if (pRequestData.getAttribute("cart") == null) {
       Cart cart = this.srvShoppingCart
-        .getShoppingCart(pReqVars, pRequestData, false);
+        .getShoppingCart(pReqVars, pRequestData, false, false);
       if (cart != null && cart.getTot().compareTo(BigDecimal.ZERO) == 1) {
         pRequestData.setAttribute("cart", cart);
       }

@@ -20,9 +20,10 @@ import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.holder.IHolderForClassByName;
 import org.beigesoft.converter.IConverterToFromString;
+import org.beigesoft.settings.IMngSettings;
+import org.beigesoft.handler.ISpamHnd;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvPage;
-import org.beigesoft.settings.IMngSettings;
 import org.beigesoft.service.ISrvDate;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
@@ -39,6 +40,7 @@ import org.beigesoft.webstore.processor.PrLog;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 import org.beigesoft.webstore.service.IAcpOrd;
 import org.beigesoft.webstore.service.ICncOrd;
+import org.beigesoft.webstore.service.IBuySr;
 
 /**
  * <p>Public trade processors factory.
@@ -115,6 +117,16 @@ public class FctBnPublicTradeProcessors<RS>
    * <p>Fields converters factory.</p>
    **/
   private IFactoryAppBeansByName<IConverterToFromString<?>> facFldCnv;
+
+  /**
+   * <p>Buyer service.</p>
+   **/
+  private IBuySr buySr;
+
+  /**
+   * <p>Spam handler.</p>
+   **/
+  private ISpamHnd spamHnd;
 
   /**
    * <p>Get bean in lazy mode (if bean is null then initialize it).</p>
@@ -228,6 +240,7 @@ public class FctBnPublicTradeProcessors<RS>
       proc.setSrvDate(getSrvDate());
       proc.setHldFldCnv(getHldFldCnv());
       proc.setFacFldCnv(getFacFldCnv());
+      proc.setBuySr(getBuySr());
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);
       this.logger.info(null, FctBnPublicTradeProcessors.class,
@@ -253,6 +266,8 @@ public class FctBnPublicTradeProcessors<RS>
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvDb(getSrvDatabase());
       proc.setLog(getLogger());
+      proc.setProcFac(this);
+      proc.setBuySr(getBuySr());
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);
       this.logger.info(null, FctBnPublicTradeProcessors.class,
@@ -281,6 +296,8 @@ public class FctBnPublicTradeProcessors<RS>
       proc.setLog(getLogger());
       proc.setSecLog(getSecLog());
       proc.setAcpOrd(getAcpOrd());
+      proc.setProcFac(this);
+      proc.setBuySr(getBuySr());
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);
       this.logger.info(null, FctBnPublicTradeProcessors.class,
@@ -358,6 +375,7 @@ public class FctBnPublicTradeProcessors<RS>
       proc.setLog(getSecLog());
       proc.setSrvCart(getSrvShoppingCart());
       proc.setProcFac(this);
+      proc.setBuySr(getBuySr());
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);
       this.logger.info(null, FctBnPublicTradeProcessors.class,
@@ -639,5 +657,37 @@ public class FctBnPublicTradeProcessors<RS>
   public final void setFacFldCnv(
     final IFactoryAppBeansByName<IConverterToFromString<?>> pFacFldCnv) {
     this.facFldCnv = pFacFldCnv;
+  }
+
+  /**
+   * <p>Getter for buySr.</p>
+   * @return IBuySr
+   **/
+  public final IBuySr getBuySr() {
+    return this.buySr;
+  }
+
+  /**
+   * <p>Setter for buySr.</p>
+   * @param pBuySr reference
+   **/
+  public final void setBuySr(final IBuySr pBuySr) {
+    this.buySr = pBuySr;
+  }
+
+  /**
+   * <p>Getter for spamHnd.</p>
+   * @return ISpamHnd
+   **/
+  public final ISpamHnd getSpamHnd() {
+    return this.spamHnd;
+  }
+
+  /**
+   * <p>Setter for spamHnd.</p>
+   * @param pSpamHnd reference
+   **/
+  public final void setSpamHnd(final ISpamHnd pSpamHnd) {
+    this.spamHnd = pSpamHnd;
   }
 }

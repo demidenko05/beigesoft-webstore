@@ -14,10 +14,10 @@ package org.beigesoft.webstore.processor;
 
 import java.util.Map;
 import java.util.List;
-import java.util.Date;
 
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.log.ILogger;
+import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
@@ -26,6 +26,7 @@ import org.beigesoft.webstore.model.Purch;
 import org.beigesoft.webstore.persistable.CustOrder;
 import org.beigesoft.webstore.persistable.SettingsAdd;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
+import org.beigesoft.webstore.service.IBuySr;
 
 /**
  * <p>
@@ -53,6 +54,16 @@ public class PrBur<RS> implements IProcessor {
   private ISrvOrm<RS> srvOrm;
 
   /**
+   * <p>Buyer service.</p>
+   **/
+  private IBuySr buySr;
+
+  /**
+   * <p>Processors factory.</p>
+   **/
+  private IFactoryAppBeansByName<IProcessor> procFac;
+
+  /**
    * <p>Process request.</p>
    * @param pRqVs request scoped vars
    * @param pRqDt Request Data
@@ -61,30 +72,11 @@ public class PrBur<RS> implements IProcessor {
   @Override
   public final void process(final Map<String, Object> pRqVs,
     final IRequestData pRqDt) throws Exception {
-    String buyIdStr = pRqDt.getCookieValue("cBuyerId");
-    if (buyIdStr == null) {
-      //spam(pRqVs, pRqDt);
-      return;
-    }
-    Long buyerId = Long.valueOf(buyIdStr);
-    OnlineBuyer buyer = getSrvOrm().retrieveEntityById(pRqVs,
-      OnlineBuyer.class, buyerId);
+    OnlineBuyer buyer = this.buySr.getAuthBuyr(pRqVs, pRqDt);
     if (buyer == null) {
-      //spam(pRqVs, pRqDt);
-      return;
-    }
-    if (buyer.getRegEmail() == null || buyer.getBuSeId() == null) {
-      //spam(pRqVs, pRqDt);
-      return;
-    }
-    String buSeId = pRqDt.getCookieValue("buSeId");
-    if (!buyer.getBuSeId().equals(buSeId)) {
-      //spam(pRqVs, pRqDt);
-      return;
-    }
-    long now = new Date().getTime();
-    if (now - buyer.getLsTm() > 1800000L) {
-      //TODO handle outdated
+      String procNm = pRqDt.getParameter("nmPrcRed");
+      IProcessor proc = this.procFac.lazyGet(pRqVs, procNm);
+      proc.process(pRqVs, pRqDt);
       return;
     }
     SettingsAdd setAdd = (SettingsAdd) pRqVs.get("setAdd");
@@ -99,7 +91,8 @@ public class PrBur<RS> implements IProcessor {
       pRqVs.put(tbn + "placedeepLevel", 1);
       pRqVs.put(tbn + "currdeepLevel", 1);
       List<CustOrder> ords = this.srvOrm.retrieveListWithConditions(pRqVs,
-        CustOrder.class, "where PUR=" + purIdStr + " and BUYER=" + buyIdStr);
+        CustOrder.class, "where PUR=" + purIdStr + " and BUYER="
+          + buyer.getItsId());
       pRqVs.remove(tbn + "buyerdeepLevel");
       pRqVs.remove(tbn + "placedeepLevel");
       pRqVs.remove(tbn + "currdeepLevel");
@@ -164,5 +157,38 @@ public class PrBur<RS> implements IProcessor {
    **/
   public final void setSrvOrm(final ISrvOrm<RS> pSrvOrm) {
     this.srvOrm = pSrvOrm;
+  }
+
+  /**
+   * <p>Getter for buySr.</p>
+   * @return IBuySr
+   **/
+  public final IBuySr getBuySr() {
+    return this.buySr;
+  }
+
+  /**
+   * <p>Setter for buySr.</p>
+   * @param pBuySr reference
+   **/
+  public final void setBuySr(final IBuySr pBuySr) {
+    this.buySr = pBuySr;
+  }
+
+  /**
+   * <p>Getter for procFac.</p>
+   * @return IFactoryAppBeansByName<IProcessor>
+   **/
+  public final IFactoryAppBeansByName<IProcessor> getProcFac() {
+    return this.procFac;
+  }
+
+  /**
+   * <p>Setter for procFac.</p>
+   * @param pProcFac reference
+   **/
+  public final void setProcFac(
+    final IFactoryAppBeansByName<IProcessor> pProcFac) {
+    this.procFac = pProcFac;
   }
 }

@@ -55,17 +55,20 @@ public class PrCart<RS> implements IProcessor {
   @Override
   public final void process(final Map<String, Object> pReqVars,
     final IRequestData pRequestData) throws Exception {
-    Cart cart = this.srvCart.getShoppingCart(pReqVars, pRequestData, true);
-    String dlvStr = pRequestData.getParameter("deliv");
-    String payMethStr = pRequestData.getParameter("payMeth");
-    EDelivering dlv = EDelivering.class.
-      getEnumConstants()[Integer.parseInt(dlvStr)];
-    EPaymentMethod payMeth = EPaymentMethod.class.
-      getEnumConstants()[Integer.parseInt(payMethStr)];
-    cart.setPayMeth(payMeth);
-    cart.setDeliv(dlv);
-    this.srvOrm.updateEntity(pReqVars, cart);
-    pRequestData.setAttribute("cart", cart);
+    Cart cart = this.srvCart.getShoppingCart(pReqVars, pRequestData, false,
+      false);
+    if (cart != null) {
+      String dlvStr = pRequestData.getParameter("deliv");
+      String payMethStr = pRequestData.getParameter("payMeth");
+      EDelivering dlv = EDelivering.class.
+        getEnumConstants()[Integer.parseInt(dlvStr)];
+      EPaymentMethod payMeth = EPaymentMethod.class.
+        getEnumConstants()[Integer.parseInt(payMethStr)];
+      cart.setPayMeth(payMeth);
+      cart.setDeliv(dlv);
+      this.srvOrm.updateEntity(pReqVars, cart);
+      pRequestData.setAttribute("cart", cart);
+    } //else spam
     //TODO change to servlet redirect???
     String processorName = pRequestData.getParameter("nmPrcRed");
     IProcessor proc = this.processorsFactory.lazyGet(pReqVars, processorName);

@@ -158,59 +158,38 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
   private Class<?> pplCl;
 
   /**
+   * <p>Buyer service.</p>
+   **/
+  private IBuySr buySr;
+
+  /**
    * <p>Get/Create Cart.</p>
    * @param pRqVs additional param
    * @param pRqDt Request Data
-   * @param pIsNeedToCreate Is Need To Create cart
+   * @param pIsNeedToCreate  if need to create, e.g. "NO" for deleting item from
+   *  cart, "YES" for adding one.
+   * @param pIsBuAuth buyer must be authorized
    * @return shopping cart or null
    * @throws Exception - an exception
    **/
   @Override
   public final Cart getShoppingCart(final Map<String, Object> pRqVs,
-    final IRequestData pRqDt,
-      final boolean pIsNeedToCreate) throws Exception {
+    final IRequestData pRqDt, final boolean pIsNeedToCreate,
+      final boolean pIsBuAuth) throws Exception {
+    OnlineBuyer buyer;
+    if (pIsBuAuth) {
+      buyer = this.buySr.getAuthBuyr(pRqVs, pRqDt);
+    } else {
+      buyer = (OnlineBuyer) pRqDt.getAttribute("buyr");
+      if (buyer == null) {
+        buyer = this.buySr.getBuyr(pRqVs, pRqDt);
+      }
+      if (buyer == null && pIsNeedToCreate) {
+        buyer = this.buySr.createBuyr(pRqVs, pRqDt);
+      }
+    }
     TradingSettings ts = srvTradingSettings.lazyGetTradingSettings(pRqVs);
-    OnlineBuyer buyer = (OnlineBuyer) pRqDt.getAttribute("buyr");
-    if (buyer == null) {
-      Long buyerId = null;
-      String buyerIdStr = pRqDt.getCookieValue("cBuyerId");
-      if (buyerIdStr != null && buyerIdStr.length() > 0) {
-         buyerId = Long.valueOf(buyerIdStr);
-      }
-      if (buyerId == null) {
-        if (pIsNeedToCreate
-          || ts.getIsCreateOnlineUserOnFirstVisit()) {
-          buyer = createOnlineBuyer(pRqVs, pRqDt);
-          pRqDt.setCookieValue("cBuyerId", buyer.getItsId()
-            .toString());
-        } else {
-          return null;
-        }
-      } else {
-        buyer = getSrvOrm()
-          .retrieveEntityById(pRqVs, OnlineBuyer.class, buyerId);
-        if (buyer == null) { // deleted for any reason, so create new:
-          buyer = createOnlineBuyer(pRqVs, pRqDt);
-          pRqDt.setCookieValue("cBuyerId", buyer.getItsId()
-            .toString());
-        }
-      }
-      pRqDt.setAttribute("buyr", buyer);
-    }
-    if (buyer.getRegEmail() != null) {
-      String buSeId = pRqDt.getCookieValue("buSeId");
-      if (buyer.getBuSeId() != null && !buyer.getBuSeId().equals(buSeId)) {
-        pRqDt.setAttribute("buyr", null);
-        pRqDt.setAttribute("cart", null);
-        //TODO report scam
-        return null;
-      }
-      long now = new Date().getTime();
-      if (pIsNeedToCreate && now - buyer.getLsTm() < 1800000L) {
-        buyer.setLsTm(now);
-        this.srvOrm.updateEntity(pRqVs, buyer);
-      }
-    }
+    pRqDt.setAttribute("buyr", buyer);
     Cart cart = (Cart) pRqDt.getAttribute("cart");
     if (cart == null) {
       cart = retrCart(pRqVs, buyer, false);
@@ -230,7 +209,8 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         pRqDt.setAttribute("cart", cart);
       }
     }
-    if (cart != null && cart.getTot().compareTo(BigDecimal.ZERO) == 1) {
+    if (cart != null && pIsNeedToCreate
+      || cart.getTot().compareTo(BigDecimal.ZERO) == 1) {
       if (EPaymentMethod.ANY.equals(cart.getPayMeth())
         || EPaymentMethod.PARTIAL_ONLINE.equals(cart.getPayMeth())
           || EPaymentMethod.ONLINE.equals(cart.getPayMeth())) {
@@ -1474,5 +1454,20 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    **/
   public final void setPplCl(final Class<?> pPplCl) {
     this.pplCl = pPplCl;
+  }
+  /**
+   * <p>Getter for buySr.</p>
+   * @return IBuySr
+   **/
+  public final IBuySr getBuySr() {
+    return this.buySr;
+  }
+
+  /**
+   * <p>Setter for buySr.</p>
+   * @param pBuySr reference
+   **/
+  public final void setBuySr(final IBuySr pBuySr) {
+    this.buySr = pBuySr;
   }
 }

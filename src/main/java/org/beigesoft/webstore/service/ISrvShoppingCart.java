@@ -46,13 +46,15 @@ public interface ISrvShoppingCart {
    * <p>Get/Create Cart.</p>
    * @param pReqVars request scoped vars
    * @param pRequestData Request Data
-   * @param pIsNeedToCreate Is Need To Create cart
+   * @param pIsNeedToCreate if need to create, e.g. "NO" for deleting item from
+   *  cart, "YES" for adding one.
+   * @param pIsBuAuth buyer must be authorized
    * @return shopping cart or null
    * @throws Exception - an exception
    **/
   Cart getShoppingCart(Map<String, Object> pReqVars,
-    IRequestData pRequestData,
-      boolean pIsNeedToCreate) throws Exception;
+    IRequestData pRequestData, boolean pIsNeedToCreate,
+      boolean pIsBuAuth) throws Exception;
 
   /**
    * <p>Refresh cart totals by seller cause line inserted/changed/deleted.</p>
