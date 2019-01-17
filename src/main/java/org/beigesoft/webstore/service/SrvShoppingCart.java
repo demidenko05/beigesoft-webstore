@@ -209,8 +209,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         pRqDt.setAttribute("cart", cart);
       }
     }
-    if (cart != null && pIsNeedToCreate
-      || cart.getTot().compareTo(BigDecimal.ZERO) == 1) {
+    if (cart != null) {
       if (EPaymentMethod.ANY.equals(cart.getPayMeth())
         || EPaymentMethod.PARTIAL_ONLINE.equals(cart.getPayMeth())
           || EPaymentMethod.ONLINE.equals(cart.getPayMeth())) {

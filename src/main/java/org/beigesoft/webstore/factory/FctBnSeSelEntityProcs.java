@@ -27,9 +27,10 @@ import org.beigesoft.persistable.Countries;
 import org.beigesoft.persistable.DecimalSeparator;
 import org.beigesoft.persistable.DecimalGroupSeparator;
 import org.beigesoft.orm.factory.FctBnEntitiesProcessors;
-import org.beigesoft.webstore.service.IFindSeSeller;
 import org.beigesoft.accounting.persistable.UnitOfMeasure;
 import org.beigesoft.accounting.persistable.InvItemTaxCategory;
+import org.beigesoft.webstore.persistable.SePayMd;
+import org.beigesoft.webstore.persistable.CuOrSe;
 import org.beigesoft.webstore.persistable.SeGoods;
 import org.beigesoft.webstore.persistable.DestTaxSeGoodsLn;
 import org.beigesoft.webstore.persistable.SeGoodsPlace;
@@ -55,6 +56,9 @@ import org.beigesoft.webstore.processor.PrcSeGdSpecEmbFlSave;
 import org.beigesoft.webstore.processor.PrcSeGdSpecEmbFlDel;
 import org.beigesoft.webstore.processor.PrcSeSrvSpecEmbFlSave;
 import org.beigesoft.webstore.processor.PrcSeSrvSpecEmbFlDel;
+import org.beigesoft.webstore.processor.PrCuOrSeSv;
+import org.beigesoft.webstore.service.IFindSeSeller;
+import org.beigesoft.webstore.service.ICncOrd;
 
 /**
  * <p>S.E.Seller's entities processors factory.
@@ -116,6 +120,11 @@ public class FctBnSeSelEntityProcs<RS>
   private String webAppPath;
 
   /**
+   * <p>Cancel accepted buyer's orders service.</p>
+   **/
+  private ICncOrd cncOrd;
+
+  /**
    * <p>Only constructor.</p>
    **/
   public FctBnSeSelEntityProcs() {
@@ -143,6 +152,8 @@ public class FctBnSeSelEntityProcs<RS>
     this.seEntities.add(I18nSeService.class);
     this.seEntities.add(DestTaxSeGoodsLn.class);
     this.seEntities.add(DestTaxSeServiceLn.class);
+    this.seEntities.add(CuOrSe.class);
+    this.seEntities.add(SePayMd.class);
   }
 
   /**
@@ -170,6 +181,9 @@ public class FctBnSeSelEntityProcs<RS>
           } else if (pBeanName.equals(PrcSeGoodsSpecSave
             .class.getSimpleName())) {
             proc = lazyGetPrcSeGoodsSpecSave(pAddParam);
+          } else if (pBeanName.equals(PrCuOrSeSv
+            .class.getSimpleName())) {
+            proc = lazyGetPrCuOrSeSv(pAddParam);
           } else if (pBeanName.equals(PrcSeServiceSpecSave
             .class.getSimpleName())) {
             proc = lazyGetPrcSeServiceSpecSave(pAddParam);
@@ -310,6 +324,29 @@ public class FctBnSeSelEntityProcs<RS>
       proc.setFindSeSeller(getFindSeSeller());
       proc.setWebAppPath(getWebAppPath());
       proc.setUploadDirectory(getUploadDirectory());
+      //assigning fully initialized object:
+      this.processorsMap.put(beanName, proc);
+      this.logger.info(null, FctBnSeSelEntityProcs.class,
+        beanName + " has been created.");
+    }
+    return proc;
+  }
+
+  /**
+   * <p>Get PrCuOrSeSv (create and put into map).</p>
+   * @param pAddParam additional param
+   * @return requested PrCuOrSeSv
+   * @throws Exception - an exception
+   */
+  protected final PrCuOrSeSv<RS> lazyGetPrCuOrSeSv(
+      final Map<String, Object> pAddParam) throws Exception {
+    String beanName = PrCuOrSeSv.class.getSimpleName();
+    @SuppressWarnings("unchecked")
+    PrCuOrSeSv<RS> proc = (PrCuOrSeSv<RS>) this.processorsMap.get(beanName);
+    if (proc == null) {
+      proc = new PrCuOrSeSv<RS>();
+      proc.setSrvOrm(getSrvOrm());
+      proc.setCncOrd(getCncOrd());
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);
       this.logger.info(null, FctBnSeSelEntityProcs.class,
@@ -534,5 +571,21 @@ public class FctBnSeSelEntityProcs<RS>
    **/
   public final void setWebAppPath(final String pWebAppPath) {
     this.webAppPath = pWebAppPath;
+  }
+
+  /**
+   * <p>Getter for cncOrd.</p>
+   * @return ICncOrd
+   **/
+  public final ICncOrd getCncOrd() {
+    return this.cncOrd;
+  }
+
+  /**
+   * <p>Setter for cncOrd.</p>
+   * @param pCncOrd reference
+   **/
+  public final void setCncOrd(final ICncOrd pCncOrd) {
+    this.cncOrd = pCncOrd;
   }
 }

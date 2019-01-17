@@ -27,7 +27,8 @@ import org.beigesoft.webstore.persistable.base.ACuOr;
  *
  * @author Yury Demidenko
  */
-public class CuOrSe extends ACuOr {
+public class CuOrSe extends ACuOr<CuOrSeGdLn, CuOrSeSrLn>
+  implements IHasSeSeller<Long> {
 
   /**
    * <p>S.E. seller, not null.</p>
@@ -49,6 +50,60 @@ public class CuOrSe extends ACuOr {
    **/
   private List<CuOrSeTxLn> taxes;
 
+  /**
+   * <p>Getter for seller.</p>
+   * @return SeSeller
+   **/
+  @Override
+  public final SeSeller getSeller() {
+    return this.sel;
+  }
+
+  /**
+   * <p>Setter for seller.</p>
+   * @param pSeller reference
+   **/
+  @Override
+  public final void setSeller(final SeSeller pSeller) {
+    this.sel = pSeller;
+  }
+
+  /**
+   * <p>Getter for goods.</p>
+   * @return List<CuOrSeGdLn>
+   **/
+  @Override
+  public final List<CuOrSeGdLn> getGoods() {
+    return this.goods;
+  }
+
+  /**
+   * <p>Setter for goods.</p>
+   * @param pGoods reference
+   **/
+  @Override
+  public final void setGoods(final List<CuOrSeGdLn> pGoods) {
+    this.goods = pGoods;
+  }
+
+  /**
+   * <p>Getter for servs.</p>
+   * @return List<CuOrSeSrLn>
+   **/
+  @Override
+  public final List<CuOrSeSrLn> getServs() {
+    return this.servs;
+  }
+
+  /**
+   * <p>Setter for servs.</p>
+   * @param pServs reference
+   **/
+  @Override
+  public final void setServs(final List<CuOrSeSrLn> pServs) {
+    this.servs = pServs;
+  }
+
   //Simple getters and setters:
   /**
    * <p>Getter for sel.</p>
@@ -64,38 +119,6 @@ public class CuOrSe extends ACuOr {
    **/
   public final void setSel(final SeSeller pSel) {
     this.sel = pSel;
-  }
-
-  /**
-   * <p>Getter for goods.</p>
-   * @return List<CuOrSeGdLn>
-   **/
-  public final List<CuOrSeGdLn> getGoods() {
-    return this.goods;
-  }
-
-  /**
-   * <p>Setter for goods.</p>
-   * @param pGoods reference
-   **/
-  public final void setGoods(final List<CuOrSeGdLn> pGoods) {
-    this.goods = pGoods;
-  }
-
-  /**
-   * <p>Getter for servs.</p>
-   * @return List<CuOrSeSrLn>
-   **/
-  public final List<CuOrSeSrLn> getServs() {
-    return this.servs;
-  }
-
-  /**
-   * <p>Setter for servs.</p>
-   * @param pServs reference
-   **/
-  public final void setServs(final List<CuOrSeSrLn> pServs) {
-    this.servs = pServs;
   }
 
   /**

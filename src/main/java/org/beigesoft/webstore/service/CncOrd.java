@@ -25,13 +25,18 @@ import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.webstore.model.EOrdStat;
 import org.beigesoft.webstore.model.Purch;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
+import org.beigesoft.webstore.persistable.SeGoodsPlace;
 import org.beigesoft.webstore.persistable.GoodsPlace;
 import org.beigesoft.webstore.persistable.ServicePlace;
+import org.beigesoft.webstore.persistable.SeServicePlace;
 import org.beigesoft.webstore.persistable.CustOrder;
 import org.beigesoft.webstore.persistable.CustOrderGdLn;
 import org.beigesoft.webstore.persistable.CustOrderSrvLn;
 import org.beigesoft.webstore.persistable.SerBus;
+import org.beigesoft.webstore.persistable.SeSerBus;
 import org.beigesoft.webstore.persistable.CuOrSe;
+import org.beigesoft.webstore.persistable.CuOrSeGdLn;
+import org.beigesoft.webstore.persistable.CuOrSeSrLn;
 
 /**
  * <p>It cancels all given buyer's orders.
@@ -207,7 +212,80 @@ public class CncOrd<RS> implements ICncOrd {
   @Override
   public final void cancel(final Map<String, Object> pRqVs,
     final CuOrSe pCuOr) throws Exception {
-    throw new Exception("NEI");
+    Set<String> ndFl = new HashSet<String>();
+    String tbn = CuOrSeGdLn.class.getSimpleName();
+    ndFl.add("itsId");
+    ndFl.add("quant");
+    ndFl.add("good");
+    pRqVs.put(tbn + "neededFields", ndFl);
+    pRqVs.put(tbn + "gooddeepLevel", 1);
+    List<CuOrSeGdLn> gds = this.srvOrm.retrieveListWithConditions(
+      pRqVs, CuOrSeGdLn.class, "where ITSOWNER=" + pCuOr.getItsId());
+    pRqVs.remove(tbn + "neededFields");
+    pRqVs.remove(tbn + "gooddeepLevel");
+    ColumnsValues cvsIil = new ColumnsValues();
+    cvsIil.getFormula().add("availableQuantity");
+    for (CuOrSeGdLn gl : gds) {
+      SeGoodsPlace gp = getSrvOrm().retrieveEntityWithConditions(pRqVs,
+        SeGoodsPlace.class, "where ISALWAYS=0 and ITEM=" + gl.getGood()
+          .getItsId() + " and PICKUPPLACE=" + pCuOr.getPlace().getItsId());
+      if (gp != null) {
+        gp.setItsQuantity(gp.getItsQuantity().add(gl.getQuant()));
+        getSrvOrm().updateEntity(pRqVs, gp);
+        cvsIil.put("itsVersion", new Date().getTime());
+        cvsIil.put("availableQuantity", "AVAILABLEQUANTITY+" + gl.getQuant());
+        this.srvDb.executeUpdate("ITEMINLIST", cvsIil,
+          "ITSTYPE=2 and ITEMID=" + gp.getItem().getItsId());
+      }
+    }
+    tbn = CuOrSeSrLn.class.getSimpleName();
+    ndFl.remove("good");
+    ndFl.add("service");
+    ndFl.add("dt1");
+    ndFl.add("dt2");
+    pRqVs.put(tbn + "neededFields", ndFl);
+    pRqVs.put(tbn + "gooddeepLevel", 1);
+    List<CuOrSeSrLn> sls = this.srvOrm.retrieveListWithConditions(
+      pRqVs, CuOrSeSrLn.class, "where ITSOWNER=" + pCuOr.getItsId());
+    pRqVs.remove(tbn + "neededFields");
+    pRqVs.remove(tbn + "gooddeepLevel");
+    for (CuOrSeSrLn sl : sls) {
+      if (sl.getDt1() == null) { //non-bookable:
+        SeServicePlace sp = getSrvOrm().retrieveEntityWithConditions(pRqVs,
+          SeServicePlace.class, "where ISALWAYS=0 and ITEM=" + sl.getService()
+            .getItsId() + " and PICKUPPLACE=" + pCuOr.getPlace().getItsId());
+        if (sp != null) {
+          sp.setItsQuantity(sp.getItsQuantity().add(sl.getQuant()));
+          getSrvOrm().updateEntity(pRqVs, sp);
+          cvsIil.put("itsVersion", new Date().getTime());
+          cvsIil.put("availableQuantity", "AVAILABLEQUANTITY+" + sl.getQuant());
+          this.srvDb.executeUpdate("ITEMINLIST", cvsIil,
+            "ITSTYPE=3 and ITEMID=" + sp.getItem().getItsId());
+        }
+      } else { //bookable:
+        List<SeSerBus> sebs = getSrvOrm().retrieveListWithConditions(pRqVs,
+      SeSerBus.class, "where FRE=0 and SERV=" + sl.getService().getItsId()
++ " and FRTM=" + sl.getDt1().getTime() + " and TITM=" + sl.getDt1().getTime());
+        if (sebs.size() == 1) {
+          sebs.get(0).setFre(true);
+          getSrvOrm().updateEntity(pRqVs, sebs.get(0));
+        } else if (sebs.size() > 1) {
+          this.log.error(pRqVs, CncOrd.class,
+        "Several SESERBUS for booked SeService: " + sl.getService().getItsId()
+      + "/"  + sl.getDt1().getTime() + "/" + sl.getDt1().getTime());
+          for (SeSerBus seb : sebs) {
+            seb.setFre(true);
+            getSrvOrm().updateEntity(pRqVs, seb);
+          }
+        } else {
+          this.log.error(pRqVs, CncOrd.class,
+      "There is no SESERBUS for booked SeService: " + sl.getService().getItsId()
+    + "/"  + sl.getDt1().getTime() + "/" + sl.getDt1().getTime());
+        }
+      }
+    }
+    pCuOr.setStat(EOrdStat.CANCELED);
+    getSrvOrm().updateEntity(pRqVs, pCuOr);
   }
 
   //Simple getters and setters:

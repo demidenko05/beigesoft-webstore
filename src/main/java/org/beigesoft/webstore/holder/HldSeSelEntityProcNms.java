@@ -22,6 +22,7 @@ import org.beigesoft.orm.processor.PrcEntityFSave;
 import org.beigesoft.webstore.persistable.IHasSeSeller;
 import org.beigesoft.webstore.persistable.SeGoodsSpecifics;
 import org.beigesoft.webstore.persistable.SeServiceSpecifics;
+import org.beigesoft.webstore.persistable.CuOrSe;
 import org.beigesoft.webstore.processor.PrcHasSeSellerSave;
 import org.beigesoft.webstore.processor.PrcHasSeSellerDel;
 import org.beigesoft.webstore.processor.PrcSeGoodsSpecSave;
@@ -30,6 +31,7 @@ import org.beigesoft.webstore.processor.PrcSeGdSpecEmbFlSave;
 import org.beigesoft.webstore.processor.PrcSeGdSpecEmbFlDel;
 import org.beigesoft.webstore.processor.PrcSeSrvSpecEmbFlSave;
 import org.beigesoft.webstore.processor.PrcSeSrvSpecEmbFlDel;
+import org.beigesoft.webstore.processor.PrCuOrSeSv;
 
 /**
  * <p>Service that assign IEntityProcessor and IProcessor name for class
@@ -52,7 +54,15 @@ public class HldSeSelEntityProcNms implements IHolderForClassByName<String> {
    **/
   @Override
   public final String getFor(final Class<?> pClass, final String pThingName) {
-    if ("entityEdit".equals(pThingName)
+    if (pClass == CuOrSe.class) {
+      if ("entitySave".equals(pThingName)) {
+        return PrCuOrSeSv.class.getSimpleName();
+      } else if ("entityEdit".equals(pThingName)
+        || "entityPrint".equals(pThingName)) {
+        return PrcEntityRetrieve.class.getSimpleName();
+      }
+      return null;
+    } else if ("entityEdit".equals(pThingName)
       || "entityConfirmDelete".equals(pThingName)) {
       return getForRetrieveForEditDelete(pClass, pThingName);
     } else if ("entityCopy".equals(pThingName)) {

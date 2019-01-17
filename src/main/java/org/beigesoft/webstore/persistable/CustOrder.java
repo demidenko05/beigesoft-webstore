@@ -27,7 +27,7 @@ import org.beigesoft.webstore.persistable.base.ACuOr;
  *
  * @author Yury Demidenko
  */
-public class CustOrder extends ACuOr {
+public class CustOrder extends ACuOr<CustOrderGdLn, CustOrderSrvLn> {
 
   /**
    * <p>Ordered goods.</p>
@@ -49,11 +49,11 @@ public class CustOrder extends ACuOr {
    **/
   private Long inId;
 
-  //Simple getters and setters:
   /**
    * <p>Getter for goods.</p>
    * @return List<CustOrderGdLn>
    **/
+  @Override
   public final List<CustOrderGdLn> getGoods() {
     return this.goods;
   }
@@ -62,6 +62,7 @@ public class CustOrder extends ACuOr {
    * <p>Setter for goods.</p>
    * @param pGoods reference
    **/
+  @Override
   public final void setGoods(final List<CustOrderGdLn> pGoods) {
     this.goods = pGoods;
   }
@@ -70,6 +71,7 @@ public class CustOrder extends ACuOr {
    * <p>Getter for servs.</p>
    * @return List<CustOrderSrvLn>
    **/
+  @Override
   public final List<CustOrderSrvLn> getServs() {
     return this.servs;
   }
@@ -78,10 +80,12 @@ public class CustOrder extends ACuOr {
    * <p>Setter for servs.</p>
    * @param pServs reference
    **/
+  @Override
   public final void setServs(final List<CustOrderSrvLn> pServs) {
     this.servs = pServs;
   }
 
+  //Simple getters and setters:
   /**
    * <p>Getter for taxes.</p>
    * @return List<CustOrderTxLn>

@@ -14,6 +14,9 @@ package org.beigesoft.webstore.processor;
 
 import java.util.Map;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.log.ILogger;
@@ -22,8 +25,12 @@ import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.webstore.model.Purch;
-//import org.beigesoft.webstore.persistable.CuOrSe;
+import org.beigesoft.webstore.persistable.CuOrSeGdLn;
+import org.beigesoft.webstore.persistable.CuOrSeSrLn;
+import org.beigesoft.webstore.persistable.CuOrSe;
 import org.beigesoft.webstore.persistable.CustOrder;
+import org.beigesoft.webstore.persistable.CustOrderGdLn;
+import org.beigesoft.webstore.persistable.CustOrderSrvLn;
 import org.beigesoft.webstore.persistable.SettingsAdd;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
 import org.beigesoft.webstore.service.IBuySr;
@@ -87,17 +94,34 @@ public class PrBur<RS> implements IProcessor {
       this.srvDb.setTransactionIsolation(setAdd.getBkTr());
       this.srvDb.beginTransaction();
       String tbn = CustOrder.class.getSimpleName();
+      String whePuBr = "where PUR=" + purIdStr + " and BUYER="
+        + buyer.getItsId();
+      Set<String> ndFlNm = new HashSet<String>();
+      ndFlNm.add("itsId");
+      ndFlNm.add("itsName");
+      pRqVs.put("PickUpPlaceneededFields", ndFlNm);
       pRqVs.put(tbn + "buyerdeepLevel", 1);
-      pRqVs.put(tbn + "placedeepLevel", 1);
-      pRqVs.put(tbn + "currdeepLevel", 1);
       List<CustOrder> ords = this.srvOrm.retrieveListWithConditions(pRqVs,
-        CustOrder.class, "where PUR=" + purIdStr + " and BUYER="
-          + buyer.getItsId());
+        CustOrder.class, whePuBr);
       pRqVs.remove(tbn + "buyerdeepLevel");
-      pRqVs.remove(tbn + "placedeepLevel");
-      pRqVs.remove(tbn + "currdeepLevel");
+      tbn = CuOrSe.class.getSimpleName();
+      Set<String> ndFlDc = new HashSet<String>();
+      ndFlDc.add("seller");
+      pRqVs.put("DebtorCreditorneededFields", ndFlNm);
+      pRqVs.put("SeSellerneededFields", ndFlDc);
+      pRqVs.put("SeSellersellerdeepLevel", 2);
+      pRqVs.put(tbn + "buyerdeepLevel", 1);
+      List<CuOrSe> sords = this.srvOrm.retrieveListWithConditions(pRqVs,
+        CuOrSe.class, whePuBr);
+      pRqVs.remove(tbn + "buyerdeepLevel");
+      pRqVs.remove("DebtorCreditorneededFields");
+      pRqVs.remove("SeSellerneededFields");
+      pRqVs.remove("SeSellersellerdeepLevel");
+      pRqVs.remove("PickUpPlaceneededFields");
+      retLines(pRqVs, buyer, ords, sords);
       Purch pur = new Purch();
       pur.setOrds(ords);
+      pur.setSords(sords);
       pRqDt.setAttribute("pur",  pur);
       this.srvDb.commitTransaction();
     } catch (Exception ex) {
@@ -107,6 +131,126 @@ public class PrBur<RS> implements IProcessor {
       throw ex;
     } finally {
       this.srvDb.releaseResources();
+    }
+  }
+
+  /**
+   * <p>Retrieve order lines.</p>
+   * @param pRqVs request scoped vars
+   * @param pBur buyer
+   * @param pOrds orders
+   * @param pSords S.E. orders
+   * @throws Exception - an exception
+   **/
+  public final void retLines(final Map<String, Object> pRqVs,
+    final OnlineBuyer pBur, final List<CustOrder> pOrds,
+      final List<CuOrSe> pSords) throws Exception {
+    StringBuffer ordIds = null;
+    for (CustOrder co : pOrds) {
+      co.setGoods(new ArrayList<CustOrderGdLn>());
+      co.setServs(new ArrayList<CustOrderSrvLn>());
+      if (ordIds == null) {
+        ordIds = new StringBuffer();
+        ordIds.append(co.getItsId().toString());
+      } else {
+        ordIds.append("," + co.getItsId());
+      }
+    }
+    Set<String> ndFlNm = new HashSet<String>();
+    ndFlNm.add("itsId");
+    ndFlNm.add("itsName");
+    Set<String> ndFl = new HashSet<String>();
+    ndFl.add("itsId");
+    ndFl.add("itsOwner");
+    ndFl.add("itsName");
+    ndFl.add("uom");
+    ndFl.add("quant");
+    ndFl.add("price");
+    ndFl.add("tot");
+    ndFl.add("totTx");
+    String tbn;
+    if (ordIds != null) {
+      tbn = CustOrderGdLn.class.getSimpleName();
+      pRqVs.put(tbn + "neededFields", ndFl);
+      pRqVs.put(tbn + "itsOwnerdeepLevel", 1);
+      pRqVs.put("UnitOfMeasureneededFields", ndFlNm);
+      List<CustOrderGdLn> allGds = this.srvOrm.retrieveListWithConditions(pRqVs,
+        CustOrderGdLn.class, "where ITSOWNER in (" + ordIds + ")");
+      pRqVs.remove(tbn + "neededFields");
+      pRqVs.remove(tbn + "itsOwnerdeepLevel");
+      pRqVs.remove("UnitOfMeasureneededFields");
+      for (CustOrderGdLn il : allGds) {
+        for (CustOrder co : pOrds) {
+          if (co.getItsId().equals(il.getItsOwner().getItsId())) {
+            co.getGoods().add(il);
+            break;
+          }
+        }
+      }
+      tbn = CustOrderSrvLn.class.getSimpleName();
+      pRqVs.put(tbn + "neededFields", ndFl);
+      pRqVs.put(tbn + "itsOwnerdeepLevel", 1);
+      pRqVs.put("UnitOfMeasureneededFields", ndFlNm);
+      List<CustOrderSrvLn> allSrs = this.srvOrm.retrieveListWithConditions(
+        pRqVs, CustOrderSrvLn.class, "where ITSOWNER in (" + ordIds + ")");
+      pRqVs.remove(tbn + "neededFields");
+      pRqVs.remove(tbn + "itsOwnerdeepLevel");
+      pRqVs.remove("UnitOfMeasureneededFields");
+      for (CustOrderSrvLn il : allSrs) {
+        for (CustOrder co : pOrds) {
+          if (co.getItsId().equals(il.getItsOwner().getItsId())) {
+            co.getServs().add(il);
+            break;
+          }
+        }
+      }
+    }
+    ordIds = null;
+    for (CuOrSe co : pSords) {
+      co.setGoods(new ArrayList<CuOrSeGdLn>());
+      co.setServs(new ArrayList<CuOrSeSrLn>());
+      if (ordIds == null) {
+        ordIds = new StringBuffer();
+        ordIds.append(co.getItsId().toString());
+      } else {
+        ordIds.append("," + co.getItsId());
+      }
+    }
+    if (ordIds != null) {
+      tbn = CuOrSeGdLn.class.getSimpleName();
+      pRqVs.put(tbn + "neededFields", ndFl);
+      pRqVs.put(tbn + "itsOwnerdeepLevel", 1);
+      pRqVs.put("UnitOfMeasureneededFields", ndFlNm);
+      List<CuOrSeGdLn> allGds = this.srvOrm.retrieveListWithConditions(pRqVs,
+        CuOrSeGdLn.class, "where ITSOWNER in (" + ordIds + ")");
+      pRqVs.remove(tbn + "neededFields");
+      pRqVs.remove(tbn + "itsOwnerdeepLevel");
+      pRqVs.remove("UnitOfMeasureneededFields");
+      for (CuOrSeGdLn il : allGds) {
+        for (CuOrSe co : pSords) {
+          if (co.getItsId().equals(il.getItsOwner().getItsId())) {
+            co.getGoods().add(il);
+            break;
+          }
+        }
+      }
+      tbn = CuOrSeSrLn.class.getSimpleName();
+      pRqVs.put(tbn + "neededFields", ndFl);
+      pRqVs.put(tbn + "itsOwnerdeepLevel", 1);
+      pRqVs.put("UnitOfMeasureneededFields", ndFlNm);
+      List<CuOrSeSrLn> allSrs = this.srvOrm.retrieveListWithConditions(
+        pRqVs, CuOrSeSrLn.class, "where ITSOWNER in (" + ordIds + ")");
+      pRqVs.remove(tbn + "neededFields");
+      pRqVs.remove(tbn + "itsOwnerdeepLevel");
+      pRqVs.remove("UnitOfMeasureneededFields");
+      for (CuOrSeSrLn il : allSrs) {
+        for (CuOrSe co : pSords) {
+          if (co.getItsId().equals(il.getItsOwner().getItsId())) {
+            co.getServs().add(il);
+            break;
+          }
+        }
+      }
     }
   }
 

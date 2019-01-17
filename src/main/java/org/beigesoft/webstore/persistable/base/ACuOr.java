@@ -13,6 +13,7 @@ package org.beigesoft.webstore.persistable.base;
  */
 
 import java.util.Date;
+import java.util.List;
 import java.math.BigDecimal;
 
 import org.beigesoft.persistable.AHasIdLongVersion;
@@ -26,9 +27,12 @@ import org.beigesoft.webstore.persistable.PickUpPlace;
 /**
  * <p>Abstract model of webstore owner's/S.E.seller customer order.</p>
  *
+ * @param <GL> good line type
+ * @param <SL> service line type
  * @author Yury Demidenko
  */
-public abstract class ACuOr extends AHasIdLongVersion {
+public abstract class ACuOr<GL extends AOrdLn, SL extends AOrdLn>
+  extends AHasIdLongVersion {
 
   /**
    * <p>Its date, not null.</p>
@@ -94,6 +98,30 @@ public abstract class ACuOr extends AHasIdLongVersion {
    * <p>Delivering, not null.</p>
    **/
   private EDelivering deliv;
+
+  /**
+   * <p>Getter for goods.</p>
+   * @return List<CustOrderGdLn>
+   **/
+  public abstract List<GL> getGoods();
+
+  /**
+   * <p>Setter for goods.</p>
+   * @param pGoods reference
+   **/
+  public abstract void setGoods(final List<GL> pGoods);
+
+  /**
+   * <p>Getter for servs.</p>
+   * @return List<CustOrderSrvLn>
+   **/
+  public abstract List<SL> getServs();
+
+  /**
+   * <p>Setter for servs.</p>
+   * @param pServs reference
+   **/
+  public abstract void setServs(final List<SL> pServs);
 
   //Simple getters and setters:
   /**

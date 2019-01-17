@@ -39,6 +39,12 @@ public class SeSerBus extends AHasIdLongVersion implements IHasSeSeller<Long> {
   private Date tiTm;
 
   /**
+   * <p>Is free (disabled), otherwise used. It's because of inserting/deleting
+   * is more expensive than updating.</p>
+   **/
+  private Boolean fre = Boolean.FALSE;
+
+  /**
    * <p>Getter for seller.</p>
    * @return SeSeller
    **/
@@ -103,5 +109,21 @@ public class SeSerBus extends AHasIdLongVersion implements IHasSeSeller<Long> {
    **/
   public final void setTiTm(final Date pTiTm) {
     this.tiTm = pTiTm;
+  }
+
+  /**
+   * <p>Getter for fre.</p>
+   * @return Boolean
+   **/
+  public final Boolean getFre() {
+    return this.fre;
+  }
+
+  /**
+   * <p>Setter for fre.</p>
+   * @param pFre reference
+   **/
+  public final void setFre(final Boolean pFre) {
+    this.fre = pFre;
   }
 }

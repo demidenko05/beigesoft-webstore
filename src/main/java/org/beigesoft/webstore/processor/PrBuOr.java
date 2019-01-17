@@ -15,6 +15,8 @@ package org.beigesoft.webstore.processor;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.model.Page;
@@ -26,6 +28,10 @@ import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvPage;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDate;
+import org.beigesoft.webstore.persistable.CuOrSe;
+import org.beigesoft.webstore.persistable.CuOrSeTxLn;
+import org.beigesoft.webstore.persistable.CuOrSeSrLn;
+import org.beigesoft.webstore.persistable.CuOrSeGdLn;
 import org.beigesoft.webstore.persistable.CustOrder;
 import org.beigesoft.webstore.persistable.CustOrderTxLn;
 import org.beigesoft.webstore.persistable.CustOrderSrvLn;
@@ -101,7 +107,7 @@ public class PrBuOr<RS> implements IProcessor {
     String orIdSt = pRqDt.getParameter("orId");
     String sorIdSt = pRqDt.getParameter("sorId");
     if (orIdSt != null || sorIdSt != null) { //print:
-     //if (orIdSt != null) { //order
+     if (orIdSt != null) { //order
         Long orId = Long.valueOf(orIdSt);
         CustOrder or = this.srvOrm.retrieveEntityById(pRqVs,
           CustOrder.class, orId);
@@ -131,8 +137,37 @@ public class PrBuOr<RS> implements IProcessor {
         olm.put(CustOrderGdLn.class, or.getGoods());
         olm.put(CustOrderSrvLn.class, or.getServs());
         olm.put(CustOrderTxLn.class, or.getTaxes());
-      //} else { //S.E. order:
-      //}
+      } else { //S.E. order:
+        Long orId = Long.valueOf(sorIdSt);
+        CuOrSe or = this.srvOrm.retrieveEntityById(pRqVs,
+          CuOrSe.class, orId);
+        String tbn = CuOrSeGdLn.class.getSimpleName();
+        pRqVs.put(tbn + "itsOwnerdeepLevel", 1);
+        or.setGoods(this.srvOrm.retrieveListWithConditions(
+            pRqVs, CuOrSeGdLn.class, "where ITSOWNER=" + orId));
+        pRqVs.remove(tbn + "itsOwnerdeepLevel");
+        tbn = CuOrSeSrLn.class.getSimpleName();
+        pRqVs.put(tbn + "itsOwnerdeepLevel", 1);
+        or.setServs(this.srvOrm.retrieveListWithConditions(
+            pRqVs, CuOrSeSrLn.class, "where ITSOWNER=" + orId));
+        pRqVs.remove(tbn + "itsOwnerdeepLevel");
+        tbn = CuOrSeTxLn.class.getSimpleName();
+        pRqVs.put(tbn + "itsOwnerdeepLevel", 1);
+        or.setTaxes(this.srvOrm.retrieveListWithConditions(
+            pRqVs, CuOrSeTxLn.class, "where ITSOWNER=" + orId));
+        pRqVs.remove(tbn + "itsOwnerdeepLevel");
+        pRqDt.setAttribute("entity", or);
+        pRqDt.setAttribute("mngUvds", this.mngUvd);
+        pRqDt.setAttribute("srvOrm", this.srvOrm);
+        pRqDt.setAttribute("srvDate", this.srvDate);
+        pRqDt.setAttribute("hldCnvFtfsNames", this.hldFldCnv);
+        pRqDt.setAttribute("fctCnvFtfs", this.facFldCnv);
+        Map<Class<?>, List<?>> olm = new LinkedHashMap<Class<?>, List<?>>();
+        pRqDt.setAttribute("ownedListsMap", olm);
+        olm.put(CuOrSeGdLn.class, or.getGoods());
+        olm.put(CuOrSeSrLn.class, or.getServs());
+        olm.put(CuOrSeTxLn.class, or.getTaxes());
+      }
     } else { //page:
       page(pRqVs, pRqDt, buyer);
     }
@@ -170,9 +205,51 @@ public class PrBuOr<RS> implements IProcessor {
     List<Page> pages = this.srvPage.evalPages(1, totalPages,
       paginationTail);
     pRqDt.setAttribute("pgs", pages);
+    String tbn = CustOrder.class.getSimpleName();
+    Set<String> ndFlNm = new HashSet<String>();
+    ndFlNm.add("itsId");
+    ndFlNm.add("itsName");
+    pRqVs.put("PickUpPlaceneededFields", ndFlNm);
+    pRqVs.put(tbn + "buyerdeepLevel", 1);
     List<CustOrder> orders = getSrvOrm().retrievePageWithConditions(pRqVs,
       CustOrder.class, "where " + wheBr, firstResult, itemsPerPage);
-    pRqDt.setAttribute("ords", orders);
+    pRqVs.remove(tbn + "buyerdeepLevel");
+    if (orders.size() > 0) {
+      pRqDt.setAttribute("ords", orders);
+    }
+    //S.E. orders:
+    pgSt = pRqDt.getParameter("spg");
+    if (pgSt != null) {
+      page = Integer.parseInt(pgSt);
+    } else {
+      page = 1;
+    }
+    rowCount = this.srvOrm.evalRowCountWhere(pRqVs, CuOrSe.class, wheBr);
+    itemsPerPage = ts.getItemsPerPage();
+    totalPages = this.srvPage.evalPageCount(rowCount, itemsPerPage);
+    if (page > totalPages) {
+      page = totalPages;
+    }
+    firstResult = (page - 1) * itemsPerPage; //0-20,20-40
+    pages = this.srvPage.evalPages(1, totalPages, paginationTail);
+    pRqDt.setAttribute("spgs", pages);
+    tbn = CuOrSe.class.getSimpleName();
+    Set<String> ndFlDc = new HashSet<String>();
+    ndFlDc.add("seller");
+    pRqVs.put("DebtorCreditorneededFields", ndFlNm);
+    pRqVs.put("SeSellerneededFields", ndFlDc);
+    pRqVs.put("SeSellersellerdeepLevel", 2);
+    pRqVs.put(tbn + "buyerdeepLevel", 1);
+    List<CuOrSe> sorders = getSrvOrm().retrievePageWithConditions(pRqVs,
+      CuOrSe.class, "where " + wheBr, firstResult, itemsPerPage);
+    pRqVs.remove(tbn + "buyerdeepLevel");
+    pRqVs.remove("DebtorCreditorneededFields");
+    pRqVs.remove("SeSellerneededFields");
+    pRqVs.remove("SeSellersellerdeepLevel");
+    pRqVs.remove("PickUpPlaceneededFields");
+    if (sorders.size() > 0) {
+      pRqDt.setAttribute("sords", sorders);
+    }
   }
 
   //Simple getters and setters:
