@@ -83,4 +83,5 @@
 <entry key="nativeVal">false</entry>
 <entry key="foreignVal">false</entry>
 <entry key="priceCategoryOfBuyers">true</entry>
+<entry key="frcSr">true</entry>
 </properties>

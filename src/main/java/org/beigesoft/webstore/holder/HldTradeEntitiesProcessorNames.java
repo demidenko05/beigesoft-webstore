@@ -43,6 +43,7 @@ import org.beigesoft.webstore.persistable.ServiceSpecifics;
 import org.beigesoft.webstore.persistable.GoodsCatalog;
 import org.beigesoft.webstore.persistable.ServiceCatalog;
 import org.beigesoft.webstore.persistable.SeGoodCatalog;
+import org.beigesoft.webstore.persistable.SeSrCa;
 import org.beigesoft.webstore.persistable.Deliv;
 import org.beigesoft.webstore.persistable.PayMd;
 import org.beigesoft.webstore.persistable.CustOrder;
@@ -183,7 +184,7 @@ public class HldTradeEntitiesProcessorNames
     } else if (pClass == TradingSettings.class) {
       return PrcTradingSettingsSave.class.getSimpleName();
     } else if (pClass == ServiceCatalog.class || pClass == GoodsCatalog.class
-      || pClass == SeGoodCatalog.class) {
+      || pClass == SeGoodCatalog.class || pClass == SeSrCa.class) {
       return PrcItemCatalogSave.class.getSimpleName();
     } else if (pClass == SubcatalogsCatalogsGs.class) {
       return PrcSubcatalogsCatalogsGsSave.class.getSimpleName();

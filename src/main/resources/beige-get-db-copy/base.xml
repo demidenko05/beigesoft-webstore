@@ -194,6 +194,7 @@
   org.beigesoft.webstore.persistable.SeServicePrice,
   org.beigesoft.webstore.persistable.SeGoodsPlace,
   org.beigesoft.webstore.persistable.SeGoodCatalog,
+  org.beigesoft.webstore.persistable.SeSrCa,
   org.beigesoft.webstore.persistable.CuOrSe,
   org.beigesoft.webstore.persistable.CuOrSeTxLn,
   org.beigesoft.webstore.persistable.CuOrSeGdLn,

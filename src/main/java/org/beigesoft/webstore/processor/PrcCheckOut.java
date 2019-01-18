@@ -190,7 +190,6 @@ public class PrcCheckOut<RS> implements IProcessor {
         break;
       } else if (places.size() == 1) { //only place with non-zero availability
         if (places.get(0).getItsQuantity().compareTo(cl.getQuant()) == -1) {
-          //for services quant is always 1
           isCompl = false;
           cl.setAvQuan(places.get(0).getItsQuantity());
         }
@@ -217,137 +216,10 @@ public class PrcCheckOut<RS> implements IProcessor {
     if (!isCompl) {
       redir(pRqVs, pRqDt);
     } else {
-      for (CustOrder co : pur.getOrds()) {
-        if (co.getPlace() == null) { //stored unused order
-          //remove it and all its lines:
-          for (CustOrderGdLn gl : co.getGoods()) {
-            for (CuOrGdTxLn gtl : gl.getItTxs()) {
-              getSrvOrm().deleteEntity(pRqVs, gtl);
-            }
-            getSrvOrm().deleteEntity(pRqVs, gl);
-          }
-          for (CustOrderSrvLn sl : co.getServs()) {
-            for (CuOrSrTxLn stl : sl.getItTxs()) {
-              getSrvOrm().deleteEntity(pRqVs, stl);
-            }
-            getSrvOrm().deleteEntity(pRqVs, sl);
-          }
-          for (CustOrderTxLn otlt : co.getTaxes()) {
-            getSrvOrm().deleteEntity(pRqVs, otlt);
-          }
-          getSrvOrm().deleteEntity(pRqVs, co);
-          continue;
-        }
-        if (co.getIsNew()) {
-          getSrvOrm().insertEntity(pRqVs, co);
-        }
-        BigDecimal tot = BigDecimal.ZERO;
-        BigDecimal subt = BigDecimal.ZERO;
-        for (CustOrderGdLn gl : co.getGoods()) {
-          gl.setItsOwner(co);
-          if (gl.getIsNew()) {
-            getSrvOrm().insertEntity(pRqVs, gl);
-          }
-          if (gl.getItTxs() != null && gl.getItTxs().size() > 0) {
-            for (CuOrGdTxLn gtl : gl.getItTxs()) {
-              gtl.setItsOwner(gl);
-              if (gtl.getIsNew()) {
-                getSrvOrm().insertEntity(pRqVs, gtl);
-              } else if (gl.getGood() == null || gtl.getTax() == null) {
-                getSrvOrm().deleteEntity(pRqVs, gtl);
-              } else {
-                getSrvOrm().updateEntity(pRqVs, gtl);
-              }
-            }
-          }
-          if (!gl.getIsNew() && gl.getGood() == null) {
-            getSrvOrm().deleteEntity(pRqVs, gl);
-          } else {
-            tot = tot.add(gl.getTot());
-            subt = subt.add(gl.getSubt());
-            if (!gl.getIsNew()) {
-              getSrvOrm().updateEntity(pRqVs, gl);
-            }
-          }
-        }
-        for (CustOrderSrvLn sl : co.getServs()) {
-          sl.setItsOwner(co);
-          if (sl.getIsNew()) {
-            getSrvOrm().insertEntity(pRqVs, sl);
-          }
-          if (sl.getItTxs() != null && sl.getItTxs().size() > 0) {
-            for (CuOrSrTxLn stl : sl.getItTxs()) {
-              stl.setItsOwner(sl);
-              if (stl.getIsNew()) {
-                getSrvOrm().insertEntity(pRqVs, stl);
-              } else if (sl.getService() == null || stl.getTax() == null) {
-                getSrvOrm().deleteEntity(pRqVs, stl);
-              } else {
-                getSrvOrm().updateEntity(pRqVs, stl);
-              }
-            }
-          }
-          if (!sl.getIsNew() && sl.getService() == null) {
-            getSrvOrm().deleteEntity(pRqVs, sl);
-          } else {
-            tot = tot.add(sl.getTot());
-            subt = subt.add(sl.getSubt());
-            if (!sl.getIsNew()) {
-              getSrvOrm().updateEntity(pRqVs, sl);
-            }
-          }
-        }
-        BigDecimal totTx = BigDecimal.ZERO;
-        for (CartTxLn ctl : cart.getTaxes()) {
-          if (ctl.getDisab()) {
-            continue;
-          }
-          CustOrderTxLn otl = null;
-          if (!co.getIsNew()) {
-            for (CustOrderTxLn otlt : co.getTaxes()) {
-              if (otlt.getTax() == null) {
-                otl = otlt;
-                break;
-              }
-            }
-          }
-          if (otl == null) {
-            otl = new CustOrderTxLn();
-            otl.setIsNew(true);
-            co.getTaxes().add(otl);
-          }
-          otl.setItsOwner(co);
-          Tax tx = new Tax();
-          tx.setItsId(ctl.getTax().getItsId());
-          tx.setItsName(ctl.getTax().getItsName());
-          otl.setTax(tx);
-          otl.setTot(ctl.getTot());
-          otl.setTaxab(ctl.getTaxab());
-          totTx = totTx.add(otl.getTot());
-          if (otl.getIsNew()) {
-            getSrvOrm().insertEntity(pRqVs, otl);
-          } else {
-            getSrvOrm().updateEntity(pRqVs, otl);
-          }
-        }
-        if (!co.getIsNew()) {
-          for (CustOrderTxLn otlt : co.getTaxes()) {
-            if (otlt.getTax() == null) {
-              getSrvOrm().deleteEntity(pRqVs, otlt);
-            }
-          }
-        }
-        co.setTot(tot);
-        co.setSubt(subt);
-        co.setTotTx(totTx);
-        getSrvOrm().updateEntity(pRqVs, co);
-      }
-      if (pur.getOrds().size() > 0) {
-        pRqDt.setAttribute("orders", pur.getOrds());
-      }
-      if (pur.getSords().size() > 0) {
-        pRqDt.setAttribute("sorders", pur.getSords());
-      }
+      saveOrds(pRqVs, pur, cart);
+      saveSords(pRqVs, pur, cart);
+      pRqDt.setAttribute("orders", pur.getOrds());
+      pRqDt.setAttribute("sorders", pur.getSords());
       String listFltAp = pRqDt.getParameter("listFltAp");
       if (listFltAp != null) {
         listFltAp = new String(listFltAp.getBytes("ISO-8859-1"), "UTF-8");
@@ -358,6 +230,278 @@ public class PrcCheckOut<RS> implements IProcessor {
         itFltAp = new String(itFltAp.getBytes("ISO-8859-1"), "UTF-8");
         pRqDt.setAttribute("itFltAp", itFltAp);
       }
+    }
+  }
+
+  /**
+   * <p>Saves S.E. orders.</p>
+   * @param pRqVs request scoped vars
+   * @param pPur purchase
+   * @param pCart cart
+   * @throws Exception - an exception
+   **/
+  public final void saveSords(final Map<String, Object> pRqVs,
+    final Purch pPur, final Cart pCart) throws Exception {
+    for (CuOrSe co : pPur.getSords()) {
+      if (co.getPlace() == null) { //stored unused order
+        //remove it and all its lines:
+        for (CuOrSeGdLn gl : co.getGoods()) {
+          for (CuOrSeGdTxLn gtl : gl.getItTxs()) {
+            getSrvOrm().deleteEntity(pRqVs, gtl);
+          }
+          getSrvOrm().deleteEntity(pRqVs, gl);
+        }
+        for (CuOrSeSrLn sl : co.getServs()) {
+          for (CuOrSeSrTxLn stl : sl.getItTxs()) {
+            getSrvOrm().deleteEntity(pRqVs, stl);
+          }
+          getSrvOrm().deleteEntity(pRqVs, sl);
+        }
+        for (CuOrSeTxLn otlt : co.getTaxes()) {
+          getSrvOrm().deleteEntity(pRqVs, otlt);
+        }
+        getSrvOrm().deleteEntity(pRqVs, co);
+        continue;
+      }
+      if (co.getIsNew()) {
+        getSrvOrm().insertEntity(pRqVs, co);
+      }
+      BigDecimal tot = BigDecimal.ZERO;
+      BigDecimal subt = BigDecimal.ZERO;
+      for (CuOrSeGdLn gl : co.getGoods()) {
+        gl.setItsOwner(co);
+        if (gl.getIsNew()) {
+          getSrvOrm().insertEntity(pRqVs, gl);
+        }
+        if (gl.getItTxs() != null && gl.getItTxs().size() > 0) {
+          for (CuOrSeGdTxLn gtl : gl.getItTxs()) {
+            gtl.setItsOwner(gl);
+            if (gtl.getIsNew()) {
+              getSrvOrm().insertEntity(pRqVs, gtl);
+            } else if (gl.getGood() == null || gtl.getTax() == null) {
+              getSrvOrm().deleteEntity(pRqVs, gtl);
+            } else {
+              getSrvOrm().updateEntity(pRqVs, gtl);
+            }
+          }
+        }
+        if (!gl.getIsNew() && gl.getGood() == null) {
+          getSrvOrm().deleteEntity(pRqVs, gl);
+        } else {
+          tot = tot.add(gl.getTot());
+          subt = subt.add(gl.getSubt());
+          if (!gl.getIsNew()) {
+            getSrvOrm().updateEntity(pRqVs, gl);
+          }
+        }
+      }
+      for (CuOrSeSrLn sl : co.getServs()) {
+        sl.setItsOwner(co);
+        if (sl.getIsNew()) {
+          getSrvOrm().insertEntity(pRqVs, sl);
+        }
+        if (sl.getItTxs() != null && sl.getItTxs().size() > 0) {
+          for (CuOrSeSrTxLn stl : sl.getItTxs()) {
+            stl.setItsOwner(sl);
+            if (stl.getIsNew()) {
+              getSrvOrm().insertEntity(pRqVs, stl);
+            } else if (sl.getService() == null || stl.getTax() == null) {
+              getSrvOrm().deleteEntity(pRqVs, stl);
+            } else {
+              getSrvOrm().updateEntity(pRqVs, stl);
+            }
+          }
+        }
+        if (!sl.getIsNew() && sl.getService() == null) {
+          getSrvOrm().deleteEntity(pRqVs, sl);
+        } else {
+          tot = tot.add(sl.getTot());
+          subt = subt.add(sl.getSubt());
+          if (!sl.getIsNew()) {
+            getSrvOrm().updateEntity(pRqVs, sl);
+          }
+        }
+      }
+      BigDecimal totTx = BigDecimal.ZERO;
+      for (CartTxLn ctl : pCart.getTaxes()) {
+        if (ctl.getDisab()) {
+          continue;
+        }
+        CuOrSeTxLn otl = null;
+        if (!co.getIsNew()) {
+          for (CuOrSeTxLn otlt : co.getTaxes()) {
+            if (otlt.getTax() == null) {
+              otl = otlt;
+              break;
+            }
+          }
+        }
+        if (otl == null) {
+          otl = new CuOrSeTxLn();
+          otl.setIsNew(true);
+          co.getTaxes().add(otl);
+        }
+        otl.setItsOwner(co);
+        Tax tx = new Tax();
+        tx.setItsId(ctl.getTax().getItsId());
+        tx.setItsName(ctl.getTax().getItsName());
+        otl.setTax(tx);
+        otl.setTot(ctl.getTot());
+        otl.setTaxab(ctl.getTaxab());
+        totTx = totTx.add(otl.getTot());
+        if (otl.getIsNew()) {
+          getSrvOrm().insertEntity(pRqVs, otl);
+        } else {
+          getSrvOrm().updateEntity(pRqVs, otl);
+        }
+      }
+      if (!co.getIsNew()) {
+        for (CuOrSeTxLn otlt : co.getTaxes()) {
+          if (otlt.getTax() == null) {
+            getSrvOrm().deleteEntity(pRqVs, otlt);
+          }
+        }
+      }
+      co.setTot(tot);
+      co.setSubt(subt);
+      co.setTotTx(totTx);
+      getSrvOrm().updateEntity(pRqVs, co);
+    }
+  }
+
+  /**
+   * <p>Saves orders.</p>
+   * @param pRqVs request scoped vars
+   * @param pPur purchase
+   * @param pCart cart
+   * @throws Exception - an exception
+   **/
+  public final void saveOrds(final Map<String, Object> pRqVs,
+    final Purch pPur, final Cart pCart) throws Exception {
+    for (CustOrder co : pPur.getOrds()) {
+      if (co.getPlace() == null) { //stored unused order
+        //remove it and all its lines:
+        for (CustOrderGdLn gl : co.getGoods()) {
+          for (CuOrGdTxLn gtl : gl.getItTxs()) {
+            getSrvOrm().deleteEntity(pRqVs, gtl);
+          }
+          getSrvOrm().deleteEntity(pRqVs, gl);
+        }
+        for (CustOrderSrvLn sl : co.getServs()) {
+          for (CuOrSrTxLn stl : sl.getItTxs()) {
+            getSrvOrm().deleteEntity(pRqVs, stl);
+          }
+          getSrvOrm().deleteEntity(pRqVs, sl);
+        }
+        for (CustOrderTxLn otlt : co.getTaxes()) {
+          getSrvOrm().deleteEntity(pRqVs, otlt);
+        }
+        getSrvOrm().deleteEntity(pRqVs, co);
+        continue;
+      }
+      if (co.getIsNew()) {
+        getSrvOrm().insertEntity(pRqVs, co);
+      }
+      BigDecimal tot = BigDecimal.ZERO;
+      BigDecimal subt = BigDecimal.ZERO;
+      for (CustOrderGdLn gl : co.getGoods()) {
+        gl.setItsOwner(co);
+        if (gl.getIsNew()) {
+          getSrvOrm().insertEntity(pRqVs, gl);
+        }
+        if (gl.getItTxs() != null && gl.getItTxs().size() > 0) {
+          for (CuOrGdTxLn gtl : gl.getItTxs()) {
+            gtl.setItsOwner(gl);
+            if (gtl.getIsNew()) {
+              getSrvOrm().insertEntity(pRqVs, gtl);
+            } else if (gl.getGood() == null || gtl.getTax() == null) {
+              getSrvOrm().deleteEntity(pRqVs, gtl);
+            } else {
+              getSrvOrm().updateEntity(pRqVs, gtl);
+            }
+          }
+        }
+        if (!gl.getIsNew() && gl.getGood() == null) {
+          getSrvOrm().deleteEntity(pRqVs, gl);
+        } else {
+          tot = tot.add(gl.getTot());
+          subt = subt.add(gl.getSubt());
+          if (!gl.getIsNew()) {
+            getSrvOrm().updateEntity(pRqVs, gl);
+          }
+        }
+      }
+      for (CustOrderSrvLn sl : co.getServs()) {
+        sl.setItsOwner(co);
+        if (sl.getIsNew()) {
+          getSrvOrm().insertEntity(pRqVs, sl);
+        }
+        if (sl.getItTxs() != null && sl.getItTxs().size() > 0) {
+          for (CuOrSrTxLn stl : sl.getItTxs()) {
+            stl.setItsOwner(sl);
+            if (stl.getIsNew()) {
+              getSrvOrm().insertEntity(pRqVs, stl);
+            } else if (sl.getService() == null || stl.getTax() == null) {
+              getSrvOrm().deleteEntity(pRqVs, stl);
+            } else {
+              getSrvOrm().updateEntity(pRqVs, stl);
+            }
+          }
+        }
+        if (!sl.getIsNew() && sl.getService() == null) {
+          getSrvOrm().deleteEntity(pRqVs, sl);
+        } else {
+          tot = tot.add(sl.getTot());
+          subt = subt.add(sl.getSubt());
+          if (!sl.getIsNew()) {
+            getSrvOrm().updateEntity(pRqVs, sl);
+          }
+        }
+      }
+      BigDecimal totTx = BigDecimal.ZERO;
+      for (CartTxLn ctl : pCart.getTaxes()) {
+        if (ctl.getDisab()) {
+          continue;
+        }
+        CustOrderTxLn otl = null;
+        if (!co.getIsNew()) {
+          for (CustOrderTxLn otlt : co.getTaxes()) {
+            if (otlt.getTax() == null) {
+              otl = otlt;
+              break;
+            }
+          }
+        }
+        if (otl == null) {
+          otl = new CustOrderTxLn();
+          otl.setIsNew(true);
+          co.getTaxes().add(otl);
+        }
+        otl.setItsOwner(co);
+        Tax tx = new Tax();
+        tx.setItsId(ctl.getTax().getItsId());
+        tx.setItsName(ctl.getTax().getItsName());
+        otl.setTax(tx);
+        otl.setTot(ctl.getTot());
+        otl.setTaxab(ctl.getTaxab());
+        totTx = totTx.add(otl.getTot());
+        if (otl.getIsNew()) {
+          getSrvOrm().insertEntity(pRqVs, otl);
+        } else {
+          getSrvOrm().updateEntity(pRqVs, otl);
+        }
+      }
+      if (!co.getIsNew()) {
+        for (CustOrderTxLn otlt : co.getTaxes()) {
+          if (otlt.getTax() == null) {
+            getSrvOrm().deleteEntity(pRqVs, otlt);
+          }
+        }
+      }
+      co.setTot(tot);
+      co.setSubt(subt);
+      co.setTotTx(totTx);
+      getSrvOrm().updateEntity(pRqVs, co);
     }
   }
 

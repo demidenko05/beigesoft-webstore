@@ -96,6 +96,7 @@ import org.beigesoft.webstore.persistable.SeGoodCatalog;
 import org.beigesoft.webstore.persistable.CurrRate;
 import org.beigesoft.webstore.persistable.PayMd;
 import org.beigesoft.webstore.persistable.Deliv;
+import org.beigesoft.webstore.persistable.SeSrCa;
 import org.beigesoft.webstore.processor.PrcSeSellerDel;
 import org.beigesoft.webstore.processor.PrcSeSellerSave;
 import org.beigesoft.webstore.processor.PrcAdvisedGoodsForGoodsSave;
@@ -256,6 +257,7 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
     this.wsEntities.add(Eattachment.class);
     this.wsEntities.add(Erecipient.class);
     this.wsEntities.add(SeGoodCatalog.class);
+    this.wsEntities.add(SeSrCa.class);
     this.wsEntities.add(CurrRate.class);
     this.wsEntities.add(PayMd.class);
     this.wsEntities.add(Deliv.class);

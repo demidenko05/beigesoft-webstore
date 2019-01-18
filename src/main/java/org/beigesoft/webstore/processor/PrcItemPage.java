@@ -15,7 +15,6 @@ package org.beigesoft.webstore.processor;
 import java.util.Map;
 import java.util.List;
 import java.util.HashSet;
-import java.math.BigDecimal;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -26,14 +25,15 @@ import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.accounting.persistable.ServiceToSale;
-import org.beigesoft.accounting.persistable.AccSettings;
-import org.beigesoft.accounting.persistable.TaxDestination;
 import org.beigesoft.webstore.model.EShopItemType;
 import org.beigesoft.webstore.model.ESpecificsItemType;
 import org.beigesoft.webstore.persistable.base.AItemSpecifics;
 import org.beigesoft.webstore.persistable.base.AItemPrice;
 import org.beigesoft.webstore.persistable.GoodsSpecifics;
 import org.beigesoft.webstore.persistable.ServiceSpecifics;
+import org.beigesoft.webstore.persistable.SeService;
+import org.beigesoft.webstore.persistable.SeServicePlace;
+import org.beigesoft.webstore.persistable.SeServiceSpecifics;
 import org.beigesoft.webstore.persistable.SeGoods;
 import org.beigesoft.webstore.persistable.SeGoodsPlace;
 import org.beigesoft.webstore.persistable.SeGoodsSpecifics;
@@ -44,6 +44,7 @@ import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
+import org.beigesoft.webstore.service.IBuySr;
 
 /**
  * <p>Service that retrieve goods/service details. It passes itemPrice=null
@@ -86,6 +87,16 @@ public class PrcItemPage<RS> implements IProcessor {
   private String querySpecificsSeGoodsDetailI18n;
 
   /**
+   * <p>I18N query item specifics.</p>
+   **/
+  private String quItSpDeIn;
+
+  /**
+   * <p>Buyer service.</p>
+   **/
+  private IBuySr buySr;
+
+  /**
    * <p>Process entity request.</p>
    * @param pRqVs additional param
    * @param pRqDt Request Data
@@ -95,48 +106,25 @@ public class PrcItemPage<RS> implements IProcessor {
   public final void process(final Map<String, Object> pRqVs,
     final IRequestData pRqDt) throws Exception {
     TradingSettings ts = (TradingSettings) pRqVs.get("tradSet");
-    AccSettings as = (AccSettings) pRqVs.get("accSet");
     String itemTypeStr = pRqDt.getParameter("itemType");
     Long itemId = Long.valueOf(pRqDt.getParameter("itemId"));
-    if (pRqDt.getAttribute("cart") == null) {
-      Cart cart = this.srvCart
-        .getShoppingCart(pRqVs, pRqDt, false, false);
-      if (cart != null) {
-        pRqDt.setAttribute("cart", cart);
-        if (pRqDt.getAttribute("txRules") == null) {
-          TaxDestination txRules = this.srvCart
-            .revealTaxRules(pRqVs, cart, as);
-          pRqDt.setAttribute("txRules", txRules);
-        }
-      }
-    }
-    OnlineBuyer buyr = null;
-    if (pRqDt.getAttribute("cart") != null) {
-      Cart cart = (Cart) pRqDt.getAttribute("cart");
+    Cart cart = this.srvCart.getShoppingCart(pRqVs, pRqDt, false, false);
+    OnlineBuyer buyr;
+    if (cart != null) {
       buyr = cart.getBuyer();
-      if (cart.getTot().compareTo(BigDecimal.ZERO) == 0) {
-        pRqDt.setAttribute("cart", null);
-      } else {
-        if (cart.getItems() != null) {
-          for (CartLn ci : cart.getItems()) {
-            if (!ci.getDisab() && ci.getItId().equals(itemId)
-              && ci.getItTyp().toString().equals(itemTypeStr)) {
-              pRqDt.setAttribute("cartItem", ci);
-              break;
-            }
+      if (cart.getItems() != null) {
+        for (CartLn ci : cart.getItems()) {
+          if (!ci.getDisab() && ci.getItId().equals(itemId)
+            && ci.getItTyp().toString().equals(itemTypeStr)) {
+            pRqDt.setAttribute("cartItem", ci);
+            break;
           }
         }
       }
     } else {
-      buyr = (OnlineBuyer) pRqDt.getAttribute("buyr");
+      buyr = this.buySr.getBuyr(pRqVs, pRqDt);
       if (buyr == null) {
-        String buyerIdStr = pRqDt.getCookieValue("cBuyerId");
-        if (buyerIdStr != null && buyerIdStr.length() > 0) {
-          Long buyerId = Long.valueOf(buyerIdStr);
-          buyr = getSrvOrm()
-            .retrieveEntityById(pRqVs, OnlineBuyer.class, buyerId);
-        }
-        pRqDt.setAttribute("buyr", buyr);
+        buyr = this.buySr.createBuyr(pRqVs, pRqDt);
       }
     }
     if (EShopItemType.GOODS.toString().equals(itemTypeStr)) {
@@ -145,6 +133,10 @@ public class PrcItemPage<RS> implements IProcessor {
       processService(pRqVs, pRqDt, ts, buyr, itemId);
     } else if (EShopItemType.SEGOODS.toString().equals(itemTypeStr)) {
       processSeGoods(pRqVs, pRqDt, ts, buyr, itemId);
+    } else if (EShopItemType.SEGOODS.toString().equals(itemTypeStr)) {
+      processSeGoods(pRqVs, pRqDt, ts, buyr, itemId);
+    } else if (EShopItemType.SESERVICE.toString().equals(itemTypeStr)) {
+      procSeSrv(pRqVs, pRqDt, ts, buyr, itemId);
     } else {
       throw new Exception(
         "Detail page not yet implemented for item type: " + itemTypeStr);
@@ -187,6 +179,44 @@ public class PrcItemPage<RS> implements IProcessor {
       pBuyer, EShopItemType.GOODS, pItemId);
     itemPlaceLst = getSrvOrm().retrieveListWithConditions(pRqVs,
         GoodsPlace.class, " where ITEM=" + pItemId);
+    pRqDt.setAttribute("itemSpecLst", itemSpecLst);
+    pRqDt.setAttribute("itemPlaceLst", itemPlaceLst);
+    pRqDt.setAttribute("itemPrice", itemPrice);
+  }
+
+  /**
+   * <p>Process a seGood.</p>
+   * @param pRqVs additional param
+   * @param pRqDt Request Data
+   * @param pTs TradingSettings
+   * @param pBuyer Buyer
+   * @param pItemId Item ID
+   * @throws Exception - an exception
+   **/
+  public final void procSeSrv(final Map<String, Object> pRqVs,
+    final IRequestData pRqDt, final TradingSettings pTs,
+      final OnlineBuyer pBuyer, final Long pItemId) throws Exception {
+    List<SeServiceSpecifics> itemSpecLst;
+    List<SeServicePlace> itemPlaceLst;
+    itemSpecLst = retrieveItemSpecificsList(pRqVs, pTs, pItemId,
+      SeServiceSpecifics.class, SeService.class.getSimpleName());
+    //extract main image if exist:
+    int miIdx = -1;
+    for (int i = 0; i < itemSpecLst.size(); i++) {
+      if (itemSpecLst.get(i).getSpecifics().getItsType()
+        .equals(ESpecificsItemType.IMAGE)) {
+        pRqDt.setAttribute("itemImage", itemSpecLst.get(i));
+        miIdx = i;
+        break;
+      }
+    }
+    if (miIdx != -1) {
+      itemSpecLst.remove(miIdx);
+    }
+    AItemPrice<?, ?> itemPrice = getSrvCart().revealItemPrice(pRqVs, pTs,
+        pBuyer, EShopItemType.SESERVICE, pItemId);
+    itemPlaceLst = getSrvOrm().retrieveListWithConditions(pRqVs,
+        SeServicePlace.class, " where ITEM=" + pItemId);
     pRqDt.setAttribute("itemSpecLst", itemSpecLst);
     pRqDt.setAttribute("itemPlaceLst", itemPlaceLst);
     pRqDt.setAttribute("itemPrice", itemPrice);
@@ -323,6 +353,10 @@ public class PrcItemPage<RS> implements IProcessor {
         } else if (pItemSpecCl == SeGoodsSpecifics.class) {
           qd = lazyGetQuerySpecificsSeGoodsDetailI18n()
             .replace(":ITEMID", pItemId.toString()).replace(":LANG", lang);
+        } else if (pItemSpecCl == SeServiceSpecifics.class) {
+          qd = lazyGetQuItSpDeIn().replace(":TITSPEC", "SESERVICESPECIFICS")
+            .replace(":TITEM", "SESERVICE").replace(":T18NIT", "I18NSESERVICE")
+              .replace(":ITEMID", pItemId.toString()).replace(":LANG", lang);
         } else {
           throw new Exception("NYI for " +  pItemSpecCl);
         }
@@ -386,6 +420,18 @@ public class PrcItemPage<RS> implements IProcessor {
   }
 
   /**
+   * <p>Lazy Get quItSpDeIn.</p>
+   * @return String
+   * @throws Exception - an exception
+   **/
+  public final String lazyGetQuItSpDeIn() throws Exception {
+    if (this.quItSpDeIn == null) {
+      this.quItSpDeIn = loadString("/webstore/itSpDeIn.sql");
+    }
+    return this.quItSpDeIn;
+  }
+
+  /**
    * <p>Load string file (usually SQL query).</p>
    * @param pFileName file name
    * @return String usually SQL query
@@ -413,24 +459,6 @@ public class PrcItemPage<RS> implements IProcessor {
   }
 
   //Simple getters and setters:
-  /**
-   * <p>Setter for querySpecificsServiceDetailI18n.</p>
-   * @param pQuerySpecificsServiceDetailI18n reference
-   **/
-  public final void setQuerySpecificsServiceDetailI18n(
-    final String pQuerySpecificsServiceDetailI18n) {
-    this.querySpecificsServiceDetailI18n = pQuerySpecificsServiceDetailI18n;
-  }
-
-  /**
-   * <p>Setter for querySpecificsGoodsDetailI18n.</p>
-   * @param pQuerySpecificsGoodsDetailI18n reference
-   **/
-  public final void setQuerySpecificsGoodsDetailI18n(
-    final String pQuerySpecificsGoodsDetailI18n) {
-    this.querySpecificsGoodsDetailI18n = pQuerySpecificsGoodsDetailI18n;
-  }
-
   /**
    * <p>Geter for logger.</p>
    * @return ILogger
@@ -478,5 +506,21 @@ public class PrcItemPage<RS> implements IProcessor {
   public final void setSrvCart(
     final ISrvShoppingCart pSrvCart) {
     this.srvCart = pSrvCart;
+  }
+
+  /**
+   * <p>Getter for buySr.</p>
+   * @return IBuySr
+   **/
+  public final IBuySr getBuySr() {
+    return this.buySr;
+  }
+
+  /**
+   * <p>Setter for buySr.</p>
+   * @param pBuySr reference
+   **/
+  public final void setBuySr(final IBuySr pBuySr) {
+    this.buySr = pBuySr;
   }
 }

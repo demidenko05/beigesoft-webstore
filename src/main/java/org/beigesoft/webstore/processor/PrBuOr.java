@@ -214,9 +214,7 @@ public class PrBuOr<RS> implements IProcessor {
     List<CustOrder> orders = getSrvOrm().retrievePageWithConditions(pRqVs,
       CustOrder.class, "where " + wheBr, firstResult, itemsPerPage);
     pRqVs.remove(tbn + "buyerdeepLevel");
-    if (orders.size() > 0) {
-      pRqDt.setAttribute("ords", orders);
-    }
+    pRqDt.setAttribute("ords", orders);
     //S.E. orders:
     pgSt = pRqDt.getParameter("spg");
     if (pgSt != null) {
@@ -247,9 +245,7 @@ public class PrBuOr<RS> implements IProcessor {
     pRqVs.remove("SeSellerneededFields");
     pRqVs.remove("SeSellersellerdeepLevel");
     pRqVs.remove("PickUpPlaceneededFields");
-    if (sorders.size() > 0) {
-      pRqDt.setAttribute("sords", sorders);
-    }
+    pRqDt.setAttribute("sords", sorders);
   }
 
   //Simple getters and setters:

@@ -39,7 +39,7 @@ public class SeService extends AItem<SeService, DestTaxSeServiceLn>
   /**
    * <p>Not null, default TIME, booking time method.</p>
    **/
-  private EServTime tmMe = EServTime.TIME;
+  private EServTime tmMe = EServTime.NONE;
 
   /**
    * <p>Additional time method,

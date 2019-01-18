@@ -14,6 +14,7 @@ package org.beigesoft.webstore.persistable;
 
 import org.beigesoft.model.AEditableHasVersion;
 import org.beigesoft.model.IHasId;
+import org.beigesoft.accounting.persistable.ServiceToSale;
 import org.beigesoft.webstore.model.EDelivering;
 
 /**
@@ -31,6 +32,11 @@ public class Deliv extends AEditableHasVersion implements IHasId<EDelivering> {
   private EDelivering itsId;
 
   /**
+   * <p>Forced service, if applied.</p>
+   **/
+  private ServiceToSale frcSr;
+
+  /**
    * <p>Usually it's simple getter that return model ID.</p>
    * @return ID model ID
    **/
@@ -46,5 +52,21 @@ public class Deliv extends AEditableHasVersion implements IHasId<EDelivering> {
   @Override
   public final void setItsId(final EDelivering pItsId) {
     this.itsId = pItsId;
+  }
+
+  /**
+   * <p>Getter for frcSr.</p>
+   * @return ServiceToSale
+   **/
+  public final ServiceToSale getFrcSr() {
+    return this.frcSr;
+  }
+
+  /**
+   * <p>Setter for frcSr.</p>
+   * @param pFrcSr reference
+   **/
+  public final void setFrcSr(final ServiceToSale pFrcSr) {
+    this.frcSr = pFrcSr;
   }
 }

@@ -1,0 +1,9 @@
+select count(*) as TOTALROWS
+from (
+  select ITEMID
+  from ITEMINLIST
+  where AVAILABLEQUANTITY>0 and ITSTYPE=:ITTYP :WHEREADD
+ ) as ITALL
+join (
+  select distinct ITEM as ITINCAT from :TITCAT where ITSCATALOG:CATALOGFILTER
+ ) as ITINCATALL on ITINCATALL.ITINCAT=ITALL.ITEMID

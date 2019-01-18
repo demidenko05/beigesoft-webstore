@@ -175,6 +175,29 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   private String quSeGdForCatNoAucSmPrI18n;
 
   /**
+   * <p>Query for specifics of item filter.</p>
+   **/
+  private String quItSpFlt;
+
+  /**
+   * <p>Query item in list for catalog not auctioning
+   * same price for all customers.</p>
+   **/
+  private String quItInLstCa;
+
+  /**
+   * <p>Query total items in list for catalog not auctioning
+   * same price for all customers.</p>
+   **/
+  private String quItInLstCaTo;
+
+  /**
+   * <p>Query I18N items in list for catalog not auctioning
+   * same price for all customers.</p>
+   **/
+  private String quItInLstCaIn;
+
+  /**
    * <p>Handle catalog changed event.</p>
    * @throws Exception an Exception
    **/
@@ -231,6 +254,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
         String queryg = null;
         String querys = null;
         String queryseg = null;
+        String queryses = null;
         if (ts.getUseAdvancedI18n()) {
           String lang = (String) pReqVars.get("lang");
           String langDef = (String) pReqVars.get("langDef");
@@ -250,6 +274,11 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
                 ":CATALOGFILTER", whereCatalog).replace(":WHEREADD", whereAdd)
                   .replace(":LANG", lang);
             }
+            if (tcat.getCatalog().getHasSeServices()) {
+              queryses = lazyGetQuItInLstCaIn().replace(":ITTYP", "3")
+          .replace(":TITCAT", "SESRCA").replace(":CATALOGFILTER", whereCatalog)
+        .replace(":WHEREADD", whereAdd).replace(":LANG", lang);
+            }
           }
         }
         if (tcat.getCatalog().getHasGoods() && queryg == null) {
@@ -263,6 +292,11 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
         if (tcat.getCatalog().getHasSeGoods() && queryseg == null) {
           queryseg = lazyGetQuSeGdForCatNoAucSmPr().replace(
             ":CATALOGFILTER", whereCatalog).replace(":WHEREADD", whereAdd);
+        }
+        if (tcat.getCatalog().getHasSeServices() && queryses == null) {
+          queryses = lazyGetQuItInLstCa().replace(":ITTYP", "3")
+           .replace(":TITCAT", "SESRCA").replace(":CATALOGFILTER", whereCatalog)
+            .replace(":WHEREADD", whereAdd);
         }
         String querygRc = null;
         if (tcat.getCatalog().getHasGoods()) {
@@ -278,6 +312,12 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
         if (tcat.getCatalog().getHasSeGoods()) {
           querysegRc = lazyGetQuSeGdForCatNoAucSmPrTotal().replace(
             ":CATALOGFILTER", whereCatalog).replace(":WHEREADD", whereAdd);
+        }
+        String querysesRc = null;
+        if (tcat.getCatalog().getHasSeServices()) {
+          querysesRc = lazyGetQuItInLstCaTo().replace(":ITTYP", "3")
+           .replace(":TITCAT", "SESRCA").replace(":CATALOGFILTER", whereCatalog)
+            .replace(":WHEREADD", whereAdd);
         }
         if (filtersSpecifics != null) {
           if (getLogger().getIsShowDebugMessagesFor(getClass())
@@ -309,9 +349,17 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
               queryseg += querySpec;
               querysegRc += querySpec;
             }
+            if (queryses != null) {
+              String querySpec = lazyGetQuItSpFlt()
+    .replace(":TITSPEC", "SESERVICESPECIFICS").replace(":WHESPITFLR", whereSpec
+  .getWhere()).replace(":SPITFLTCO", whereSpec.getWhereCount().toString());
+              queryses += querySpec;
+              querysesRc += querySpec;
+            }
           }
         }
-        if (queryg != null || querys != null || queryseg != null) {
+        if (queryg != null || querys != null || queryseg != null
+          || queryses != null) {
           String query = null;
           String queryRc = null;
           if (queryg != null) {
@@ -334,6 +382,15 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
             } else {
               query += "\n union all \n" + queryseg;
               queryRc += "\n union all \n" + querysegRc;
+            }
+          }
+          if (queryses != null) {
+            if (query == null) {
+              query = queryses;
+              queryRc = querysesRc;
+            } else {
+              query += "\n union all \n" + queryses;
+              queryRc += "\n union all \n" + querysesRc;
             }
           }
           Integer rowCount = this.srvOrm
@@ -1270,6 +1327,54 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   }
 
   /**
+   * <p>Lazy Get quItSpFlt.</p>
+   * @return String
+   * @throws Exception - an exception
+   **/
+  public final String lazyGetQuItSpFlt() throws Exception {
+    if (this.quItSpFlt == null) {
+      this.quItSpFlt = loadString("/webstore/itSpFlt.sql");
+    }
+    return this.quItSpFlt;
+  }
+
+  /**
+   * <p>Lazy Get quItInLstCaIn.</p>
+   * @return String
+   * @throws Exception - an exception
+   **/
+  public final String lazyGetQuItInLstCaIn() throws Exception {
+    if (this.quItInLstCaIn == null) {
+      this.quItInLstCaIn = loadString("/webstore/itInLstCaIn.sql");
+    }
+    return this.quItInLstCaIn;
+  }
+
+  /**
+   * <p>Lazy Get quItInLstCaTo.</p>
+   * @return String
+   * @throws Exception - an exception
+   **/
+  public final String lazyGetQuItInLstCaTo() throws Exception {
+    if (this.quItInLstCaTo == null) {
+      this.quItInLstCaTo = loadString("/webstore/itInLstCaTo.sql");
+    }
+    return this.quItInLstCaTo;
+  }
+
+  /**
+   * <p>Lazy Get quItInLstCa.</p>
+   * @return String
+   * @throws Exception - an exception
+   **/
+  public final String lazyGetQuItInLstCa() throws Exception {
+    if (this.quItInLstCa == null) {
+      this.quItInLstCa = loadString("/webstore/itInLstCa.sql");
+    }
+    return this.quItInLstCa;
+  }
+
+  /**
    * <p>Load string file (usually SQL query).</p>
    * @param pFileName file name
    * @return String usually SQL query
@@ -1327,33 +1432,6 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
    **/
   public final void setSrvOrm(final ISrvOrm<RS> pSrvOrm) {
     this.srvOrm = pSrvOrm;
-  }
-
-  /**
-   * <p>Setter for queryGilForCatNoAucSmPrI18n.</p>
-   * @param pQueryGilForCatNoAucSmPrI18n reference
-   **/
-  public final void setQueryGilForCatNoAucSmPrI18n(
-    final String pQueryGilForCatNoAucSmPrI18n) {
-    this.queryGilForCatNoAucSmPrI18n = pQueryGilForCatNoAucSmPrI18n;
-  }
-
-  /**
-   * <p>Setter for queryGilForCatNoAucSmPrTotal.</p>
-   * @param pQueryGilForCatNoAucSmPrTotal reference
-   **/
-  public final void setQueryGilForCatNoAucSmPrTotal(
-    final String pQueryGilForCatNoAucSmPrTotal) {
-    this.queryGilForCatNoAucSmPrTotal = pQueryGilForCatNoAucSmPrTotal;
-  }
-
-  /**
-   * <p>Setter for queryGilForCatNoAucSmPr.</p>
-   * @param pQueryGilForCatNoAucSmPr reference
-   **/
-  public final void setQueryGilForCatNoAucSmPr(
-    final String pQueryGilForCatNoAucSmPr) {
-    this.queryGilForCatNoAucSmPr = pQueryGilForCatNoAucSmPr;
   }
 
   /**
@@ -1452,22 +1530,5 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
    **/
   public final void setLogger(final ILogger pLogger) {
     this.logger = pLogger;
-  }
-
-  /**
-   * <p>Getter for querySpecificsGoodsFilter.</p>
-   * @return String
-   **/
-  public final String getQuerySpecificsGoodsFilter() {
-    return this.querySpecificsGoodsFilter;
-  }
-
-  /**
-   * <p>Setter for querySpecificsGoodsFilter.</p>
-   * @param pQuerySpecificsGoodsFilter reference
-   **/
-  public final void setQuerySpecificsGoodsFilter(
-    final String pQuerySpecificsGoodsFilter) {
-    this.querySpecificsGoodsFilter = pQuerySpecificsGoodsFilter;
   }
 }

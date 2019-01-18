@@ -1004,17 +1004,33 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     //TODO pChOnlId
     Cart cart = getSrvOrm().retrieveEntityById(pRqVs, Cart.class, pBuyr);
     if (cart != null) {
+      Set<String> ndFlNm = new HashSet<String>();
+      ndFlNm.add("itsId");
+      ndFlNm.add("itsName");
+      Set<String> ndFlDc = new HashSet<String>();
+      ndFlDc.add("seller");
+      pRqVs.put("UnitOfMeasureneededFields", ndFlNm);
+      pRqVs.put("DebtorCreditorneededFields", ndFlNm);
+      pRqVs.put("SeSellerneededFields", ndFlDc);
+      pRqVs.put("SeSellersellerdeepLevel", 2);
       pRqVs.put("CartLnitsOwnerdeepLevel", 1);
+      pRqVs.put("CartLntxCatdeepLevel", 1);
+      //pRqVs.put("CartLnsellerdeepLevel", 1);
       List<CartLn> cartItems = getSrvOrm().retrieveListWithConditions(pRqVs,
         CartLn.class, "where ITSOWNER=" + cart.getBuyer().getItsId());
       cart.setItems(cartItems);
+      pRqVs.remove("CartLntxCatdeepLevel");
       pRqVs.remove("CartLnitsOwnerdeepLevel");
+      //pRqVs.remove("CartLnsellerdeepLevel");
+      pRqVs.remove("UnitOfMeasureneededFields");
       for (CartLn clt : cart.getItems()) {
         clt.setItsOwner(cart);
       }
+      pRqVs.put("TaxneededFields", ndFlNm);
       pRqVs.put("CartTxLnitsOwnerdeepLevel", 1);
       List<CartTxLn> ctls = getSrvOrm().retrieveListWithConditions(pRqVs,
         CartTxLn.class, "where ITSOWNER=" + cart.getBuyer().getItsId());
+      pRqVs.remove("TaxneededFields");
       pRqVs.remove("CartTxLnitsOwnerdeepLevel");
       cart.setTaxes(ctls);
       for (CartTxLn ctl : cart.getTaxes()) {
@@ -1024,6 +1040,9 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       List<CartTot> ctts = getSrvOrm().retrieveListWithConditions(pRqVs,
         CartTot.class, "where ITSOWNER=" + cart.getBuyer().getItsId());
       pRqVs.remove("CartTotitsOwnerdeepLevel");
+      pRqVs.remove("DebtorCreditorneededFields");
+      pRqVs.remove("SeSellerneededFields");
+      pRqVs.remove("SeSellersellerdeepLevel");
       cart.setTotals(ctts);
       for (CartTot cttl : cart.getTotals()) {
         cttl.setItsOwner(cart);
@@ -1454,6 +1473,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
   public final void setPplCl(final Class<?> pPplCl) {
     this.pplCl = pPplCl;
   }
+
   /**
    * <p>Getter for buySr.</p>
    * @return IBuySr
