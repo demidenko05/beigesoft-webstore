@@ -37,7 +37,7 @@ public class CartTxLn extends ATaxLn
    * <p>SeSeller which items presents in cart,
    * NULL means web-store owner's items.</p>
    **/
-  private SeSeller seller;
+  private SeSeller sel;
 
   /**
    * <p>Taxable amount for invoice basis, 0 - item basis..</p>
@@ -76,7 +76,7 @@ public class CartTxLn extends ATaxLn
    **/
   @Override
   public final SeSeller getSeller() {
-    return this.seller;
+    return this.sel;
   }
 
   /**
@@ -85,7 +85,7 @@ public class CartTxLn extends ATaxLn
    **/
   @Override
   public final void setSeller(final SeSeller pSeller) {
-    this.seller = pSeller;
+    this.sel = pSeller;
   }
 
   //SGS:
@@ -119,5 +119,21 @@ public class CartTxLn extends ATaxLn
    **/
   public final void setTaxab(final BigDecimal pTaxab) {
     this.taxab = pTaxab;
+  }
+
+  /**
+   * <p>Getter for sel.</p>
+   * @return SeSeller
+   **/
+  public final SeSeller getSel() {
+    return this.sel;
+  }
+
+  /**
+   * <p>Setter for sel.</p>
+   * @param pSel reference
+   **/
+  public final void setSel(final SeSeller pSel) {
+    this.sel = pSel;
   }
 }

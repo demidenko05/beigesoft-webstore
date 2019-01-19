@@ -226,11 +226,13 @@ public class PrLog<RS> implements IProcessor {
     final IRequestData pRqDt, final OnlineBuyer pBuTmp,
       final OnlineBuyer pBuyr) throws Exception {
     long now = new Date().getTime();
-    pBuTmp.setFre(true);
-    pBuTmp.setRegEmail(null);
-    pBuTmp.setRegisteredPassword(null);
-    pBuTmp.setLsTm(0L);
-    this.srvOrm.updateEntity(pRqVs, pBuTmp);
+    if (!pBuTmp.getIsNew()) {
+      pBuTmp.setFre(true);
+      pBuTmp.setRegEmail(null);
+      pBuTmp.setRegisteredPassword(null);
+      pBuTmp.setLsTm(0L);
+      this.srvOrm.updateEntity(pRqVs, pBuTmp);
+    }
     Long obid = pBuTmp.getItsId();
     ColumnsValues cvs = new ColumnsValues();
     cvs.setIdColumnsNames(new String[] {"itsId"});

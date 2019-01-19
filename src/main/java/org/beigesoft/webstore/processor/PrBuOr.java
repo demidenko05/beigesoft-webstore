@@ -236,14 +236,14 @@ public class PrBuOr<RS> implements IProcessor {
     ndFlDc.add("seller");
     pRqVs.put("DebtorCreditorneededFields", ndFlNm);
     pRqVs.put("SeSellerneededFields", ndFlDc);
-    pRqVs.put("SeSellersellerdeepLevel", 2);
+    pRqVs.put("CuOrSeseldeepLevel", 3);
     pRqVs.put(tbn + "buyerdeepLevel", 1);
     List<CuOrSe> sorders = getSrvOrm().retrievePageWithConditions(pRqVs,
       CuOrSe.class, "where " + wheBr, firstResult, itemsPerPage);
     pRqVs.remove(tbn + "buyerdeepLevel");
     pRqVs.remove("DebtorCreditorneededFields");
     pRqVs.remove("SeSellerneededFields");
-    pRqVs.remove("SeSellersellerdeepLevel");
+    pRqVs.remove("CuOrSeseldeepLevel");
     pRqVs.remove("PickUpPlaceneededFields");
     pRqDt.setAttribute("sords", sorders);
   }

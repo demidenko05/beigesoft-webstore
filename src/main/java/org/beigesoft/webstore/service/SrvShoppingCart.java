@@ -72,7 +72,6 @@ import org.beigesoft.webstore.persistable.CartLn;
 import org.beigesoft.webstore.persistable.CartTxLn;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.persistable.CurrRate;
-import org.beigesoft.webstore.persistable.IHasSeSeller;
 import org.beigesoft.webstore.persistable.DestTaxSeGoodsLn;
 import org.beigesoft.webstore.persistable.DestTaxSeServiceLn;
 import org.beigesoft.webstore.persistable.Deliv;
@@ -580,7 +579,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     TaxDestination txRules = revealTaxRules(pRqVs, pCart, pAs);
     for (CartLn cl : pCart.getItems()) {
       if (!cl.getDisab()) {
-        makeCartLine(pRqVs, cl, pAs, pTs, txRules, true, false);
+        makeCartLine(pRqVs, cl, pAs, pTs, txRules, true, true);
         makeCartTotals(pRqVs, pTs, cl, pAs, txRules);
       }
     }
@@ -639,11 +638,6 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     if (pRedoTxc && pTxRules != null || pCartLn.getItTyp().equals(EShopItemType
       .SESERVICE) || pCartLn.getItTyp().equals(EShopItemType.SEGOODS)) {
       AItem<?, ?> item = (AItem<?, ?>) itPrice.getItem();
-      boolean isSeSeller = false;
-      if (pCartLn.getItTyp().equals(EShopItemType.SESERVICE)
-        || pCartLn.getItTyp().equals(EShopItemType.SEGOODS)) {
-        isSeSeller = true;
-      }
       pCartLn.setTxCat(null);
       if (pTxRules != null) {
         pCartLn.setTxCat(item.getTaxCategory());
@@ -674,10 +668,6 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
             }
           }
         }
-      }
-      if (isSeSeller) {
-        IHasSeSeller<Long> seitem = (IHasSeSeller<Long>) item;
-        pCartLn.setSeller(seitem.getSeller());
       }
     }
     BigDecimal totalTaxes = BigDecimal.ZERO;
@@ -974,6 +964,8 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     final OnlineBuyer pBuyr) throws Exception {
     Cart cart = retrCart(pRqVs, pBuyr, true);
     if (cart != null) {
+      String[] fieldsNames = new String[] {"itsId", "itsVersion", "disab"};
+      pRqVs.put("fieldsNames", fieldsNames);
       for (CartLn l : cart.getItems()) {
         l.setDisab(true);
         getSrvOrm().updateEntity(pRqVs, l);
@@ -986,6 +978,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         l.setDisab(true);
         getSrvOrm().updateEntity(pRqVs, l);
       }
+      pRqVs.remove("fieldsNames");
       cart.setTot(BigDecimal.ZERO);
       getSrvOrm().updateEntity(pRqVs, cart);
     }
@@ -995,57 +988,79 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    * <p>Retrieves Cart from DB.</p>
    * @param pRqVs additional param
    * @param pBuyr buyer
-   * @param pChOnlId owned entities only ID
+   * @param pForEmpty for emptying
    * @return shopping cart or null
    * @throws Exception - an exception
    **/
   public final Cart retrCart(final Map<String, Object> pRqVs,
-    final OnlineBuyer pBuyr, final Boolean pChOnlId) throws Exception {
-    //TODO pChOnlId
+    final OnlineBuyer pBuyr, final boolean pForEmpty) throws Exception {
     Cart cart = getSrvOrm().retrieveEntityById(pRqVs, Cart.class, pBuyr);
     if (cart != null) {
-      Set<String> ndFlNm = new HashSet<String>();
-      ndFlNm.add("itsId");
-      ndFlNm.add("itsName");
-      Set<String> ndFlDc = new HashSet<String>();
-      ndFlDc.add("seller");
-      pRqVs.put("UnitOfMeasureneededFields", ndFlNm);
-      pRqVs.put("DebtorCreditorneededFields", ndFlNm);
-      pRqVs.put("SeSellerneededFields", ndFlDc);
-      pRqVs.put("SeSellersellerdeepLevel", 2);
-      pRqVs.put("CartLnitsOwnerdeepLevel", 1);
-      pRqVs.put("CartLntxCatdeepLevel", 1);
-      //pRqVs.put("CartLnsellerdeepLevel", 1);
-      List<CartLn> cartItems = getSrvOrm().retrieveListWithConditions(pRqVs,
-        CartLn.class, "where ITSOWNER=" + cart.getBuyer().getItsId());
-      cart.setItems(cartItems);
-      pRqVs.remove("CartLntxCatdeepLevel");
-      pRqVs.remove("CartLnitsOwnerdeepLevel");
-      //pRqVs.remove("CartLnsellerdeepLevel");
-      pRqVs.remove("UnitOfMeasureneededFields");
+      Set<String> ndFlDe = null;
+      Set<String> ndFlNm = null;
+      Set<String> ndFlDc = null;
+      if (!pForEmpty) {
+        ndFlNm = new HashSet<String>();
+        ndFlNm.add("itsId");
+        ndFlNm.add("itsName");
+        ndFlDc = new HashSet<String>();
+        ndFlDc.add("seller");
+        pRqVs.put("UnitOfMeasureneededFields", ndFlNm);
+        pRqVs.put("DebtorCreditorneededFields", ndFlNm);
+        pRqVs.put("SeSellerneededFields", ndFlDc);
+        pRqVs.put("CartLntxCatdeepLevel", 1);
+        pRqVs.put("CartLnseldeepLevel", 3);
+        pRqVs.put("CartLnitsOwnerdeepLevel", 1);
+      } else {
+        ndFlDe = new HashSet<String>();
+        ndFlDe.add("itsId");
+        ndFlDe.add("itsVersion");
+        pRqVs.put("CartLnneededFields", ndFlDe);
+      }
+      cart.setItems(getSrvOrm().retrieveListWithConditions(pRqVs,
+        CartLn.class, "where ITSOWNER=" + cart.getBuyer().getItsId()));
       for (CartLn clt : cart.getItems()) {
         clt.setItsOwner(cart);
       }
-      pRqVs.put("TaxneededFields", ndFlNm);
-      pRqVs.put("CartTxLnitsOwnerdeepLevel", 1);
-      List<CartTxLn> ctls = getSrvOrm().retrieveListWithConditions(pRqVs,
-        CartTxLn.class, "where ITSOWNER=" + cart.getBuyer().getItsId());
-      pRqVs.remove("TaxneededFields");
-      pRqVs.remove("CartTxLnitsOwnerdeepLevel");
-      cart.setTaxes(ctls);
+      if (!pForEmpty) {
+        pRqVs.remove("CartLnitsOwnerdeepLevel");
+        pRqVs.remove("CartLntxCatdeepLevel");
+        pRqVs.remove("CartLnseldeepLevel");
+        pRqVs.remove("UnitOfMeasureneededFields");
+        pRqVs.put("TaxneededFields", ndFlNm);
+        pRqVs.put("CartTxLnseldeepLevel", 4);
+        pRqVs.put("CartTxLnitsOwnerdeepLevel", 1);
+      } else {
+        pRqVs.remove("CartLnneededFields");
+        pRqVs.put("CartTxLnneededFields", ndFlDe);
+      }
+      cart.setTaxes(getSrvOrm().retrieveListWithConditions(pRqVs,
+        CartTxLn.class, "where ITSOWNER=" + cart.getBuyer().getItsId()));
       for (CartTxLn ctl : cart.getTaxes()) {
         ctl.setItsOwner(cart);
       }
-      pRqVs.put("CartTotitsOwnerdeepLevel", 1);
-      List<CartTot> ctts = getSrvOrm().retrieveListWithConditions(pRqVs,
-        CartTot.class, "where ITSOWNER=" + cart.getBuyer().getItsId());
-      pRqVs.remove("CartTotitsOwnerdeepLevel");
-      pRqVs.remove("DebtorCreditorneededFields");
-      pRqVs.remove("SeSellerneededFields");
-      pRqVs.remove("SeSellersellerdeepLevel");
-      cart.setTotals(ctts);
+      if (!pForEmpty) {
+        pRqVs.remove("CartTxLnitsOwnerdeepLevel");
+        pRqVs.remove("TaxneededFields");
+        pRqVs.remove("CartTxLnseldeepLevel");
+        pRqVs.put("CartTotseldeepLevel", 4);
+        pRqVs.put("CartTotitsOwnerdeepLevel", 1);
+      } else {
+        pRqVs.remove("CartTxLnneededFields");
+        pRqVs.put("CartTotneededFields", ndFlDe);
+      }
+      cart.setTotals(getSrvOrm().retrieveListWithConditions(pRqVs,
+        CartTot.class, "where ITSOWNER=" + cart.getBuyer().getItsId()));
       for (CartTot cttl : cart.getTotals()) {
         cttl.setItsOwner(cart);
+      }
+      if (!pForEmpty) {
+        pRqVs.remove("CartTotitsOwnerdeepLevel");
+        pRqVs.remove("DebtorCreditorneededFields");
+        pRqVs.remove("SeSellerneededFields");
+        pRqVs.remove("CartTotseldeepLevel");
+      } else {
+        pRqVs.remove("CartTotneededFields");
       }
       cart.setBuyer(pBuyr);
     }

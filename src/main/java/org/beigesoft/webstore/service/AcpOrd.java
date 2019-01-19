@@ -129,13 +129,13 @@ public class AcpOrd<RS> implements IAcpOrd {
     ndFlDc.add("seller");
     pRqVs.put("SeSellerneededFields", ndFlDc);
     pRqVs.put("DebtorCreditorneededFields", ndFlNm);
-    pRqVs.put("SeSellersellerdeepLevel", 2);
+    pRqVs.put(tbn + "seldeepLevel", 3);
     pRqVs.put(tbn + "buyerdeepLevel", 1);
     sords = this.srvOrm.retrieveListWithConditions(pRqVs,
       CuOrSe.class, wheStBr);
     pRqVs.remove("DebtorCreditorneededFields");
     pRqVs.remove("SeSellerneededFields");
-    pRqVs.remove("SeSellersellerdeepLevel");
+    pRqVs.remove(tbn + "seldeepLevel");
     pRqVs.remove(tbn + "buyerdeepLevel");
     pRqVs.remove("PickUpPlaceneededFields");
     if (setAdd.getOnlMd() == 0 && sords.size() > 0) {

@@ -13,8 +13,8 @@
 <comment>Explicit final definition.</comment>
 <entry key="itIdisNullable">false</entry>
 <entry key="itsOwnerdefinition">integer</entry>
-<entry key="sellerdefinition">integer</entry>
-<entry key="sellerisNullable">true</entry>
+<entry key="seldefinition">integer</entry>
+<entry key="selisNullable">true</entry>
 <entry key="dt1isNullable">true</entry>
 <entry key="dt2isNullable">true</entry>
 </properties>

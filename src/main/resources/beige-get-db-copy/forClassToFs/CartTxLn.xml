@@ -12,5 +12,4 @@
 <properties>
 <comment>Explicit final definition.</comment>
 <entry key="itsOwnerISrvEntityFieldFiller">SrvCartOwnerFiller</entry>
-<entry key="sellerISrvEntityFieldFiller">FilSeSeller</entry>
 </properties>

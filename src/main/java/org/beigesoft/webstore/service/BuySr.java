@@ -117,6 +117,8 @@ public class BuySr<RS> implements IBuySr {
         this.spamHnd.handle(pRqVs, pRqDt, 100,
           "Buyer. Authorized invasion? cBuyerId: " + buyerIdStr);
         //buyer also might clears cookie, so it's need new authorization
+        //new/free buyer will be used till authorization:
+        buyer = null;
       }
     }
     return buyer;

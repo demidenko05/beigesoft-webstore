@@ -109,14 +109,14 @@ public class PrBur<RS> implements IProcessor {
       ndFlDc.add("seller");
       pRqVs.put("DebtorCreditorneededFields", ndFlNm);
       pRqVs.put("SeSellerneededFields", ndFlDc);
-      pRqVs.put("SeSellersellerdeepLevel", 2);
+      pRqVs.put(tbn + "seldeepLevel", 3);
       pRqVs.put(tbn + "buyerdeepLevel", 1);
       List<CuOrSe> sords = this.srvOrm.retrieveListWithConditions(pRqVs,
         CuOrSe.class, whePuBr);
       pRqVs.remove(tbn + "buyerdeepLevel");
       pRqVs.remove("DebtorCreditorneededFields");
       pRqVs.remove("SeSellerneededFields");
-      pRqVs.remove("SeSellersellerdeepLevel");
+      pRqVs.remove(tbn + "seldeepLevel");
       pRqVs.remove("PickUpPlaceneededFields");
       retLines(pRqVs, buyer, ords, sords);
       Purch pur = new Purch();

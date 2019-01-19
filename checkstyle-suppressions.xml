@@ -10,7 +10,7 @@
   <suppress checks="MagicNumberCheck"
     files="PrcItSpecEmbFlSave|HndlWebAdminReq|SeSellerFilter|PrcSeGdSpecEmbFlSave|PrcSeSrvSpecEmbFlSave|SrvShoppingCart|SettingsAdd"/>
   <suppress checks="MagicNumberCheck"
-    files="PrcCheckOut|PrcItemInCart|PrPur|PrLog|PrBuOr|PrBur|BuySr"/>
+    files="PrcCheckOut|PrcItemInCart|PrPur|PrLog|PrBuOr|PrBur|BuySr|AcpOrd"/>
   <suppress checks="LineLength"
     files="PrcRefreshItemsInList|UtlTradeJsp|FctBnTradeEntitiesProcessors"/>
   <suppress checks="MethodLength"

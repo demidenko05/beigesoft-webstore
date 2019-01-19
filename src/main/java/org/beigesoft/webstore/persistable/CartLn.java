@@ -53,7 +53,7 @@ public class CartLn extends AHasNameIdLongVersion
    * <p>S.E.Seller which item presents in cart,
    * NULL means web-store owner's item.</p>
    **/
-  private SeSeller seller;
+  private SeSeller sel;
 
   /**
    * <p>Item ID, not null.</p>
@@ -159,7 +159,7 @@ public class CartLn extends AHasNameIdLongVersion
    **/
   @Override
   public final SeSeller getSeller() {
-    return this.seller;
+    return this.sel;
   }
 
   /**
@@ -168,7 +168,7 @@ public class CartLn extends AHasNameIdLongVersion
    **/
   @Override
   public final void setSeller(final SeSeller pSeller) {
-    this.seller = pSeller;
+    this.sel = pSeller;
   }
 
   //Simple getters and setters:
@@ -442,5 +442,21 @@ public class CartLn extends AHasNameIdLongVersion
    **/
   public final void setDescr(final String pDescr) {
     this.descr = pDescr;
+  }
+
+  /**
+   * <p>Getter for sel.</p>
+   * @return SeSeller
+   **/
+  public final SeSeller getSel() {
+    return this.sel;
+  }
+
+  /**
+   * <p>Setter for sel.</p>
+   * @param pSel reference
+   **/
+  public final void setSel(final SeSeller pSel) {
+    this.sel = pSel;
   }
 }
