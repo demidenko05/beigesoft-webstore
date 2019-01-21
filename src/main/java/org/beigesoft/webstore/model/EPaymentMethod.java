@@ -38,7 +38,7 @@ public enum EPaymentMethod {
   /**
    * <p>2, cash.</p>
    **/
-  CASH,
+  PAY_CASH,
 
   /**
    * <p>3, bank transfer.</p>

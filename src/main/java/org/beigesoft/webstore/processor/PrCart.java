@@ -48,31 +48,34 @@ public class PrCart<RS> implements IProcessor {
 
   /**
    * <p>Process request.</p>
-   * @param pReqVars request scoped vars
-   * @param pRequestData Request Data
+   * @param pRqVs request scoped vars
+   * @param pRqDt Request Data
    * @throws Exception - an exception
    **/
   @Override
-  public final void process(final Map<String, Object> pReqVars,
-    final IRequestData pRequestData) throws Exception {
-    Cart cart = this.srvCart.getShoppingCart(pReqVars, pRequestData, false,
+  public final void process(final Map<String, Object> pRqVs,
+    final IRequestData pRqDt) throws Exception {
+    Cart cart = this.srvCart.getShoppingCart(pRqVs, pRqDt, false,
       false);
     if (cart != null) {
-      String dlvStr = pRequestData.getParameter("deliv");
-      String payMethStr = pRequestData.getParameter("payMeth");
+      String dlvStr = pRqDt.getParameter("deliv");
+      String payMethStr = pRqDt.getParameter("payMeth");
       EDelivering dlv = EDelivering.class.
         getEnumConstants()[Integer.parseInt(dlvStr)];
       EPaymentMethod payMeth = EPaymentMethod.class.
         getEnumConstants()[Integer.parseInt(payMethStr)];
       cart.setPayMeth(payMeth);
-      cart.setDeliv(dlv);
-      this.srvOrm.updateEntity(pReqVars, cart);
-      pRequestData.setAttribute("cart", cart);
+      if (dlv != cart.getDeliv()) {
+        this.srvCart.hndDelivChan(pRqVs, cart, dlv);
+      } else {
+        this.srvOrm.updateEntity(pRqVs, cart);
+      }
+      pRqDt.setAttribute("cart", cart);
     } //else spam
     //TODO change to servlet redirect???
-    String processorName = pRequestData.getParameter("nmPrcRed");
-    IProcessor proc = this.processorsFactory.lazyGet(pReqVars, processorName);
-    proc.process(pReqVars, pRequestData);
+    String processorName = pRqDt.getParameter("nmPrcRed");
+    IProcessor proc = this.processorsFactory.lazyGet(pRqVs, processorName);
+    proc.process(pRqVs, pRqDt);
   }
 
   //Simple getters and setters:

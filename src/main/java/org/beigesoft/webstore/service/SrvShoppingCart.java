@@ -51,8 +51,8 @@ import org.beigesoft.accounting.persistable.DestTaxServSelLn;
 import org.beigesoft.accounting.persistable.base.AItem;
 import org.beigesoft.accounting.persistable.base.ADestTaxItemLn;
 import org.beigesoft.webstore.model.EShopItemType;
-import org.beigesoft.webstore.model.EDelivering;
 import org.beigesoft.webstore.model.EPaymentMethod;
+import org.beigesoft.webstore.model.EDelivering;
 import org.beigesoft.webstore.persistable.base.AItemPrice;
 import org.beigesoft.webstore.persistable.CartItTxLn;
 import org.beigesoft.webstore.persistable.BuyerPriceCategory;
@@ -196,7 +196,6 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         cart = new Cart();
         Currency curr = (Currency) pRqVs.get("wscurr");
         cart.setPayMeth(ts.getDefaultPaymentMethod());
-        cart.setDeliv(EDelivering.PICKUP);
         cart.setCurr(curr);
         cart.setItems(new ArrayList<CartLn>());
         cart.setTaxes(new ArrayList<CartTxLn>());
@@ -212,7 +211,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       if (EPaymentMethod.ANY.equals(cart.getPayMeth())
         || EPaymentMethod.PARTIAL_ONLINE.equals(cart.getPayMeth())
           || EPaymentMethod.ONLINE.equals(cart.getPayMeth())) {
-        cart.setPayMeth(EPaymentMethod.CASH);
+        cart.setPayMeth(EPaymentMethod.PAY_CASH);
       }
       if ((EPaymentMethod.PAYPAL.equals(cart.getPayMeth())
         || EPaymentMethod.PAYPAL_ANY.equals(cart.getPayMeth()))
@@ -220,22 +219,16 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         try {
           pplCl = Class.forName("com.paypal.api.payments.Item");
         } catch (ClassNotFoundException e) {
-          cart.setPayMeth(EPaymentMethod.CASH);
+          cart.setPayMeth(EPaymentMethod.PAY_CASH);
         }
       }
-      List<EDelivering> dlvMts = new ArrayList<EDelivering>();
-      pRqVs.put("dlvMts", dlvMts);
       List<EPaymentMethod> payMts = new ArrayList<EPaymentMethod>();
       pRqVs.put("payMts", payMts);
-      payMts.add(EPaymentMethod.CASH);
+      payMts.add(EPaymentMethod.PAY_CASH);
       payMts.add(EPaymentMethod.BANK_TRANSFER);
       payMts.add(EPaymentMethod.BANK_CHEQUE);
       if (pplCl != null) {
         payMts.add(EPaymentMethod.PAYPAL);
-      }
-      List<Deliv> dels = getSrvOrm().retrieveList(pRqVs, Deliv.class);
-      for (Deliv dl : dels) {
-        dlvMts.add(dl.getItsId());
       }
     }
     return cart;
@@ -581,6 +574,129 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       if (!cl.getDisab()) {
         makeCartLine(pRqVs, cl, pAs, pTs, txRules, true, true);
         makeCartTotals(pRqVs, pTs, cl, pAs, txRules);
+      }
+    }
+  }
+
+
+  /**
+   * <p>Handle event cart delivering method changed.
+   * It will also updates cart.</p>
+   * @param pRqVs request scoped vars
+   * @param pCart cart
+   * @param pDeliv delivering
+   * @throws Exception - an exception.
+   **/
+  @Override
+  public final void hndDelivChan(final Map<String, Object> pRqVs,
+    final Cart pCart, final EDelivering pDeliv) throws Exception {
+    List<Deliv> dlvMts = (List<Deliv>) pRqVs.get("dlvMts");
+    Deliv oldDl = null;
+    Deliv newDl = null;
+    for (Deliv dl : dlvMts) {
+      if (dl.getItsId().equals(pDeliv)) {
+        newDl = dl;
+      }
+      if (dl.getItsId().equals(pCart.getDeliv())) {
+        oldDl = dl;
+      }
+    }
+    pCart.setDeliv(pDeliv);
+    if (oldDl.getFrcSr() == null && newDl.getFrcSr() == null) {
+      this.srvOrm.updateEntity(pRqVs, pCart);
+    } else {
+      //it must be at least one item to add forced service:
+      boolean crtEmpty = true;
+      CartLn clEm = null;
+      for (CartLn cl : pCart.getItems()) {
+        if (cl.getDisab()) {
+          if (clEm != null) {
+            clEm = cl;
+          }
+        } else if (!cl.getDisab() && cl.getForc()
+          && cl.getItTyp() == EShopItemType.SERVICE) {
+          if (oldDl.getFrcSr() != null
+            && cl.getItId().equals(oldDl.getFrcSr().getItsId())
+              || newDl.getFrcSr() != null
+                && cl.getItId().equals(newDl.getFrcSr().getItsId())) {
+            clEm = cl;
+          }
+        } else if (!cl.getDisab() && !cl.getForc()) {
+          crtEmpty = false;
+        }
+      }
+      TradingSettings ts = (TradingSettings) pRqVs.get("tradSet");
+      if (!crtEmpty && newDl.getFrcSr() != null) {
+        if (clEm == null) {
+          clEm = new CartLn();
+          clEm.setIsNew(true);
+          clEm.setItsOwner(pCart);
+          pCart.getItems().add(clEm);
+        }
+        clEm.setSel(null);
+        clEm.setForc(true);
+        clEm.setDisab(false);
+        clEm.setItTyp(EShopItemType.SERVICE);
+        clEm.setItId(newDl.getFrcSr().getItsId());
+        clEm.setItsName(newDl.getFrcSr().getItsName());
+        clEm.setUom(newDl.getFrcSr().getDefUnitOfMeasure());
+        clEm.setAvQuan(BigDecimal.ONE);
+        clEm.setQuant(BigDecimal.ONE);
+        clEm.setUnStep(BigDecimal.ONE);
+        clEm.setSubt(BigDecimal.ZERO);
+        clEm.setTot(BigDecimal.ZERO);
+        clEm.setTotTx(BigDecimal.ZERO);
+        clEm.setPrice(BigDecimal.ZERO);
+        clEm.setDt1(null);
+        clEm.setDt2(null);
+        clEm.setDescr(null);
+        clEm.setTxDsc(null);
+        clEm.setTxCat(null);
+        if (newDl.getApMt() != null) {
+          //it will be zero delivering price:
+          if (clEm.getIsNew()) {
+            this.srvOrm.insertEntity(pRqVs, clEm);
+            clEm.setIsNew(false);
+          } else {
+            this.srvOrm.updateEntity(pRqVs, clEm);
+          }
+        }
+      } else {
+        if (!clEm.getDisab() && clEm.getForc()) {
+          //disabling forced line:
+          clEm.setDisab(true);
+          this.srvOrm.updateEntity(pRqVs, clEm);
+        }
+        clEm = null;
+      }
+      AccSettings as = (AccSettings) pRqVs.get("accSet");
+      TaxDestination txRules = revealTaxRules(pRqVs, pCart, as);
+      for (CartLn cl : pCart.getItems()) {
+        if (!cl.getDisab() && cl != clEm) {
+          makeCartLine(pRqVs, cl, as, ts, txRules, false, false);
+          makeCartTotals(pRqVs, ts, cl, as, txRules);
+        }
+      }
+      if (clEm != null) {
+        boolean ndUp = false;
+        if (newDl.getApMt() == null) {
+          ndUp = true;
+        } else {
+          int cartTot;
+          if (pCart.getExcRt().compareTo(BigDecimal.ONE) == 0) {
+            cartTot = pCart.getTot().intValue();
+          } else {
+            cartTot = pCart.getTot().multiply(pCart.getExcRt())
+             .setScale(as.getPricePrecision(), as.getRoundingMode()).intValue();
+          }
+          if (cartTot < newDl.getApMt()) {
+            ndUp = true;
+          }
+        }
+        if (ndUp) {
+          makeCartLine(pRqVs, clEm, as, ts, txRules, true, true);
+          makeCartTotals(pRqVs, ts, clEm, as, txRules);
+        }
       }
     }
   }

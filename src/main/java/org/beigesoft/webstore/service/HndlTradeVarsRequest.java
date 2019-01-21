@@ -26,6 +26,7 @@ import org.beigesoft.webstore.persistable.I18nWebStore;
 import org.beigesoft.webstore.persistable.I18nCatalogGs;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.persistable.CurrRate;
+import org.beigesoft.webstore.persistable.Deliv;
 
 /**
  * <p>It handles webstore request for setting trading variables
@@ -83,23 +84,29 @@ public class HndlTradeVarsRequest<RS> implements IHandlerRequestDch {
   private List<CurrRate> currRates;
 
   /**
+   * <p>Delivering methods.</p>
+   */
+  private List<Deliv> dlvMts;
+
+  /**
    * <p>Handle request.</p>
-   * @param pReqVars Request scoped variables
-   * @param pRequestData Request Data
+   * @param pRqVs Request scoped variables
+   * @param pRqDt Request Data
    * @throws Exception - an exception
    */
   @Override
-  public final void handle(final Map<String, Object> pReqVars,
-    final IRequestData pRequestData) throws Exception {
+  public final void handle(final Map<String, Object> pRqVs,
+    final IRequestData pRqDt) throws Exception {
     TradingSettings ts = srvTradingSettings
-      .lazyGetTradingSettings(pReqVars);
-    pReqVars.put("tradSet", ts);
-    pReqVars.put("setAdd", srvSettingsAdd.lazyGetSettingsAdd(pReqVars));
-    pRequestData.setAttribute("utlTradeJsp", this.utlTradeJsp);
+      .lazyGetTradingSettings(pRqVs);
+    pRqVs.put("tradSet", ts);
+    pRqVs.put("setAdd", srvSettingsAdd.lazyGetSettingsAdd(pRqVs));
+    pRqDt.setAttribute("utlTradeJsp", this.utlTradeJsp);
     List<CurrRate> curRatesTmp = null;
+    List<Deliv> dlvMtsTmp = null;
     if (ts.getUseAdvancedI18n()) {
-      String lang = (String) pReqVars.get("lang");
-      String langDef = (String) pReqVars.get("langDef");
+      String lang = (String) pRqVs.get("lang");
+      String langDef = (String) pRqVs.get("langDef");
       if (lang != null && langDef != null && !lang.equals(langDef)) {
         List<I18nWebStore> i18nTrTmp = null;
         List<I18nCatalogGs> i18nCtTmp;
@@ -112,17 +119,19 @@ public class HndlTradeVarsRequest<RS> implements IHandlerRequestDch {
               this.srvDatabase.setTransactionIsolation(ISrvDatabase
                 .TRANSACTION_READ_UNCOMMITTED);
               this.srvDatabase.beginTransaction();
-              List<I18nWebStore> i18ntr = this.srvOrm.retrieveList(pReqVars,
+              List<I18nWebStore> i18ntr = this.srvOrm.retrieveList(pRqVs,
                 I18nWebStore.class);
-              List<I18nCatalogGs> i18nct = this.srvOrm.retrieveList(pReqVars,
+              List<I18nCatalogGs> i18nct = this.srvOrm.retrieveList(pRqVs,
                 I18nCatalogGs.class);
-              List<CurrRate> cRnct = this.srvOrm.retrieveList(pReqVars,
+              List<CurrRate> cRnct = this.srvOrm.retrieveList(pRqVs,
                 CurrRate.class);
+              List<Deliv> dlvMt = getSrvOrm().retrieveList(pRqVs, Deliv.class);
               this.srvDatabase.commitTransaction();
               //assigning fully initialized data:
               this.i18nWebStoreList = i18ntr;
               this.i18nCatalogs = i18nct;
               this.currRates = cRnct;
+              this.dlvMts = dlvMt;
             } catch (Exception ex) {
               if (!this.srvDatabase.getIsAutocommit()) {
                 this.srvDatabase.rollBackTransaction();
@@ -135,9 +144,10 @@ public class HndlTradeVarsRequest<RS> implements IHandlerRequestDch {
           i18nTrTmp = this.i18nWebStoreList;
           i18nCtTmp = this.i18nCatalogs;
           curRatesTmp = this.currRates;
+          dlvMtsTmp = this.dlvMts;
         }
-        pReqVars.put("i18nCatalogs", i18nCtTmp);
-        pReqVars.put("i18nWebStoreList", i18nTrTmp);
+        pRqVs.put("i18nCatalogs", i18nCtTmp);
+        pRqVs.put("i18nWebStoreList", i18nTrTmp);
       }
     }
     if (curRatesTmp == null) {
@@ -147,11 +157,13 @@ public class HndlTradeVarsRequest<RS> implements IHandlerRequestDch {
           this.srvDatabase.setTransactionIsolation(ISrvDatabase
             .TRANSACTION_READ_UNCOMMITTED);
           this.srvDatabase.beginTransaction();
-          List<CurrRate> cRnct = this.srvOrm.retrieveList(pReqVars,
+          List<CurrRate> cRnct = this.srvOrm.retrieveList(pRqVs,
             CurrRate.class);
+          List<Deliv> dlvMt = getSrvOrm().retrieveList(pRqVs, Deliv.class);
           this.srvDatabase.commitTransaction();
           //assigning fully initialized data:
           this.currRates = cRnct;
+          this.dlvMts = dlvMt;
         } catch (Exception ex) {
           if (!this.srvDatabase.getIsAutocommit()) {
             this.srvDatabase.rollBackTransaction();
@@ -161,23 +173,25 @@ public class HndlTradeVarsRequest<RS> implements IHandlerRequestDch {
           this.srvDatabase.releaseResources();
         }
         curRatesTmp = this.currRates;
+        dlvMtsTmp = this.dlvMts;
       }
     }
-    pReqVars.put("currRates", curRatesTmp);
+    pRqVs.put("currRates", curRatesTmp);
+    pRqVs.put("dlvMts", dlvMtsTmp);
     Currency wscurr = null;
     if (curRatesTmp.size() > 0) {
-      String wscurrs = pRequestData.getParameter("wscurr");
+      String wscurrs = pRqDt.getParameter("wscurr");
       if (wscurrs != null) {
         Long wscurrl = Long.parseLong(wscurrs);
         for (CurrRate cr : curRatesTmp) {
           if (cr.getCurr().getItsId().equals(wscurrl)) {
             wscurr = cr.getCurr();
-            pRequestData.setCookieValue("wscurr", wscurr.getItsId().toString());
+            pRqDt.setCookieValue("wscurr", wscurr.getItsId().toString());
             break;
           }
         }
       } else {
-        String  wscurrsc = pRequestData.getCookieValue("wscurr");
+        String  wscurrsc = pRqDt.getCookieValue("wscurr");
         if (wscurrsc != null) {
           Long wscurrl = Long.parseLong(wscurrsc);
           for (CurrRate cr : curRatesTmp) {
@@ -190,26 +204,26 @@ public class HndlTradeVarsRequest<RS> implements IHandlerRequestDch {
       }
     }
     if (wscurr == null) {
-      AccSettings as = (AccSettings) pReqVars.get("accSet");
+      AccSettings as = (AccSettings) pRqVs.get("accSet");
       wscurr = as.getCurrency();
-      pRequestData.setCookieValue("wscurr", wscurr.getItsId().toString());
+      pRqDt.setCookieValue("wscurr", wscurr.getItsId().toString());
     }
-    pReqVars.put("wscurr", wscurr);
+    pRqVs.put("wscurr", wscurr);
     Boolean shTxDet;
-    String shTxDets = pRequestData.getParameter("shTxDet");
+    String shTxDets = pRqDt.getParameter("shTxDet");
     if (shTxDets == null) {
-      String shTxDetsc = pRequestData.getCookieValue("shTxDet");
+      String shTxDetsc = pRqDt.getCookieValue("shTxDet");
       if (shTxDetsc == null) {
         shTxDet = Boolean.FALSE;
-        pRequestData.setCookieValue("shTxDet", shTxDet.toString());
+        pRqDt.setCookieValue("shTxDet", shTxDet.toString());
       } else {
         shTxDet = Boolean.valueOf(shTxDetsc);
       }
     } else {
       shTxDet = Boolean.valueOf(shTxDets);
-      pRequestData.setCookieValue("shTxDet", shTxDet.toString());
+      pRqDt.setCookieValue("shTxDet", shTxDet.toString());
     }
-    pReqVars.put("shTxDet", shTxDet);
+    pRqVs.put("shTxDet", shTxDet);
   }
 
   /**
@@ -221,6 +235,7 @@ public class HndlTradeVarsRequest<RS> implements IHandlerRequestDch {
     this.i18nWebStoreList = null;
     this.i18nCatalogs = null;
     this.currRates = null;
+    this.dlvMts = null;
     this.logger.info(null, HndlTradeVarsRequest.class,
       "I18N changes are handled.");
   }

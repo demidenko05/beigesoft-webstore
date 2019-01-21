@@ -37,6 +37,12 @@ public class Deliv extends AEditableHasVersion implements IHasId<EDelivering> {
   private ServiceToSale frcSr;
 
   /**
+   * <p>Forced service applying method,
+   * e.g. minimum cart total to omit delivering fee.</p>
+   **/
+  private Integer apMt;
+
+  /**
    * <p>Usually it's simple getter that return model ID.</p>
    * @return ID model ID
    **/
@@ -68,5 +74,21 @@ public class Deliv extends AEditableHasVersion implements IHasId<EDelivering> {
    **/
   public final void setFrcSr(final ServiceToSale pFrcSr) {
     this.frcSr = pFrcSr;
+  }
+
+  /**
+   * <p>Getter for apMt.</p>
+   * @return Integer
+   **/
+  public final Integer getApMt() {
+    return this.apMt;
+  }
+
+  /**
+   * <p>Setter for apMt.</p>
+   * @param pApMt reference
+   **/
+  public final void setApMt(final Integer pApMt) {
+    this.apMt = pApMt;
   }
 }

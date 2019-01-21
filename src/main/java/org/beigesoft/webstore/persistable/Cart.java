@@ -92,9 +92,9 @@ public class Cart extends AEditableHasVersion implements IHasId<OnlineBuyer> {
   private String descr;
 
   /**
-   * <p>Payment Method, not null, CASH default.</p>
+   * <p>Payment Method, not null, default in trading settings.</p>
    **/
-  private EPaymentMethod payMeth = EPaymentMethod.CASH;
+  private EPaymentMethod payMeth;
 
   /**
    * <p>Usually it's simple getter that return model ID.</p>

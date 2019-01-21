@@ -53,7 +53,7 @@ public class SeSellerFilter implements IDelegateEvaluate<IRequestData, String> {
       throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
         "It's not S.E.Seller - " + pData.getUserName());
     }
-    String nmEnt = pData.getParameter("nmEnt").toUpperCase();
+    String nmEnt = pData.getParameter("nmEnt");
     boolean isSe = false;
     for (Class<?> cl : this.seEntities) {
       if (cl.getSimpleName().equals(nmEnt)) {
@@ -63,15 +63,18 @@ public class SeSellerFilter implements IDelegateEvaluate<IRequestData, String> {
     }
     if (isSe) {
       //simple-hummer implementation:
-      String tbl = "SEGOODS";
-      if (nmEnt.contains("I18NSE")) {
-        tbl = "HASNAME";
-      } else if (nmEnt.length() > 9) {
-        tbl = "ITEM";
-      } else if (!nmEnt.contains(tbl)) {
-        tbl = "SESERVICE";
+      String wheSe;
+      if (nmEnt.startsWith("I18n")) {
+        wheSe = "HASNAME.SELLER=";
+      } else if (nmEnt.endsWith("Price") || nmEnt.endsWith("Place")
+        || nmEnt.endsWith("Specifics")) {
+        wheSe = "ITEM.SELLER=";
+      } else if (nmEnt.equals("CuOrSe")) {
+        wheSe = "CUORSE.SEL=";
+      } else { //good/service/paymd
+        wheSe = nmEnt.toUpperCase() + ".SELLER=";
       }
-      return tbl + ".SELLER=" + seSeller.getItsId().getItsId();
+      return wheSe + seSeller.getItsId().getItsId();
     } else {
       return null;
     }

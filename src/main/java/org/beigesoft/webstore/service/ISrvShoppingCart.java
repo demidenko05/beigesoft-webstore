@@ -18,6 +18,7 @@ import org.beigesoft.model.IRequestData;
 import org.beigesoft.accounting.persistable.AccSettings;
 import org.beigesoft.accounting.persistable.TaxDestination;
 import org.beigesoft.webstore.model.EShopItemType;
+import org.beigesoft.webstore.model.EDelivering;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
 import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.webstore.persistable.CartLn;
@@ -35,65 +36,76 @@ public interface ISrvShoppingCart {
 
   /**
    * <p>Empties Cart.</p>
-   * @param pReqVars request scoped vars
+   * @param pRqVs request scoped vars
    * @param pBuyr buyer
    * @throws Exception - an exception
    **/
-  void emptyCart(Map<String, Object> pReqVars,
+  void emptyCart(Map<String, Object> pRqVs,
     OnlineBuyer pBuyr) throws Exception;
 
   /**
    * <p>Get/Create Cart.</p>
-   * @param pReqVars request scoped vars
-   * @param pRequestData Request Data
+   * @param pRqVs request scoped vars
+   * @param pRqDt Request Data
    * @param pIsNeedToCreate if need to create, e.g. "NO" for deleting item from
    *  cart, "YES" for adding one.
    * @param pIsBuAuth buyer must be authorized
    * @return shopping cart or null
    * @throws Exception - an exception
    **/
-  Cart getShoppingCart(Map<String, Object> pReqVars,
-    IRequestData pRequestData, boolean pIsNeedToCreate,
+  Cart getShoppingCart(Map<String, Object> pRqVs,
+    IRequestData pRqDt, boolean pIsNeedToCreate,
       boolean pIsBuAuth) throws Exception;
 
   /**
    * <p>Refresh cart totals by seller cause line inserted/changed/deleted.</p>
-   * @param pReqVars request scoped vars
+   * @param pRqVs request scoped vars
    * @param pTs TradingSettings
    * @param pCartLn affected cart line
    * @param pAs Accounting Settings
    * @param pTxRules NULL if not taxable
    * @throws Exception - an exception.
    **/
-  void makeCartTotals(Map<String, Object> pReqVars,
+  void makeCartTotals(Map<String, Object> pRqVs,
     TradingSettings pTs, CartLn pCartLn, AccSettings pAs,
       TaxDestination pTxRules) throws Exception;
 
   /**
    * <p>Reveal shared tax rules for cart. It also makes buyer-regCustomer.</p>
-   * @param pReqVars request scoped vars
+   * @param pRqVs request scoped vars
    * @param pCart cart
    * @param pAs Accounting Settings
    * @return tax rules, NULL if not taxable
    * @throws Exception - an exception.
    **/
-  TaxDestination revealTaxRules(Map<String, Object> pReqVars,
+  TaxDestination revealTaxRules(Map<String, Object> pRqVs,
     Cart pCart, AccSettings pAs) throws Exception;
 
   /**
    * <p>Handle event cart currency changed.</p>
-   * @param pReqVars request scoped vars
+   * @param pRqVs request scoped vars
    * @param pCart cart
    * @param pAs Accounting Settings
    * @param pTs TradingSettings
    * @throws Exception - an exception.
    **/
-  void handleCurrencyChanged(Map<String, Object> pReqVars,
+  void handleCurrencyChanged(Map<String, Object> pRqVs,
     Cart pCart, AccSettings pAs, TradingSettings pTs) throws Exception;
 
   /**
+   * <p>Handle event cart delivering method changed.
+   * It will also updates cart.</p>
+   * @param pRqVs request scoped vars
+   * @param pCart cart
+   * @param pDeliv delivering
+   * @throws Exception - an exception.
+   **/
+  void hndDelivChan(Map<String, Object> pRqVs, Cart pCart,
+    EDelivering pDeliv) throws Exception;
+
+  /**
    * <p>Makes cart line. Tax category, price, seller are already done.</p>
-   * @param pReqVars request scoped vars
+   * @param pRqVs request scoped vars
    * @param pCartLn cart line
    * @param pAs Accounting Settings
    * @param pTs TradingSettings
@@ -102,14 +114,14 @@ public interface ISrvShoppingCart {
    * @param pRedoTxc redo tax category
    * @throws Exception - an exception.
    **/
-  void makeCartLine(Map<String, Object> pReqVars, CartLn pCartLn,
+  void makeCartLine(Map<String, Object> pRqVs, CartLn pCartLn,
     AccSettings pAs, TradingSettings pTs, TaxDestination pTxRules,
       boolean pRedoPr, boolean pRedoTxc) throws Exception;
 
 
   /**
    * <p>Reveals item's price descriptor.</p>
-   * @param pReqVars request scoped vars
+   * @param pRqVs request scoped vars
    * @param pTs TradingSettings
    * @param pBuyer Buyer
    * @param pItType Item Type
@@ -117,7 +129,7 @@ public interface ISrvShoppingCart {
    * @return item's price descriptor or exception
    * @throws Exception - an exception
    **/
-  AItemPrice<?, ?> revealItemPrice(Map<String, Object> pReqVars,
+  AItemPrice<?, ?> revealItemPrice(Map<String, Object> pRqVs,
     TradingSettings pTs, OnlineBuyer pBuyer, EShopItemType pItType,
         Long pItId) throws Exception;
 }

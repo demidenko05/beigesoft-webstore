@@ -127,9 +127,9 @@ public class TradingSettings extends AHasIdLongVersion {
   private Boolean useAdvancedI18n;
 
   /**
-   * <p>Default payment method, not null, CASH default.</p>
+   * <p>Default payment method, not null, PAY_CASH default.</p>
    **/
-  private EPaymentMethod defaultPaymentMethod = EPaymentMethod.CASH;
+  private EPaymentMethod defaultPaymentMethod = EPaymentMethod.PAY_CASH;
 
   /**
    * <p>If taxes excluded, default FALSE (included).</p>
