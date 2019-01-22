@@ -13,7 +13,6 @@ package org.beigesoft.webstore.processor;
  */
 
 import java.util.Map;
-import java.util.List;
 
 import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.model.IRequestData;
@@ -24,8 +23,6 @@ import org.beigesoft.accounting.persistable.AccSettings;
 import org.beigesoft.accounting.persistable.TaxDestination;
 import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.webstore.persistable.CartLn;
-import org.beigesoft.webstore.persistable.CartItTxLn;
-import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 
 /**
@@ -84,31 +81,15 @@ public class PrcDelItemFromCart<RS> implements IProcessor {
         throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
           "requested_item_not_found");
       }
+      if (cartLn.getForc()) {
+        throw new ExceptionWithCode(ExceptionWithCode.SOMETHING_WRONG,
+          "requested_item_forced");
+      }
       AccSettings as = (AccSettings) pRqVs.get("accSet");
-      TradingSettings ts = (TradingSettings) pRqVs.get("tradSet");
       TaxDestination txRules = this.srvShoppingCart.revealTaxRules(pRqVs,
         cart, as);
-      if (!cartLn.getForc()) {
-        cartLn.setDisab(true);
-        getSrvOrm().updateEntity(pRqVs, cartLn);
-        if (txRules != null && cartLn.getTxCat() != null && !txRules
-          .getSalTaxIsInvoiceBase() && !txRules.getSalTaxUseAggregItBas()) {
-          pRqVs.put("CartItTxLnitsOwnerdeepLevel", 1);
-          List<CartItTxLn> itls = getSrvOrm().retrieveListWithConditions(
-              pRqVs, CartItTxLn.class, "where DISAB=0 and ITSOWNER="
-                + cartLn.getItsId());
-          pRqVs.remove("CartItTxLnitsOwnerdeepLevel");
-          for (CartItTxLn itl : itls) {
-            if (!itl.getDisab() && itl.getItsOwner().getItsId()
-              .equals(cartLn.getItsId())) {
-              itl.setDisab(true);
-              getSrvOrm().updateEntity(pRqVs, itl);
-            }
-          }
-        }
-        this.srvShoppingCart.makeCartTotals(pRqVs, ts, cartLn, as, txRules);
-      }
-      pRqDt.setAttribute("cart", cart);
+      this.srvShoppingCart.delLine(pRqVs, cartLn, txRules);
+      this.srvShoppingCart.hndLineChan(pRqVs, cartLn, txRules);
       if (txRules != null) {
         pRqDt.setAttribute("txRules", txRules);
       }

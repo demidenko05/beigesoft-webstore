@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Date;
 import java.util.UUID;
+import java.math.BigDecimal;
 
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.model.ColumnsValues;
@@ -233,10 +234,6 @@ public class PrLog<RS> implements IProcessor {
       pBuTmp.setLsTm(0L);
       this.srvOrm.updateEntity(pRqVs, pBuTmp);
     }
-    Long obid = pBuTmp.getItsId();
-    ColumnsValues cvs = new ColumnsValues();
-    cvs.setIdColumnsNames(new String[] {"itsId"});
-    cvs.put("itsOwner", pBuyr.getItsId());
     pBuyr.setLsTm(now);
     UUID buseid = UUID.randomUUID();
     pBuyr.setBuSeId(buseid.toString());
@@ -244,8 +241,13 @@ public class PrLog<RS> implements IProcessor {
     pRqDt.setCookieValue("buSeId", pBuyr.getBuSeId());
     pRqDt.setCookieValue("cBuyerId", pBuyr.getItsId().toString());
     pRqDt.setAttribute("buyr", pBuyr);
-    int clc = this.srvDb.executeUpdate("CARTLN", cvs, "ITSOWNER=" + obid);
-    if (clc > 0) {
+    Cart oldCrt = this.srvOrm.retrieveEntityById(pRqVs, Cart.class, pBuTmp);
+    if (oldCrt.getTot().compareTo(BigDecimal.ZERO) == 1) {
+      Long obid = pBuTmp.getItsId();
+      ColumnsValues cvs = new ColumnsValues();
+      cvs.setIdColumnsNames(new String[] {"itsId"});
+      cvs.put("itsOwner", pBuyr.getItsId());
+      this.srvDb.executeUpdate("CARTLN", cvs, "ITSOWNER=" + obid);
       this.srvDb.executeUpdate("CARTTXLN", cvs, "ITSOWNER=" + obid);
       this.srvDb.executeUpdate("CARTTOT", cvs, "ITSOWNER=" + obid);
       Cart cart = this.srvCart.getShoppingCart(pRqVs, pRqDt, true, false);
@@ -255,12 +257,23 @@ public class PrLog<RS> implements IProcessor {
       if (txRules != null) {
         pRqDt.setAttribute("txRules", txRules);
       }
+      cart.setDeliv(oldCrt.getDeliv());
+      cart.setPayMeth(oldCrt.getPayMeth());
       //redo prices and taxes:
+      CartLn frCl = null;
       for (CartLn cl : cart.getItems()) {
         if (!cl.getDisab()) {
-          this.srvCart.makeCartLine(pRqVs, cl, as, ts, txRules, true, true);
-          this.srvCart.makeCartTotals(pRqVs, ts, cl, as, txRules);
+          if (cl.getForc()) {
+            frCl = cl;
+            this.srvCart.delLine(pRqVs, cl, txRules);
+          } else {
+            this.srvCart.makeCartLine(pRqVs, cl, as, ts, txRules, true, true);
+            this.srvCart.makeCartTotals(pRqVs, ts, cl, as, txRules);
+          }
         }
+      }
+      if (frCl != null) {
+         this.srvCart.hndLineChan(pRqVs, frCl, txRules);
       }
     }
   }

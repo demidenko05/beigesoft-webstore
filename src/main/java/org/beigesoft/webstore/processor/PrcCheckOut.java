@@ -120,7 +120,7 @@ public class PrcCheckOut<RS> implements IProcessor {
     TaxDestination txRules = this.srvCart.revealTaxRules(pRqVs, cart, as);
     //redo prices and taxes:
     for (CartLn cl : cart.getItems()) {
-      if (!cl.getDisab()) {
+      if (!cl.getDisab() && !cl.getForc()) {
         this.srvCart.makeCartLine(pRqVs, cl, as, ts, txRules, true, true);
         this.srvCart.makeCartTotals(pRqVs, ts, cl, as, txRules);
       }
@@ -242,6 +242,7 @@ public class PrcCheckOut<RS> implements IProcessor {
    **/
   public final void saveSords(final Map<String, Object> pRqVs,
     final Purch pPur, final Cart pCart) throws Exception {
+    List<CuOrSe> dels = null;
     for (CuOrSe co : pPur.getSords()) {
       if (co.getPlace() == null) { //stored unused order
         //remove it and all its lines:
@@ -261,6 +262,10 @@ public class PrcCheckOut<RS> implements IProcessor {
           getSrvOrm().deleteEntity(pRqVs, otlt);
         }
         getSrvOrm().deleteEntity(pRqVs, co);
+        if (dels == null) {
+          dels = new ArrayList<CuOrSe>();
+        }
+        dels.add(co);
         continue;
       }
       if (co.getIsNew()) {
@@ -268,6 +273,7 @@ public class PrcCheckOut<RS> implements IProcessor {
       }
       BigDecimal tot = BigDecimal.ZERO;
       BigDecimal subt = BigDecimal.ZERO;
+      List<CuOrSeGdLn> delsGd = null;
       for (CuOrSeGdLn gl : co.getGoods()) {
         gl.setItsOwner(co);
         if (gl.getIsNew()) {
@@ -287,6 +293,10 @@ public class PrcCheckOut<RS> implements IProcessor {
         }
         if (!gl.getIsNew() && gl.getGood() == null) {
           getSrvOrm().deleteEntity(pRqVs, gl);
+          if (delsGd == null) {
+            delsGd = new ArrayList<CuOrSeGdLn>();
+          }
+          delsGd.add(gl);
         } else {
           tot = tot.add(gl.getTot());
           subt = subt.add(gl.getSubt());
@@ -295,6 +305,12 @@ public class PrcCheckOut<RS> implements IProcessor {
           }
         }
       }
+      if (delsGd != null) {
+        for (CuOrSeGdLn gl : delsGd) {
+          co.getGoods().remove(gl);
+        }
+      }
+      List<CuOrSeSrLn> delsSr = null;
       for (CuOrSeSrLn sl : co.getServs()) {
         sl.setItsOwner(co);
         if (sl.getIsNew()) {
@@ -314,6 +330,10 @@ public class PrcCheckOut<RS> implements IProcessor {
         }
         if (!sl.getIsNew() && sl.getService() == null) {
           getSrvOrm().deleteEntity(pRqVs, sl);
+          if (delsSr == null) {
+            delsSr = new ArrayList<CuOrSeSrLn>();
+          }
+          delsSr.add(sl);
         } else {
           tot = tot.add(sl.getTot());
           subt = subt.add(sl.getSubt());
@@ -322,9 +342,14 @@ public class PrcCheckOut<RS> implements IProcessor {
           }
         }
       }
+      if (delsSr != null) {
+        for (CuOrSeSrLn sl : delsSr) {
+          co.getServs().remove(sl);
+        }
+      }
       BigDecimal totTx = BigDecimal.ZERO;
       for (CartTxLn ctl : pCart.getTaxes()) {
-        if (ctl.getDisab()) {
+        if (ctl.getDisab() || ctl.getSeller() == null) {
           continue;
         }
         CuOrSeTxLn otl = null;
@@ -356,9 +381,18 @@ public class PrcCheckOut<RS> implements IProcessor {
         }
       }
       if (!co.getIsNew()) {
+        List<CuOrSeTxLn> delsTx = null;
         for (CuOrSeTxLn otlt : co.getTaxes()) {
           if (otlt.getTax() == null) {
             getSrvOrm().deleteEntity(pRqVs, otlt);
+            if (delsTx == null) {
+              delsTx = new ArrayList<CuOrSeTxLn>();
+            }
+          }
+        }
+        if (delsTx != null) {
+          for (CuOrSeTxLn tl : delsTx) {
+            co.getTaxes().remove(tl);
           }
         }
       }
@@ -366,6 +400,11 @@ public class PrcCheckOut<RS> implements IProcessor {
       co.setSubt(subt);
       co.setTotTx(totTx);
       getSrvOrm().updateEntity(pRqVs, co);
+    }
+    if (dels != null) {
+      for (CuOrSe co : dels) {
+        pPur.getSords().remove(co);
+      }
     }
   }
 

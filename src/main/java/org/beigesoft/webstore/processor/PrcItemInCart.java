@@ -104,6 +104,7 @@ public class PrcItemInCart<RS> implements IProcessor {
           if (ci.getDisab()) {
             cartLn = ci;
             cartLn.setDisab(false);
+            cartLn.setForc(false);
             cartLn.setSeller(null);
             cartLn.setTxCat(null);
             cartLn.setTxDsc(null);
@@ -134,6 +135,7 @@ public class PrcItemInCart<RS> implements IProcessor {
       this.srvCart.makeCartLine(pRqVs, cartLn, as, ts,
        txRules, false, redoTxc);
       this.srvCart.makeCartTotals(pRqVs, ts, cartLn, as, txRules);
+      this.srvCart.hndLineChan(pRqVs, cartLn, txRules);
     }
     if (txRules != null) {
       pRqDt.setAttribute("txRules", txRules);
@@ -190,6 +192,7 @@ public class PrcItemInCart<RS> implements IProcessor {
     CartLn cartLn = new CartLn();
     cartLn.setIsNew(true);
     cartLn.setDisab(false);
+    cartLn.setForc(false);
     cartLn.setItsOwner(pShoppingCart);
     pShoppingCart.getItems().add(cartLn);
     return cartLn;

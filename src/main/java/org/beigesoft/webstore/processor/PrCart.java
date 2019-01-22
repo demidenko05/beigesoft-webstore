@@ -18,6 +18,8 @@ import org.beigesoft.model.IRequestData;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.factory.IFactoryAppBeansByName;
+import org.beigesoft.accounting.persistable.AccSettings;
+import org.beigesoft.accounting.persistable.TaxDestination;
 import org.beigesoft.webstore.model.EPaymentMethod;
 import org.beigesoft.webstore.model.EDelivering;
 import org.beigesoft.webstore.persistable.Cart;
@@ -66,11 +68,16 @@ public class PrCart<RS> implements IProcessor {
         getEnumConstants()[Integer.parseInt(payMethStr)];
       cart.setPayMeth(payMeth);
       if (dlv != cart.getDeliv()) {
-        this.srvCart.hndDelivChan(pRqVs, cart, dlv);
+        AccSettings as = (AccSettings) pRqVs.get("accSet");
+        TaxDestination txRules = this.srvCart.revealTaxRules(pRqVs,
+          cart, as);
+        if (txRules != null) {
+          pRqDt.setAttribute("txRules", txRules);
+        }
+        this.srvCart.hndDelivChan(pRqVs, cart, dlv, txRules);
       } else {
         this.srvOrm.updateEntity(pRqVs, cart);
       }
-      pRqDt.setAttribute("cart", cart);
     } //else spam
     //TODO change to servlet redirect???
     String processorName = pRqDt.getParameter("nmPrcRed");

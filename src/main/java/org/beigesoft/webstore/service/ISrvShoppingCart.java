@@ -98,11 +98,31 @@ public interface ISrvShoppingCart {
    * @param pRqVs request scoped vars
    * @param pCart cart
    * @param pDeliv delivering
+   * @param pTxRules Tax Rules
    * @throws Exception - an exception.
    **/
   void hndDelivChan(Map<String, Object> pRqVs, Cart pCart,
-    EDelivering pDeliv) throws Exception;
+    EDelivering pDeliv, TaxDestination pTxRules) throws Exception;
 
+  /**
+   * <p>Handle event cart cart line changed/deleted.
+   * It will also updates cart if need.</p>
+   * @param pRqVs request scoped vars
+   * @param pCartLn cart line
+   * @param pTxRules Tax Rules
+   * @throws Exception - an exception.
+   **/
+  void hndLineChan(Map<String, Object> pRqVs,
+    CartLn pCartLn, TaxDestination pTxRules) throws Exception;
+  /**
+   * <p>Deletes cart line.</p>
+   * @param pRqVs request scoped vars
+   * @param pCartLn cart line
+   * @param pTxRules Tax Rules
+   * @throws Exception - an exception.
+   **/
+  void delLine(Map<String, Object> pRqVs,
+    CartLn pCartLn, TaxDestination pTxRules) throws Exception;
   /**
    * <p>Makes cart line. Tax category, price, seller are already done.</p>
    * @param pRqVs request scoped vars
