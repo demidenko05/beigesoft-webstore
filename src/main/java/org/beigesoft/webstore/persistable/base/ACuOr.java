@@ -50,7 +50,9 @@ public abstract class ACuOr<GL extends AOrdLn, SL extends AOrdLn>
   private OnlineBuyer buyer;
 
   /**
-   * <p>Place where goods is stored or service is performed, not null.</p>
+   * <p>Place where goods is stored or service is performed,
+   * null if method "pickup by buyer from several places"
+   * is not implemented/used.</p>
    **/
   private PickUpPlace place;
 

@@ -64,7 +64,6 @@
 <entry key="numericValue1">true</entry>
 <entry key="numericValue2">true</entry>
 <entry key="previousPrice">true</entry>
-<entry key="priceCategoryCustomer">true</entry>
 <entry key="prepaymentTo">true</entry>
 <entry key="prepaymentFrom">true</entry>
 <entry key="catalogOnStart">true</entry>

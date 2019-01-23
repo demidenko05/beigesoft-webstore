@@ -165,18 +165,17 @@ public class PrcCheckOut<RS> implements IProcessor {
         .retrieveListWithConditions(pRqVs, itPlCl, cond);
       pRqVs.remove(itPlCl.getSimpleName() + "itemdeepLevel");
       pRqVs.remove("PickUpPlaceneededFields");
-      if (places.size() > 1) {
+      if (places.size() > 1 && serBus != null && cl.getDt1() != null) {
         //for bookable service it's ambiguous - same service (e.g. appointment
         //to DR.Jonson) is available at same time in two different places)
         //for non-bookable service, e.g. for delivering place means
         //starting-point, but it should be selected automatically TODO
-        //for goods:
+        //for goods: TODO
         //1. buyer chooses place (in filter), so use this place
         //2. buyer will pickups by yourself from different places,
         // but it must chooses them (in filter) in this case.
         // As a result places should ordered by itsQuantity and removed items
         // that are out of filter.
-//TODO
         isCompl = false;
         String errs = "!Wrong places for item name/ID/type: " + cl.getItsName()
           + "/" + cl.getItId() + "/" + cl.getItTyp();
@@ -188,22 +187,22 @@ public class PrcCheckOut<RS> implements IProcessor {
         cart.setErr(true);
         getSrvOrm().updateEntity(pRqVs, cart);
         break;
-      } else if (places.size() == 1) { //only place with non-zero availability
-        if (places.get(0).getItsQuantity().compareTo(cl.getQuant()) == -1) {
-          isCompl = false;
-          cl.setAvQuan(places.get(0).getItsQuantity());
+      } else { //only/multiply place/s with non-zero availability
+        BigDecimal avQu = BigDecimal.ZERO;
+        for (AItemPlace<?, ?> pl : places) {
+          avQu = avQu.add(pl.getItsQuantity());
         }
-      } else { //e.g. busy service or updated good
-        isCompl = false;
-        cl.setAvQuan(BigDecimal.ZERO);
+        if (avQu.compareTo(cl.getQuant()) == -1) {
+          isCompl = false;
+          cl.setAvQuan(avQu);
+        }
       }
-      if (isCompl) {
-        for (AItemPlace<?, ?> ip : places) {
-          if (cl.getSeller() == null) {
-            makeOrdLn(pRqVs, pur.getOrds(), ip, cl, ts);
-          } else {
-            makeSeOrdLn(pRqVs, pur.getSords(), cl.getSeller(), ip, cl, ts);
-          }
+      if (isCompl && cl.getPrice().compareTo(BigDecimal.ZERO) == 1) {
+        //without free delivering:
+        if (cl.getSeller() == null) {
+          makeOrdLn(pRqVs, pur.getOrds(), null, cl, ts);
+        } else {
+          makeSeOrdLn(pRqVs, pur.getSords(), cl.getSeller(), null, cl, ts);
         }
       } else {
         getSrvOrm().updateEntity(pRqVs, cl);
@@ -244,7 +243,7 @@ public class PrcCheckOut<RS> implements IProcessor {
     final Purch pPur, final Cart pCart) throws Exception {
     List<CuOrSe> dels = null;
     for (CuOrSe co : pPur.getSords()) {
-      if (co.getPlace() == null) { //stored unused order
+      if (co.getCurr() == null) { //stored unused order
         //remove it and all its lines:
         for (CuOrSeGdLn gl : co.getGoods()) {
           for (CuOrSeGdTxLn gtl : gl.getItTxs()) {
@@ -349,7 +348,9 @@ public class PrcCheckOut<RS> implements IProcessor {
       }
       BigDecimal totTx = BigDecimal.ZERO;
       for (CartTxLn ctl : pCart.getTaxes()) {
-        if (ctl.getDisab() || ctl.getSeller() == null) {
+        if (ctl.getDisab() || ctl.getSeller() == null
+          || !ctl.getSeller().getSeller().getItsId()
+            .equals(co.getSel().getSeller().getItsId())) {
           continue;
         }
         CuOrSeTxLn otl = null;
@@ -388,6 +389,7 @@ public class PrcCheckOut<RS> implements IProcessor {
             if (delsTx == null) {
               delsTx = new ArrayList<CuOrSeTxLn>();
             }
+            delsTx.add(otlt);
           }
         }
         if (delsTx != null) {
@@ -417,8 +419,9 @@ public class PrcCheckOut<RS> implements IProcessor {
    **/
   public final void saveOrds(final Map<String, Object> pRqVs,
     final Purch pPur, final Cart pCart) throws Exception {
+    List<CustOrder> dels = null;
     for (CustOrder co : pPur.getOrds()) {
-      if (co.getPlace() == null) { //stored unused order
+      if (co.getCurr() == null) { //stored unused order
         //remove it and all its lines:
         for (CustOrderGdLn gl : co.getGoods()) {
           for (CuOrGdTxLn gtl : gl.getItTxs()) {
@@ -436,6 +439,10 @@ public class PrcCheckOut<RS> implements IProcessor {
           getSrvOrm().deleteEntity(pRqVs, otlt);
         }
         getSrvOrm().deleteEntity(pRqVs, co);
+        if (dels == null) {
+          dels = new ArrayList<CustOrder>();
+        }
+        dels.add(co);
         continue;
       }
       if (co.getIsNew()) {
@@ -443,6 +450,7 @@ public class PrcCheckOut<RS> implements IProcessor {
       }
       BigDecimal tot = BigDecimal.ZERO;
       BigDecimal subt = BigDecimal.ZERO;
+      List<CustOrderGdLn> delsGd = null;
       for (CustOrderGdLn gl : co.getGoods()) {
         gl.setItsOwner(co);
         if (gl.getIsNew()) {
@@ -462,6 +470,10 @@ public class PrcCheckOut<RS> implements IProcessor {
         }
         if (!gl.getIsNew() && gl.getGood() == null) {
           getSrvOrm().deleteEntity(pRqVs, gl);
+          if (delsGd == null) {
+            delsGd = new ArrayList<CustOrderGdLn>();
+          }
+          delsGd.add(gl);
         } else {
           tot = tot.add(gl.getTot());
           subt = subt.add(gl.getSubt());
@@ -470,6 +482,12 @@ public class PrcCheckOut<RS> implements IProcessor {
           }
         }
       }
+      if (delsGd != null) {
+        for (CustOrderGdLn gl : delsGd) {
+          co.getGoods().remove(gl);
+        }
+      }
+      List<CustOrderSrvLn> delsSr = null;
       for (CustOrderSrvLn sl : co.getServs()) {
         sl.setItsOwner(co);
         if (sl.getIsNew()) {
@@ -489,6 +507,10 @@ public class PrcCheckOut<RS> implements IProcessor {
         }
         if (!sl.getIsNew() && sl.getService() == null) {
           getSrvOrm().deleteEntity(pRqVs, sl);
+          if (delsSr == null) {
+            delsSr = new ArrayList<CustOrderSrvLn>();
+          }
+          delsSr.add(sl);
         } else {
           tot = tot.add(sl.getTot());
           subt = subt.add(sl.getSubt());
@@ -497,9 +519,15 @@ public class PrcCheckOut<RS> implements IProcessor {
           }
         }
       }
+      if (delsSr != null) {
+        for (CustOrderSrvLn sl : delsSr) {
+          co.getServs().remove(sl);
+        }
+      }
+      List<CustOrderTxLn> delsTx = null;
       BigDecimal totTx = BigDecimal.ZERO;
       for (CartTxLn ctl : pCart.getTaxes()) {
-        if (ctl.getDisab()) {
+        if (ctl.getDisab() || ctl.getSeller() != null) {
           continue;
         }
         CustOrderTxLn otl = null;
@@ -534,13 +562,27 @@ public class PrcCheckOut<RS> implements IProcessor {
         for (CustOrderTxLn otlt : co.getTaxes()) {
           if (otlt.getTax() == null) {
             getSrvOrm().deleteEntity(pRqVs, otlt);
+            if (delsTx == null) {
+              delsTx = new ArrayList<CustOrderTxLn>();
+            }
+            delsTx.add(otlt);
           }
+        }
+      }
+      if (delsTx != null) {
+        for (CustOrderTxLn tl : delsTx) {
+          co.getTaxes().remove(tl);
         }
       }
       co.setTot(tot);
       co.setSubt(subt);
       co.setTotTx(totTx);
       getSrvOrm().updateEntity(pRqVs, co);
+    }
+    if (dels != null) {
+      for (CustOrder co : dels) {
+        pPur.getOrds().remove(co);
+      }
     }
   }
 
@@ -654,8 +696,7 @@ public class PrcCheckOut<RS> implements IProcessor {
     CuOrSe cuOr = null;
     boolean isNdOrInit = true;
     for (CuOrSe co : pOrders) {
-      if (co.getPlace() != null && co.getPlace().getItsId().equals(pItPl
-    .getPickUpPlace().getItsId()) && co.getSel() != null
+      if (co.getCurr() != null && co.getSel() != null
   && co.getSel().getSeller().getItsId().equals(pSel.getSeller().getItsId())) {
         cuOr = co;
         isNdOrInit = false;
@@ -664,7 +705,7 @@ public class PrcCheckOut<RS> implements IProcessor {
     }
     if (cuOr == null) {
       for (CuOrSe co : pOrders) {
-        if (co.getPlace() == null) {
+        if (co.getCurr() == null) {
           cuOr = co;
           break;
         }
@@ -685,7 +726,8 @@ public class PrcCheckOut<RS> implements IProcessor {
       cuOr.setDeliv(pCartLn.getItsOwner().getDeliv());
       cuOr.setPayMeth(pCartLn.getItsOwner().getPayMeth());
       cuOr.setBuyer(pCartLn.getItsOwner().getBuyer());
-      cuOr.setPlace(pItPl.getPickUpPlace());
+      //TODO  method "pickup by buyer from several places"
+      //cuOr.setPlace(pItPl.getPickUpPlace());
       cuOr.setPur(pCartLn.getItsOwner().getItsVersion());
       cuOr.setCurr(pCartLn.getItsOwner().getCurr());
       cuOr.setExcRt(pCartLn.getItsOwner().getExcRt());
@@ -824,19 +866,10 @@ public class PrcCheckOut<RS> implements IProcessor {
     CustOrder cuOr = null;
     boolean isNdOrInit = true;
     for (CustOrder co : pOrders) {
-      if (co.getPlace() != null && co.getPlace().getItsId()
-        .equals(pItPl.getPickUpPlace().getItsId())) {
+      if (co.getCurr() != null) {
         cuOr = co;
         isNdOrInit = false;
         break;
-      }
-    }
-    if (cuOr == null) {
-      for (CustOrder co : pOrders) {
-        if (co.getPlace() == null) {
-          cuOr = co;
-          break;
-        }
       }
     }
     if (cuOr == null) {
@@ -853,7 +886,8 @@ public class PrcCheckOut<RS> implements IProcessor {
       cuOr.setDeliv(pCartLn.getItsOwner().getDeliv());
       cuOr.setPayMeth(pCartLn.getItsOwner().getPayMeth());
       cuOr.setBuyer(pCartLn.getItsOwner().getBuyer());
-      cuOr.setPlace(pItPl.getPickUpPlace());
+      //TODO method "pickup by buyer from several places"
+      //cuOr.setPlace(pItPl.getPickUpPlace());
       cuOr.setPur(pCartLn.getItsOwner().getItsVersion());
       cuOr.setCurr(pCartLn.getItsOwner().getCurr());
       cuOr.setExcRt(pCartLn.getItsOwner().getExcRt());

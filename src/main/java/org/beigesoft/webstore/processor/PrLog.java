@@ -155,10 +155,22 @@ public class PrLog<RS> implements IProcessor {
         String buSeId = pRqDt.getCookieValue("buSeId");
         if (buyer.getBuSeId().equals(buSeId)) {
           //authorized requests:
-          if (nm != null && pw == null && em == null) {
-            //change name:
-            if (nm.length() > 2) {
+          String zip = pRqDt.getParameter("zip");
+          String adr1 = pRqDt.getParameter("adr1");
+          if (nm != null && zip != null  && adr1 != null) {
+            //change name, shipping address:
+            String cnt = pRqDt.getParameter("cnt");
+            String cit = pRqDt.getParameter("cit");
+            String adr2 = pRqDt.getParameter("adr2");
+            String phn = pRqDt.getParameter("phn");
+            if (nm.length() > 2 && zip.length() > 2 && adr1.length() > 2) {
               buyer.setItsName(nm);
+              buyer.setRegZip(zip);
+              buyer.setRegAddress1(adr1);
+              buyer.setRegAddress2(adr2);
+              buyer.setRegCountry(cnt);
+              buyer.setRegCity(cit);
+              buyer.setRegPhone(phn);
               buyer.setLsTm(now);
               this.srvOrm.updateEntity(pRqVs, buyer);
             } else {

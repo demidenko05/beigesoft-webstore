@@ -2,5 +2,5 @@ select :TORLN.ITSID as ITSID, :TORLN.ITSNAME as ITSNAME, GOOD, ITSOWNER, PRICE, 
 case when AVQUAN is null or QUANT>AVQUAN then 0 else QUANT end as QUANT
 from :TORLN
 left join UNITOFMEASURE as UOM on :TORLN.UOM=UOM.ITSID
-left join (select ITEM, sum(ITSQUANTITY) as AVQUAN from :TITPL group by ITEM) as ITPL on ITPL.ITEM=GOOD
+left join (select ITEM, ITSQUANTITY as AVQUAN from :TITPL where PICKUPPLACE=:PLACE) as ITPL on ITPL.ITEM=GOOD
 where ITSOWNER in (:ORIDS);
