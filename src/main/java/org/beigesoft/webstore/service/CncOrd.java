@@ -42,6 +42,8 @@ import org.beigesoft.webstore.persistable.CuOrSeSrLn;
  * <p>It cancels all given buyer's orders.
  * E.g. buyer has not paid online after accepting (booking) orders.
  * It changes item's availability and orders status to given NEW or CANCELED.
+ * It implements unbooking item available quantity from
+ * several places - from the first place.
  * </p>
  *
  * @param <RS> platform dependent RDBMS recordset
@@ -141,16 +143,17 @@ public class CncOrd<RS> implements ICncOrd {
     ColumnsValues cvsIil = new ColumnsValues();
     cvsIil.getFormula().add("availableQuantity");
     for (CustOrderGdLn gl : gds) {
-      GoodsPlace gp = getSrvOrm().retrieveEntityWithConditions(pRqVs,
-        GoodsPlace.class, "where ISALWAYS=0 and ITEM=" + gl.getGood().getItsId()
-          + " and PICKUPPLACE=" + pCuOr.getPlace().getItsId());
-      if (gp != null) {
-        gp.setItsQuantity(gp.getItsQuantity().add(gl.getQuant()));
-        getSrvOrm().updateEntity(pRqVs, gp);
+      List<GoodsPlace> gps = getSrvOrm().retrieveListWithConditions(pRqVs,
+        GoodsPlace.class, "where ISALWAYS=0 and ITEM="
+          + gl.getGood().getItsId());
+      if (gps.size() > 0) {
+        gps.get(0)
+          .setItsQuantity(gps.get(0).getItsQuantity().add(gl.getQuant()));
+        getSrvOrm().updateEntity(pRqVs, gps.get(0));
         cvsIil.put("itsVersion", new Date().getTime());
         cvsIil.put("availableQuantity", "AVAILABLEQUANTITY+" + gl.getQuant());
         this.srvDb.executeUpdate("ITEMINLIST", cvsIil,
-          "ITSTYPE=0 and ITEMID=" + gp.getItem().getItsId());
+          "ITSTYPE=0 and ITEMID=" + gps.get(0).getItem().getItsId());
       }
     }
     tbn = CustOrderSrvLn.class.getSimpleName();
@@ -166,16 +169,17 @@ public class CncOrd<RS> implements ICncOrd {
     pRqVs.remove(tbn + "gooddeepLevel");
     for (CustOrderSrvLn sl : sls) {
       if (sl.getDt1() == null) { //non-bookable:
-        ServicePlace sp = getSrvOrm().retrieveEntityWithConditions(pRqVs,
+        List<ServicePlace> sps = getSrvOrm().retrieveListWithConditions(pRqVs,
           ServicePlace.class, "where ISALWAYS=0 and ITEM=" + sl.getService()
-            .getItsId() + " and PICKUPPLACE=" + pCuOr.getPlace().getItsId());
-        if (sp != null) {
-          sp.setItsQuantity(sp.getItsQuantity().add(sl.getQuant()));
-          getSrvOrm().updateEntity(pRqVs, sp);
+            .getItsId());
+        if (sps.size() > 0) {
+          sps.get(0)
+            .setItsQuantity(sps.get(0).getItsQuantity().add(sl.getQuant()));
+          getSrvOrm().updateEntity(pRqVs, sps.get(0));
           cvsIil.put("itsVersion", new Date().getTime());
           cvsIil.put("availableQuantity", "AVAILABLEQUANTITY+" + sl.getQuant());
           this.srvDb.executeUpdate("ITEMINLIST", cvsIil,
-            "ITSTYPE=1 and ITEMID=" + sp.getItem().getItsId());
+            "ITSTYPE=1 and ITEMID=" + sps.get(0).getItem().getItsId());
         }
       } else { //bookable:
         List<SerBus> sebs = getSrvOrm().retrieveListWithConditions(pRqVs,
@@ -226,16 +230,17 @@ public class CncOrd<RS> implements ICncOrd {
     ColumnsValues cvsIil = new ColumnsValues();
     cvsIil.getFormula().add("availableQuantity");
     for (CuOrSeGdLn gl : gds) {
-      SeGoodsPlace gp = getSrvOrm().retrieveEntityWithConditions(pRqVs,
+      List<SeGoodsPlace> gps = getSrvOrm().retrieveListWithConditions(pRqVs,
         SeGoodsPlace.class, "where ISALWAYS=0 and ITEM=" + gl.getGood()
-          .getItsId() + " and PICKUPPLACE=" + pCuOr.getPlace().getItsId());
-      if (gp != null) {
-        gp.setItsQuantity(gp.getItsQuantity().add(gl.getQuant()));
-        getSrvOrm().updateEntity(pRqVs, gp);
+          .getItsId());
+      if (gps.size() > 0) {
+        gps.get(0)
+          .setItsQuantity(gps.get(0).getItsQuantity().add(gl.getQuant()));
+        getSrvOrm().updateEntity(pRqVs, gps.get(0));
         cvsIil.put("itsVersion", new Date().getTime());
         cvsIil.put("availableQuantity", "AVAILABLEQUANTITY+" + gl.getQuant());
         this.srvDb.executeUpdate("ITEMINLIST", cvsIil,
-          "ITSTYPE=2 and ITEMID=" + gp.getItem().getItsId());
+          "ITSTYPE=2 and ITEMID=" + gps.get(0).getItem().getItsId());
       }
     }
     tbn = CuOrSeSrLn.class.getSimpleName();
@@ -251,16 +256,17 @@ public class CncOrd<RS> implements ICncOrd {
     pRqVs.remove(tbn + "gooddeepLevel");
     for (CuOrSeSrLn sl : sls) {
       if (sl.getDt1() == null) { //non-bookable:
-        SeServicePlace sp = getSrvOrm().retrieveEntityWithConditions(pRqVs,
+        List<SeServicePlace> sps = getSrvOrm().retrieveListWithConditions(pRqVs,
           SeServicePlace.class, "where ISALWAYS=0 and ITEM=" + sl.getService()
-            .getItsId() + " and PICKUPPLACE=" + pCuOr.getPlace().getItsId());
-        if (sp != null) {
-          sp.setItsQuantity(sp.getItsQuantity().add(sl.getQuant()));
-          getSrvOrm().updateEntity(pRqVs, sp);
+            .getItsId());
+        if (sps.size() > 0) {
+          sps.get(0)
+            .setItsQuantity(sps.get(0).getItsQuantity().add(sl.getQuant()));
+          getSrvOrm().updateEntity(pRqVs, sps.get(0));
           cvsIil.put("itsVersion", new Date().getTime());
           cvsIil.put("availableQuantity", "AVAILABLEQUANTITY+" + sl.getQuant());
           this.srvDb.executeUpdate("ITEMINLIST", cvsIil,
-            "ITSTYPE=3 and ITEMID=" + sp.getItem().getItsId());
+            "ITSTYPE=3 and ITEMID=" + sps.get(0).getItem().getItsId());
         }
       } else { //bookable:
         List<SeSerBus> sebs = getSrvOrm().retrieveListWithConditions(pRqVs,

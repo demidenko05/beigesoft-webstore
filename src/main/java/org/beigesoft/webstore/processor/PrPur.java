@@ -120,7 +120,7 @@ public class PrPur<RS> implements IProcessor {
             || or.getPayMeth().equals(EPaymentMethod.PAYPAL_ANY)
               || or.getPayMeth().equals(EPaymentMethod.PARTIAL_ONLINE)
                 || or.getPayMeth().equals(EPaymentMethod.ONLINE)) {
-            throw new Exception("It must by offline payment!!");
+            throw new Exception("It must be offline payment!!");
           }
           if (or.getTotTx().compareTo(BigDecimal.ZERO) == 1) {
             List<CustOrderTxLn> tls = getSrvOrm().retrieveListWithConditions(
@@ -139,7 +139,7 @@ public class PrPur<RS> implements IProcessor {
             || or.getPayMeth().equals(EPaymentMethod.PAYPAL_ANY)
               || or.getPayMeth().equals(EPaymentMethod.PARTIAL_ONLINE)
                 || or.getPayMeth().equals(EPaymentMethod.ONLINE)) {
-            throw new Exception("It must by offline payment!!");
+            throw new Exception("It must be offline payment!!");
           }
           if (or.getTotTx().compareTo(BigDecimal.ZERO) == 1) {
             List<CuOrSeTxLn> tls = getSrvOrm().retrieveListWithConditions(
