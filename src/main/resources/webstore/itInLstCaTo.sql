@@ -1,6 +1,6 @@
-select count(*) as TOTALROWS
+select ITEMID, ITSPRICE
 from (
-  select ITEMID
+  select ITEMID, ITSPRICE
   from ITEMINLIST
   where AVAILABLEQUANTITY>0 and ITSTYPE=:ITTYP :WHEREADD
  ) as ITALL

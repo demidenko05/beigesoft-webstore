@@ -425,6 +425,7 @@ public class FctBnPublicTradeProcessors<RS>
       proc = new PrcItemPage<RS>();
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvCart(getSrvShoppingCart());
+      proc.setBuySr(getBuySr());
       proc.setLogger(getLogger());
       //assigning fully initialized object:
       this.processorsMap.put(beanName, proc);

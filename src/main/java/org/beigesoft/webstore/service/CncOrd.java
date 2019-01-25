@@ -23,7 +23,6 @@ import org.beigesoft.model.ColumnsValues;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.webstore.model.EOrdStat;
-import org.beigesoft.webstore.model.Purch;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
 import org.beigesoft.webstore.persistable.SeGoodsPlace;
 import org.beigesoft.webstore.persistable.GoodsPlace;
@@ -72,41 +71,6 @@ public class CncOrd<RS> implements ICncOrd {
    * It changes item's availability and orders status to given NEW or CANCELED.
    * </p>
    * @param pRqVs additional request scoped parameters
-   * @param pPurch orders
-   * @param pStat NEW or CANCELED
-   * @throws Exception - an exception
-   **/
-  @Override
-  public final void cancel(final Map<String, Object> pRqVs,
-    final Purch pPurch, final EOrdStat pStat) throws Exception {
-    throw new Exception("NEI");
-  }
-
-
-  /**
-   * <p>It cancels all given buyer's orders.
-   * For example buyer had not paid online after accepting (booking) orders.
-   * It changes item's availability and orders status to given NEW or CANCELED.
-   * </p>
-   * @param pRqVs additional request scoped parameters
-   * @param pBuyr buyer
-   * @param pStFr usually BOOKED
-   * @param pStTo usually NEW
-   * @throws Exception - an exception
-   **/
-  @Override
-  public final void cancel(final Map<String, Object> pRqVs,
-    final OnlineBuyer pBuyr, final EOrdStat pStFr,
-      final EOrdStat pStTo) throws Exception {
-    throw new Exception("NEI");
-  }
-
-  /**
-   * <p>It cancels all given buyer's orders.
-   * For example buyer had not paid online after accepting (booking) orders.
-   * It changes item's availability and orders status to given NEW or CANCELED.
-   * </p>
-   * @param pRqVs additional request scoped parameters
    * @param pBuyr buyer
    * @param pPurId purchase ID
    * @param pStFr usually BOOKED
@@ -117,18 +81,51 @@ public class CncOrd<RS> implements ICncOrd {
   public final void cancel(final Map<String, Object> pRqVs,
     final OnlineBuyer pBuyr, final Long pPurId,
       final EOrdStat pStFr, final EOrdStat pStTo) throws Exception {
-    throw new Exception("NEI");
+    List<CustOrder> ords = null;
+    List<CuOrSe> sords = null;
+    String tbn = CustOrder.class.getSimpleName();
+    String wheStBr = "where STAT=" + pStFr.ordinal() + " and BUYER="
+      + pBuyr.getItsId() + " and PUR=" + pPurId;
+    Set<String> ndFlNm = new HashSet<String>();
+    ndFlNm.add("itsId");
+    ndFlNm.add("itsName");
+    pRqVs.put("PickUpPlaceneededFields", ndFlNm);
+    pRqVs.put(tbn + "buyerdeepLevel", 1);
+    ords = this.srvOrm.retrieveListWithConditions(pRqVs,
+      CustOrder.class, wheStBr);
+    pRqVs.remove(tbn + "buyerdeepLevel");
+    for (CustOrder co : ords) {
+      cancel(pRqVs, co, pStTo);
+    }
+    tbn = CuOrSe.class.getSimpleName();
+    Set<String> ndFlDc = new HashSet<String>();
+    ndFlDc.add("seller");
+    pRqVs.put("SeSellerneededFields", ndFlDc);
+    pRqVs.put("DebtorCreditorneededFields", ndFlNm);
+    pRqVs.put(tbn + "seldeepLevel", 3);
+    pRqVs.put(tbn + "buyerdeepLevel", 1);
+    sords = this.srvOrm.retrieveListWithConditions(pRqVs,
+      CuOrSe.class, wheStBr);
+    pRqVs.remove("DebtorCreditorneededFields");
+    pRqVs.remove("SeSellerneededFields");
+    pRqVs.remove(tbn + "seldeepLevel");
+    pRqVs.remove(tbn + "buyerdeepLevel");
+    pRqVs.remove("PickUpPlaceneededFields");
+    for (CuOrSe co : sords) {
+      cancel(pRqVs, co, pStTo);
+    }
   }
 
   /**
    * <p>It cancels given buyer's order.</p>
    * @param pRqVs additional request scoped parameters
    * @param pCuOr order
+   * @param pStat NEW or CANCELED
    * @throws Exception - an exception
    **/
   @Override
   public final void cancel(final Map<String, Object> pRqVs,
-    final CustOrder pCuOr) throws Exception {
+    final CustOrder pCuOr, final EOrdStat pStat) throws Exception {
     Set<String> ndFl = new HashSet<String>();
     String tbn = CustOrderGdLn.class.getSimpleName();
     ndFl.add("itsId");
@@ -203,19 +200,23 @@ public class CncOrd<RS> implements ICncOrd {
         }
       }
     }
-    pCuOr.setStat(EOrdStat.CANCELED);
+    String[] fieldsNames = new String[] {"itsId", "itsVersion", "stat"};
+    pRqVs.put("fieldsNames", fieldsNames);
+    pCuOr.setStat(pStat);
     getSrvOrm().updateEntity(pRqVs, pCuOr);
+    pRqVs.remove("fieldsNames");
   }
 
   /**
    * <p>It cancels given buyer's S.E.order.</p>
    * @param pRqVs additional request scoped parameters
    * @param pCuOr order
+   * @param pStat NEW or CANCELED
    * @throws Exception - an exception
    **/
   @Override
   public final void cancel(final Map<String, Object> pRqVs,
-    final CuOrSe pCuOr) throws Exception {
+    final CuOrSe pCuOr, final EOrdStat pStat) throws Exception {
     Set<String> ndFl = new HashSet<String>();
     String tbn = CuOrSeGdLn.class.getSimpleName();
     ndFl.add("itsId");
@@ -290,8 +291,11 @@ public class CncOrd<RS> implements ICncOrd {
         }
       }
     }
-    pCuOr.setStat(EOrdStat.CANCELED);
+    pCuOr.setStat(pStat);
+    String[] fieldsNames = new String[] {"itsId", "itsVersion", "stat"};
+    pRqVs.put("fieldsNames", fieldsNames);
     getSrvOrm().updateEntity(pRqVs, pCuOr);
+    pRqVs.remove("fieldsNames");
   }
 
   //Simple getters and setters:

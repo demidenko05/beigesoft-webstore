@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.HashSet;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.net.URL;
 
 import org.beigesoft.model.IRequestData;
@@ -72,21 +73,6 @@ public class PrcItemPage<RS> implements IProcessor {
   private ISrvShoppingCart srvCart;
 
   /**
-   * <p>I18N query goods specifics for goods.</p>
-   **/
-  private String querySpecificsGoodsDetailI18n;
-
-  /**
-   * <p>I18N query service specifics for service.</p>
-   **/
-  private String querySpecificsServiceDetailI18n;
-
-  /**
-   * <p>I18N query SeGoods specifics for SeGoods.</p>
-   **/
-  private String querySpecificsSeGoodsDetailI18n;
-
-  /**
    * <p>I18N query item specifics.</p>
    **/
   private String quItSpDeIn;
@@ -112,7 +98,9 @@ public class PrcItemPage<RS> implements IProcessor {
     OnlineBuyer buyr;
     if (cart != null) {
       buyr = cart.getBuyer();
-      if (cart.getItems() != null) {
+      if (cart.getTot().compareTo(BigDecimal.ZERO) == 0) {
+        pRqDt.setAttribute("cart", null);
+      } else {
         for (CartLn ci : cart.getItems()) {
           if (!ci.getDisab() && ci.getItId().equals(itemId)
             && ci.getItTyp().toString().equals(itemTypeStr)) {
@@ -141,9 +129,12 @@ public class PrcItemPage<RS> implements IProcessor {
       throw new Exception(
         "Detail page not yet implemented for item type: " + itemTypeStr);
     }
-    String listFltAp = new String(pRqDt.getParameter("listFltAp")
-      .getBytes("ISO-8859-1"), "UTF-8");
+    String listFltAp = pRqDt.getParameter("listFltAp");
+    String listFltApt = new String(listFltAp.getBytes("ISO-8859-1"), "UTF-8");
+    //for Jetty:
     pRqDt.setAttribute("listFltAp", listFltAp);
+    //for Tomcat 7:
+    pRqDt.setAttribute("listFltApt", listFltApt);
   }
 
   /**
@@ -345,14 +336,17 @@ public class PrcItemPage<RS> implements IProcessor {
       if (!lang.equals(langDef)) {
         String qd;
         if (pItemSpecCl == GoodsSpecifics.class) {
-          qd = lazyGetQuerySpecificsGoodsDetailI18n()
-            .replace(":ITEMID", pItemId.toString()).replace(":LANG", lang);
+          qd = lazyGetQuItSpDeIn().replace(":TITSPEC", "GOODSSPECIFICS")
+            .replace(":TITEM", "SESERVICE").replace(":T18NIT", "I18NSESERVICE")
+              .replace(":ITEMID", pItemId.toString()).replace(":LANG", lang);
         } else if (pItemSpecCl == ServiceSpecifics.class) {
-          qd = lazyGetQuerySpecificsServiceDetailI18n()
-            .replace(":ITEMID", pItemId.toString()).replace(":LANG", lang);
+          qd = lazyGetQuItSpDeIn().replace(":TITSPEC", "SERVICESPECIFICS")
+            .replace(":TITEM", "SESERVICE").replace(":T18NIT", "I18NSESERVICE")
+              .replace(":ITEMID", pItemId.toString()).replace(":LANG", lang);
         } else if (pItemSpecCl == SeGoodsSpecifics.class) {
-          qd = lazyGetQuerySpecificsSeGoodsDetailI18n()
-            .replace(":ITEMID", pItemId.toString()).replace(":LANG", lang);
+          qd = lazyGetQuItSpDeIn().replace(":TITSPEC", "SEGOODSSPECIFICS")
+            .replace(":TITEM", "SESERVICE").replace(":T18NIT", "I18NSESERVICE")
+              .replace(":ITEMID", pItemId.toString()).replace(":LANG", lang);
         } else if (pItemSpecCl == SeServiceSpecifics.class) {
           qd = lazyGetQuItSpDeIn().replace(":TITSPEC", "SESERVICESPECIFICS")
             .replace(":TITEM", "SESERVICE").replace(":T18NIT", "I18NSESERVICE")
@@ -375,48 +369,6 @@ public class PrcItemPage<RS> implements IProcessor {
     pRqVs.remove("SpecificsOfItemGroupneededFields");
     pRqVs.remove("HtmlTemplateneededFields");
     return result;
-  }
-
-  /**
-   * <p>Lazy Get querySpecificsGoodsDetailI18n.</p>
-   * @return String
-   * @throws Exception - an exception
-   **/
-  public final String
-    lazyGetQuerySpecificsGoodsDetailI18n() throws Exception {
-    if (this.querySpecificsGoodsDetailI18n == null) {
-      String flName = "/webstore/specificsGoodsDetailI18n.sql";
-      this.querySpecificsGoodsDetailI18n = loadString(flName);
-    }
-    return this.querySpecificsGoodsDetailI18n;
-  }
-
-  /**
-   * <p>Lazy Get querySpecificsSeGoodsDetailI18n.</p>
-   * @return String
-   * @throws Exception - an exception
-   **/
-  public final String
-    lazyGetQuerySpecificsSeGoodsDetailI18n() throws Exception {
-    if (this.querySpecificsSeGoodsDetailI18n == null) {
-      String flName = "/webstore/seGdSpecDetI18n.sql";
-      this.querySpecificsSeGoodsDetailI18n = loadString(flName);
-    }
-    return this.querySpecificsSeGoodsDetailI18n;
-  }
-
-  /**
-   * <p>Lazy Get querySpecificsServiceDetailI18n.</p>
-   * @return String
-   * @throws Exception - an exception
-   **/
-  public final String
-    lazyGetQuerySpecificsServiceDetailI18n() throws Exception {
-    if (this.querySpecificsServiceDetailI18n == null) {
-      String flName = "/webstore/serviceSpecificsDetailI18n.sql";
-      this.querySpecificsServiceDetailI18n = loadString(flName);
-    }
-    return this.querySpecificsServiceDetailI18n;
   }
 
   /**

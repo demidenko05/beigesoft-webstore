@@ -782,8 +782,11 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     //it must be at least one item to add forced service:
     boolean crtEmpty = true;
     CartLn clFrc = null;
+    CartLn clEm = null;
     for (CartLn cl : pCartLn.getItsOwner().getItems()) {
-      if (!cl.getDisab() && cl.getForc()) {
+      if (cl.getDisab()) {
+        clEm = cl;
+      } else if (!cl.getDisab() && cl.getForc()) {
         clFrc = cl;
       } else if (!cl.getDisab() && !cl.getForc()) {
         crtEmpty = false;
@@ -817,8 +820,12 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       }
     } else {
       if (clFrc == null) {
-        clFrc = new CartLn();
-        clFrc.setIsNew(true);
+        if (clEm == null) {
+          clFrc = new CartLn();
+          clFrc.setIsNew(true);
+        } else {
+          clFrc = clEm;
+        }
         clFrc.setItsOwner(pCartLn.getItsOwner());
         pCartLn.getItsOwner().getItems().add(clFrc);
         clFrc.setSel(null);

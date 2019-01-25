@@ -221,13 +221,17 @@ public class PrcCheckOut<RS> implements IProcessor {
       pRqDt.setAttribute("sorders", pur.getSords());
       String listFltAp = pRqDt.getParameter("listFltAp");
       if (listFltAp != null) {
-        listFltAp = new String(listFltAp.getBytes("ISO-8859-1"), "UTF-8");
+        String listFltApt = new String(listFltAp.getBytes("ISO-8859-1"),
+          "UTF-8");
         pRqDt.setAttribute("listFltAp", listFltAp);
+        pRqDt.setAttribute("listFltApt", listFltApt);
       }
       String itFltAp = pRqDt.getParameter("itFltAp");
       if (itFltAp != null) {
-        itFltAp = new String(itFltAp.getBytes("ISO-8859-1"), "UTF-8");
+        String itFltApt = new String(itFltAp.getBytes("ISO-8859-1"),
+          "UTF-8");
         pRqDt.setAttribute("itFltAp", itFltAp);
+        pRqDt.setAttribute("itFltApt", itFltApt);
       }
     }
   }

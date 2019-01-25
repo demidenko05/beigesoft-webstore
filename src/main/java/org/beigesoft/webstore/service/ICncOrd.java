@@ -15,7 +15,6 @@ package org.beigesoft.webstore.service;
 import java.util.Map;
 
 import org.beigesoft.webstore.model.EOrdStat;
-import org.beigesoft.webstore.model.Purch;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
 import org.beigesoft.webstore.persistable.CustOrder;
 import org.beigesoft.webstore.persistable.CuOrSe;
@@ -36,33 +35,6 @@ public interface ICncOrd {
    * It changes item's availability and orders status to given NEW or CANCELED.
    * </p>
    * @param pRqVs additional request scoped parameters
-   * @param pPurch orders for single purchase
-   * @param pStat NEW or CANCELED
-   * @throws Exception - an exception
-   **/
-  void cancel(Map<String, Object> pRqVs, Purch pPurch,
-    EOrdStat pStat) throws Exception;
-
-  /**
-   * <p>It cancels all given buyer's orders.
-   * For example buyer had not paid online after accepting (booking) orders.
-   * It changes item's availability and orders status to given NEW or CANCELED.
-   * </p>
-   * @param pRqVs additional request scoped parameters
-   * @param pBuyr buyer
-   * @param pStFr usually BOOKED
-   * @param pStTo usually NEW
-   * @throws Exception - an exception
-   **/
-  void cancel(Map<String, Object> pRqVs, OnlineBuyer pBuyr,
-    EOrdStat pStFr, EOrdStat pStTo) throws Exception;
-
-  /**
-   * <p>It cancels all given buyer's orders.
-   * For example buyer had not paid online after accepting (booking) orders.
-   * It changes item's availability and orders status to given NEW or CANCELED.
-   * </p>
-   * @param pRqVs additional request scoped parameters
    * @param pBuyr buyer
    * @param pPurId purchase ID
    * @param pStFr usually BOOKED
@@ -76,15 +48,19 @@ public interface ICncOrd {
    * <p>It cancels given buyer's order.</p>
    * @param pRqVs additional request scoped parameters
    * @param pCuOr order
+   * @param pStat NEW or CANCELED
    * @throws Exception - an exception
    **/
-  void cancel(Map<String, Object> pRqVs, CustOrder pCuOr) throws Exception;
+  void cancel(Map<String, Object> pRqVs, CustOrder pCuOr,
+    EOrdStat pStat) throws Exception;
 
   /**
    * <p>It cancels given buyer's S.E.order.</p>
    * @param pRqVs additional request scoped parameters
    * @param pCuOr order
+   * @param pStat NEW or CANCELED
    * @throws Exception - an exception
    **/
-  void cancel(Map<String, Object> pRqVs, CuOrSe pCuOr) throws Exception;
+  void cancel(Map<String, Object> pRqVs, CuOrSe pCuOr,
+    EOrdStat pStat) throws Exception;
 }

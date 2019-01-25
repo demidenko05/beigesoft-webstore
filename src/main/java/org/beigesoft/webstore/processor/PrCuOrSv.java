@@ -81,7 +81,7 @@ public class PrCuOrSv<RS> implements IEntityProcessor<CustOrder, Long> {
           throw new ExceptionWithCode(ExceptionWithCode.FORBIDDEN,
             "Wrong action CO for status ! " + act + "/" + oco.getStat());
         }
-        this.cncOrd.cancel(pRqVs, oco);
+        this.cncOrd.cancel(pRqVs, oco, EOrdStat.CANCELED);
         isNdUp = false;
       } else if ("pyd".equals(act)) {
         if (!oco.getStat().equals(EOrdStat.BOOKED)) {
