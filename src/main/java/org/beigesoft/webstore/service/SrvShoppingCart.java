@@ -1147,7 +1147,14 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       List<BuyerPriceCategory> buyerPrCats = getSrvOrm()
         .retrieveListWithConditions(pRqVs, BuyerPriceCategory.class,
           "where BUYER=" + pBuyer.getItsId());
-      if (buyerPrCats.size() > 0) {
+      if (buyerPrCats.size() > 1) {
+        this.logger.error(pRqVs, SrvShoppingCart.class,
+          "Several price category for same buyer! buyer ID="
+            + pBuyer.getItsId());
+        throw new ExceptionWithCode(ExceptionWithCode.CONFIGURATION_MISTAKE,
+          "several_price_category_for_same_buyer");
+      }
+      if (buyerPrCats.size() == 1) {
         if (pItType.equals(EShopItemType.GOODS)
           || pItType.equals(EShopItemType.SERVICE)) {
           query = lazyGetQuItemPriceCat();
@@ -1162,18 +1169,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         query = query.replace(":TI18NITEM", itemI18nCl.getSimpleName()
           .toUpperCase());
         StringBuffer pccnd = new StringBuffer("");
-        if (buyerPrCats.size() == 1) {
-          pccnd.append("=" + buyerPrCats.get(0).getPriceCategory().getItsId());
-        } else {
-          for (BuyerPriceCategory bpc : buyerPrCats) {
-            if (pccnd.length() == 0) {
-              pccnd.append(" in (" + bpc.getPriceCategory().getItsId());
-            } else {
-              pccnd.append(", " + bpc.getPriceCategory().getItsId());
-            }
-          }
-          pccnd.append(")");
-        }
+        pccnd.append("=" + buyerPrCats.get(0).getPriceCategory().getItsId());
         query = query.replace(":PRCATIDCOND", pccnd);
         itPrice = (AItemPrice<?, ?>) getSrvOrm().retrieveEntity(pRqVs,
           itemPriceCl, query);
@@ -1635,7 +1631,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    * <p>Geter for logger.</p>
    * @return ILogger
    **/
-  public final synchronized ILogger getLogger() {
+  public final ILogger getLogger() {
     return this.logger;
   }
 
@@ -1643,7 +1639,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    * <p>Setter for logger.</p>
    * @param pLogger reference
    **/
-  public final synchronized void setLogger(final ILogger pLogger) {
+  public final void setLogger(final ILogger pLogger) {
     this.logger = pLogger;
   }
 

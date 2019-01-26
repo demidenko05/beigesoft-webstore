@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns="http://maven.apache.org/XDOC/2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+
+  <properties>
+    <title>Beigesoft™ web-store.</title>
+   </properties>
+
+  <body>
+
+    <section name="Bob's web-store example.">
+      <h4>Bob's pizza web-store example. Part 3, prices depend on buyer.</h4>
+        <p>* these features are available since 1.1.8 version (in source code right now).</p>
+
+        <p>To make different prices for different buyers you should open <b>menu -> Admin -> Webstore-admin</b> then:
+          <ul>
+            <li>set in "... -> Trading settings - Is use price for customer method" to "Yes"</li>
+            <li>add price category in <b>Pricing</b> with name "Silver buyers", "Items price category = All goods and services", No default/retail, "Buyers price category" is useless here:
+              <p align="center"><img alt="Beige-Webstore settings" style="max-width: 100%" src="images/wsprice1.png" /></p>
+            </li>
+            <li>add this "silver buyers" into Price categories for buyers in <b>Pricing</b>, e.g. for buyer Dilon Smith:
+              <p align="center"><img alt="Beige-Webstore settings" style="max-width: 100%" src="images/wsprice2.png" /></p>
+            </li>
+            <li>then add prices for goods/services, e.g. seller Yoga Teacher price for uniform:
+              <p align="center"><img alt="Beige-Webstore settings" style="max-width: 100%" src="images/wsprice3.png" /></p>
+            </li>
+          </ul>
+        </p>
+        <p>
+          As a result prices for registered user with "Silver price category" and newbie (just clear cookie cBuyerId and buSeId) are different:
+          <p align="center"><img alt="Beige-Webstore settings" style="max-width: 100%" src="images/wsprice4.png" /></p>
+          <p align="center"><img alt="Beige-Webstore settings" style="max-width: 100%" src="images/wsprice5.png" /></p>
+        </p>
+
+    </section>
+
+  </body>
+
+</document>

@@ -65,6 +65,7 @@ alter table TRADINGSETTINGS add column TXDESTS tinyint not null default 0;
 alter table SERVICEPLACE add column ISALWAYS tinyint not null default 0;
 alter table SESERVICEPLACE add column ISALWAYS tinyint not null default 0;
 alter table SEGOODSPLACE add column ISALWAYS tinyint not null default 0;
+alter table PRICECATEGORY add column DFOL tinyint not null default 0;
 drop table CUSTOMERORDERTAXLINE;
 drop table CUSTOMERORDERSESERVICE;
 drop table CUSTOMERORDERSERVICE;

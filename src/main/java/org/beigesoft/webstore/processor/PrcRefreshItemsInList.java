@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Collections;
 import java.math.BigDecimal;
 
+import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.model.IHasIdLongVersionName;
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.comparator.CmprHasVersion;
@@ -69,6 +70,7 @@ import org.beigesoft.webstore.persistable.I18nChooseableSpecifics;
 import org.beigesoft.webstore.persistable.I18nSpecificsOfItem;
 import org.beigesoft.webstore.persistable.I18nSpecificsOfItemGroup;
 import org.beigesoft.webstore.persistable.I18nSpecificInList;
+import org.beigesoft.webstore.persistable.PriceCategory;
 
 /**
  * <p>Service that refresh webstore item in ItemInList according current
@@ -105,6 +107,10 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
   public final void process(final Map<String, Object> pReqVars,
     final IRequestData pRequestData) throws Exception {
     retrieveStartData(pReqVars);
+    List<PriceCategory> defPcs = this.srvOrm.retrieveListWithConditions(pReqVars, PriceCategory.class, "where DFOL=1");
+    if (defPcs.size() != 1) {
+      throw new ExceptionWithCode(ExceptionWithCode.CONFIGURATION_MISTAKE, "where_is_no_only_default_online_price_category");
+    }
     SettingsAdd settingsAdd = (SettingsAdd) pReqVars.get("setAdd");
     TradingSettings tradSet = (TradingSettings) pReqVars.get("tradSet");
     GoodsInListLuv goodsInListLuv = (GoodsInListLuv) pReqVars.get("goodsInListLuv");
@@ -121,9 +127,9 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
     goodsSpecificsLst = null;
     List<PriceGoods> goodsPriceLst;
     if (refreshAll != null) {
-      goodsPriceLst = retrieveItemPriceLst(pReqVars, null, PriceGoods.class);
+      goodsPriceLst = retrieveItemPriceLst(pReqVars, null, PriceGoods.class, defPcs.get(0).getItsId());
     } else {
-      goodsPriceLst = retrieveItemPriceLst(pReqVars, goodsInListLuv.getGoodsPriceLuv(), PriceGoods.class);
+      goodsPriceLst = retrieveItemPriceLst(pReqVars, goodsInListLuv.getGoodsPriceLuv(), PriceGoods.class, defPcs.get(0).getItsId());
     }
     updateForItemPriceList(pReqVars, goodsPriceLst, settingsAdd, goodsInListLuv, EShopItemType.GOODS);
     pRequestData.setAttribute("totalUpdatedGdPr", goodsPriceLst.size());
@@ -148,9 +154,9 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
     serviceSpecificsLst = null;
     List<ServicePrice> servicePriceLst;
     if (refreshAll != null) {
-      servicePriceLst = retrieveItemPriceLst(pReqVars, null, ServicePrice.class);
+      servicePriceLst = retrieveItemPriceLst(pReqVars, null, ServicePrice.class, defPcs.get(0).getItsId());
     } else {
-      servicePriceLst = retrieveItemPriceLst(pReqVars, goodsInListLuv.getServicePriceLuv(), ServicePrice.class);
+      servicePriceLst = retrieveItemPriceLst(pReqVars, goodsInListLuv.getServicePriceLuv(), ServicePrice.class, defPcs.get(0).getItsId());
     }
     updateForItemPriceList(pReqVars, servicePriceLst, settingsAdd, goodsInListLuv, EShopItemType.SERVICE);
     pRequestData.setAttribute("totalUpdatedServPr", servicePriceLst.size());
@@ -175,9 +181,9 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
     seGoodSpecificsLst = null;
     List<SeGoodsPrice> seGoodPriceLst;
     if (refreshAll != null) {
-      seGoodPriceLst = retrieveItemPriceLst(pReqVars, null, SeGoodsPrice.class);
+      seGoodPriceLst = retrieveItemPriceLst(pReqVars, null, SeGoodsPrice.class, defPcs.get(0).getItsId());
     } else {
-      seGoodPriceLst = retrieveItemPriceLst(pReqVars, goodsInListLuv.getSeGoodPriceLuv(), SeGoodsPrice.class);
+      seGoodPriceLst = retrieveItemPriceLst(pReqVars, goodsInListLuv.getSeGoodPriceLuv(), SeGoodsPrice.class, defPcs.get(0).getItsId());
     }
     updateForItemPriceList(pReqVars, seGoodPriceLst, settingsAdd, goodsInListLuv, EShopItemType.SEGOODS);
     pRequestData.setAttribute("totalUpdatedSeGoodPr", seGoodPriceLst.size());
@@ -202,9 +208,9 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
     seServiceSpecificsLst = null;
     List<SeServicePrice> seServicePriceLst;
     if (refreshAll != null) {
-      seServicePriceLst = retrieveItemPriceLst(pReqVars, null, SeServicePrice.class);
+      seServicePriceLst = retrieveItemPriceLst(pReqVars, null, SeServicePrice.class, defPcs.get(0).getItsId());
     } else {
-      seServicePriceLst = retrieveItemPriceLst(pReqVars, goodsInListLuv.getSeServicePriceLuv(), SeServicePrice.class);
+      seServicePriceLst = retrieveItemPriceLst(pReqVars, goodsInListLuv.getSeServicePriceLuv(), SeServicePrice.class, defPcs.get(0).getItsId());
     }
     updateForItemPriceList(pReqVars, seServicePriceLst, settingsAdd, goodsInListLuv, EShopItemType.SESERVICE);
     pRequestData.setAttribute("totalUpdatedSeServicePr", seServicePriceLst.size());
@@ -374,22 +380,22 @@ public class PrcRefreshItemsInList<RS> implements IProcessor {
    * @param pReqVars additional param
    * @param pLuv last updated version or null for all
    * @param pItemPriceCl Item Price Class
+   * @param pPrCatId default online price category ID
    * @return Outdated item price list
    * @throws Exception - an exception
    **/
   public final <T extends AItemPrice<?, ?>> List<T> retrieveItemPriceLst(
-    final Map<String, Object> pReqVars, final Long pLuv, final Class<T> pItemPriceCl) throws Exception {
+    final Map<String, Object> pReqVars, final Long pLuv, final Class<T> pItemPriceCl,
+      final Long pPrCatId) throws Exception {
     List<T> result = null;
     try {
       this.srvDatabase.setIsAutocommit(false);
       this.srvDatabase.setTransactionIsolation(ISrvDatabase.TRANSACTION_READ_UNCOMMITTED);
       this.srvDatabase.beginTransaction();
       String tblNm = pItemPriceCl.getSimpleName().toUpperCase();
-      String verCond;
+      String verCond = "where PRICECATEGORY=" + pPrCatId;
       if (pLuv != null) {
-        verCond = " where " + tblNm + ".ITSVERSION>" + pLuv.toString();
-      } else {
-        verCond = "";
+        verCond += " and " + tblNm + ".ITSVERSION>" + pLuv.toString();
       }
       result = getSrvOrm().retrieveListWithConditions(pReqVars, pItemPriceCl, verCond + " order by " + tblNm + ".ITSVERSION");
       this.srvDatabase.commitTransaction();

@@ -26,6 +26,9 @@ import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.accounting.persistable.ServiceToSale;
+import org.beigesoft.accounting.persistable.Currency;
+import org.beigesoft.accounting.persistable.TaxDestination;
+import org.beigesoft.accounting.persistable.AccSettings;
 import org.beigesoft.webstore.model.EShopItemType;
 import org.beigesoft.webstore.model.ESpecificsItemType;
 import org.beigesoft.webstore.persistable.base.AItemSpecifics;
@@ -101,6 +104,17 @@ public class PrcItemPage<RS> implements IProcessor {
       if (cart.getTot().compareTo(BigDecimal.ZERO) == 0) {
         pRqDt.setAttribute("cart", null);
       } else {
+        AccSettings as = (AccSettings) pRqVs.get("accSet");
+        Currency curr = (Currency) pRqVs.get("wscurr");
+        if (!cart.getCurr().getItsId().equals(curr.getItsId())) {
+          cart.setCurr(curr);
+          this.srvCart.handleCurrencyChanged(pRqVs, cart, as, ts);
+        }
+        if (pRqDt.getAttribute("txRules") == null) {
+          TaxDestination txRules = this.srvCart
+            .revealTaxRules(pRqVs, cart, as);
+          pRqDt.setAttribute("txRules", txRules);
+        }
         for (CartLn ci : cart.getItems()) {
           if (!ci.getDisab() && ci.getItId().equals(itemId)
             && ci.getItTyp().toString().equals(itemTypeStr)) {

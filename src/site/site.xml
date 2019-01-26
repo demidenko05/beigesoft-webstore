@@ -14,6 +14,7 @@
       <item name="Specification Beigesoft Web Store" href="web-store.html" />
       <item name="Bob's Pizza Web Store example. Part 1, catalog." href="bobs-webstore.html" />
       <item name="Bob's Pizza Web Store example. Part 2, cart checkout, forced delivering (shipping)." href="bobs-ws-chou.html" />
+      <item name="Bob's Pizza Web Store example. Part 3, prices depend on buyer." href="bobs-ws-prc.html" />
       <item name="Web Store general specification" href="web-store.html" />
     </menu>
   </body>

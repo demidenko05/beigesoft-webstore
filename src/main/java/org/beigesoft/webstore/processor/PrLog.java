@@ -254,7 +254,7 @@ public class PrLog<RS> implements IProcessor {
     pRqDt.setCookieValue("cBuyerId", pBuyr.getItsId().toString());
     pRqDt.setAttribute("buyr", pBuyr);
     Cart oldCrt = this.srvOrm.retrieveEntityById(pRqVs, Cart.class, pBuTmp);
-    if (oldCrt.getTot().compareTo(BigDecimal.ZERO) == 1) {
+    if (oldCrt != null && oldCrt.getTot().compareTo(BigDecimal.ZERO) == 1) {
       Long obid = pBuTmp.getItsId();
       ColumnsValues cvs = new ColumnsValues();
       cvs.setIdColumnsNames(new String[] {"itsId"});

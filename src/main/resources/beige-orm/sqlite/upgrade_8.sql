@@ -68,4 +68,5 @@ alter table TRADINGSETTINGS add column TXDESTS integer not null default 0;
 alter table SERVICEPLACE add column ISALWAYS integer not null default 0;
 alter table SEGOODSPLACE add column ISALWAYS integer not null default 0;
 alter table SESERVICEPLACE add column ISALWAYS integer not null default 0;
+alter table PRICECATEGORY add column DFOL integer not null default 0;
 update DATABASEINFO set DATABASEVERSION=8, DESCRIPTION='Beige Accounting OIO DB version 8';

@@ -44,6 +44,11 @@ public class PriceCategory extends AHasNameIdLongVersion {
    **/
   private Boolean isRetailOnly = false;
 
+  /**
+   * <p>If default online.</p>
+   **/
+  private Boolean dfOl = false;
+
   //Simple getters and setters:
   /**
    * <p>Getter for priceCategoryOfItems.</p>
@@ -110,5 +115,21 @@ public class PriceCategory extends AHasNameIdLongVersion {
    **/
   public final void setIsRetailOnly(final Boolean pIsRetailOnly) {
     this.isRetailOnly = pIsRetailOnly;
+  }
+
+  /**
+   * <p>Getter for dfOl.</p>
+   * @return Boolean
+   **/
+  public final Boolean getDfOl() {
+    return this.dfOl;
+  }
+
+  /**
+   * <p>Setter for dfOl.</p>
+   * @param pDfOl reference
+   **/
+  public final void setDfOl(final Boolean pDfOl) {
+    this.dfOl = pDfOl;
   }
 }
