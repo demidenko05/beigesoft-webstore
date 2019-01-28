@@ -10,7 +10,7 @@
   <body>
 
     <section name="Bob's web-store example.">
-      <h4>Bob's pizza web-store example. Part 3, prices depend on buyer.</h4>
+      <h4>Bob's pizza web-store example. Part 3, prices depend on buyer, prices in foreign currency.</h4>
         <p>* these features are available since 1.1.8 version (in source code right now).</p>
 
         <p>To make different prices for different buyers you should open <b>menu -> Admin -> Webstore-admin</b> then:
@@ -33,6 +33,18 @@
           <p align="center"><img alt="Beige-Webstore settings" style="max-width: 100%" src="images/wsprice5.png" /></p>
         </p>
 
+        <h4>Prices in foreign currency</h4>
+        <p>It's used "Currency rates" in "menu -> webstore admin -> catalog g/s" .
+          Base currency is in "Accounting settings". Foreign price = price in base currency * currency rate.
+          Exchange rate might has huge decimal places, e.g. 1USD=61.12RUB, base currency RUB, so rate is "0.0163612565445".
+          To handle such rates just use negative value, i.e. "-61.12" in that case, application itself makes rate = 1/61.12.
+          Example of exchange rates (base currency USD):
+          <p align="center"><img alt="Beige-Webstore settings" style="max-width: 100%" src="images/wsprice6.png" /></p>
+          Buyer can opts preferred currency in language (and others) preferences:
+          <p align="center"><img alt="Beige-Webstore settings" style="max-width: 100%" src="images/wsprice7.png" /></p>
+          Result list is:
+          <p align="center"><img alt="Beige-Webstore settings" style="max-width: 100%" src="images/wsprice8.png" /></p>
+        </p>
     </section>
 
   </body>

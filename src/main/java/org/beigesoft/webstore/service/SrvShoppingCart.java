@@ -52,7 +52,6 @@ import org.beigesoft.accounting.persistable.base.AItem;
 import org.beigesoft.accounting.persistable.base.ADestTaxItemLn;
 import org.beigesoft.webstore.model.EShopItemType;
 import org.beigesoft.webstore.model.EPaymentMethod;
-import org.beigesoft.webstore.model.EDelivering;
 import org.beigesoft.webstore.persistable.base.AItemPrice;
 import org.beigesoft.webstore.persistable.IHasSeSeller;
 import org.beigesoft.webstore.persistable.CartItTxLn;
@@ -176,7 +175,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
   public final Cart getShoppingCart(final Map<String, Object> pRqVs,
     final IRequestData pRqDt, final boolean pIsNeedToCreate,
       final boolean pIsBuAuth) throws Exception {
-    OnlineBuyer buyer;
+    OnlineBuyer buyer = null;
     boolean burNew = false;
     if (pIsBuAuth) {
       buyer = this.buySr.getAuthBuyr(pRqVs, pRqDt);
@@ -200,7 +199,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     TradingSettings ts = srvTradingSettings.lazyGetTradingSettings(pRqVs);
     pRqDt.setAttribute("buyr", buyer);
     Cart cart = (Cart) pRqDt.getAttribute("cart");
-    if (cart == null) {
+    if (cart == null && buyer !=  null) {
       cart = retrCart(pRqVs, buyer, false);
       if (cart == null && pIsNeedToCreate) {
         cart = new Cart();
@@ -595,125 +594,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       }
     }
     if (clf != null) {
-      hndLineChan(pRqVs, clf, txRules);
-    }
-  }
-
-  /**
-   * <p>Handle event cart delivering method changed.
-   * It will also updates cart.</p>
-   * @param pRqVs request scoped vars
-   * @param pCart cart
-   * @param pDeliv delivering
-   * @param pTxRules Tax Rules
-   * @throws Exception - an exception.
-   **/
-  @Override
-  public final void hndDelivChan(final Map<String, Object> pRqVs,
-    final Cart pCart, final EDelivering pDeliv,
-      final TaxDestination pTxRules) throws Exception {
-    @SuppressWarnings("unchecked")
-    List<Deliv> dlvMts = (List<Deliv>) pRqVs.get("dlvMts");
-    Deliv oldDl = null;
-    Deliv newDl = null;
-    for (Deliv dl : dlvMts) {
-      if (dl.getItsId().equals(pDeliv)) {
-        newDl = dl;
-      }
-      if (dl.getItsId().equals(pCart.getDeliv())) {
-        oldDl = dl;
-      }
-    }
-    pCart.setDeliv(pDeliv);
-    if (oldDl.getFrcSr() == null && newDl.getFrcSr() == null) {
-      this.srvOrm.updateEntity(pRqVs, pCart);
-    } else {
-      //it must be at least one item to add forced service:
-      boolean crtEmpty = true;
-      CartLn clEm = null;
-      for (CartLn cl : pCart.getItems()) {
-        if (cl.getDisab()) {
-          if (clEm == null) {
-            clEm = cl;
-          }
-        } else if (!cl.getDisab() && cl.getForc()) {
-          clEm = cl;
-        } else if (!cl.getDisab() && !cl.getForc()) {
-          crtEmpty = false;
-        }
-      }
-      TradingSettings ts = (TradingSettings) pRqVs.get("tradSet");
-      if (!crtEmpty && newDl.getFrcSr() != null) {
-        if (clEm == null) {
-          clEm = new CartLn();
-          clEm.setIsNew(true);
-          clEm.setItsOwner(pCart);
-          pCart.getItems().add(clEm);
-        }
-        clEm.setSel(null);
-        clEm.setForc(true);
-        clEm.setDisab(false);
-        clEm.setItTyp(EShopItemType.SERVICE);
-        clEm.setItId(newDl.getFrcSr().getItsId());
-        clEm.setItsName(newDl.getFrcSr().getItsName());
-        clEm.setUom(newDl.getFrcSr().getDefUnitOfMeasure());
-        clEm.setAvQuan(BigDecimal.ONE);
-        clEm.setQuant(BigDecimal.ONE);
-        clEm.setUnStep(BigDecimal.ONE);
-        clEm.setSubt(BigDecimal.ZERO);
-        clEm.setTot(BigDecimal.ZERO);
-        clEm.setTotTx(BigDecimal.ZERO);
-        clEm.setPrice(BigDecimal.ZERO);
-        clEm.setDt1(null);
-        clEm.setDt2(null);
-        clEm.setDescr(null);
-        clEm.setTxDsc(null);
-        clEm.setTxCat(null);
-        if (newDl.getApMt() != null) {
-          //it will be zero delivering price:
-          if (clEm.getIsNew()) {
-            this.srvOrm.insertEntity(pRqVs, clEm);
-            clEm.setIsNew(false);
-          } else {
-            this.srvOrm.updateEntity(pRqVs, clEm);
-          }
-        }
-      } else {
-        if (!clEm.getDisab() && clEm.getForc()) {
-          //disabling forced line:
-          clEm.setDisab(true);
-          this.srvOrm.updateEntity(pRqVs, clEm);
-        }
-        clEm = null;
-      }
-      AccSettings as = (AccSettings) pRqVs.get("accSet");
-      for (CartLn cl : pCart.getItems()) {
-        if (!cl.getDisab() && cl != clEm) {
-          makeCartLine(pRqVs, cl, as, ts, pTxRules, false, false);
-          makeCartTotals(pRqVs, ts, cl, as, pTxRules);
-        }
-      }
-      if (clEm != null) {
-        boolean ndUp = false;
-        if (newDl.getApMt() == null) {
-          ndUp = true;
-        } else {
-          int cartTot;
-          if (pCart.getExcRt().compareTo(BigDecimal.ONE) == 0) {
-            cartTot = pCart.getTot().intValue();
-          } else {
-            cartTot = pCart.getTot().multiply(pCart.getExcRt())
-             .setScale(as.getPricePrecision(), as.getRoundingMode()).intValue();
-          }
-          if (cartTot < newDl.getApMt()) {
-            ndUp = true;
-          }
-        }
-        if (ndUp) {
-          makeCartLine(pRqVs, clEm, as, ts, pTxRules, true, true);
-          makeCartTotals(pRqVs, ts, clEm, as, pTxRules);
-        }
-      }
+      hndCartChan(pRqVs, pCart, txRules);
     }
   }
 
@@ -753,22 +634,21 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
   }
 
   /**
-   * <p>Handle event cart cart line changed/deleted
-   * and redone forced service if need.
-   * It will also updates cart if need.</p>
+   * <p>Handle event cart delivering or line changed
+   * and redone forced service if need.</p>
    * @param pRqVs request scoped vars
-   * @param pCartLn cart line
+   * @param pCart cart
    * @param pTxRules Tax Rules
    * @throws Exception - an exception.
    **/
   @Override
-  public final void hndLineChan(final Map<String, Object> pRqVs,
-    final CartLn pCartLn, final TaxDestination pTxRules) throws Exception {
+  public final void hndCartChan(final Map<String, Object> pRqVs,
+    final Cart pCart, final TaxDestination pTxRules) throws Exception {
     @SuppressWarnings("unchecked")
     List<Deliv> dlvMts = (List<Deliv>) pRqVs.get("dlvMts");
     Deliv cdl = null;
     for (Deliv dl : dlvMts) {
-      if (dl.getItsId().equals(pCartLn.getItsOwner().getDeliv())) {
+      if (dl.getItsId().equals(pCart.getDeliv())) {
         cdl = dl;
         break;
       }
@@ -776,14 +656,11 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     if (cdl == null) {
       throw new Exception("wrong delivering!");
     }
-    if (cdl.getFrcSr() == null || cdl.getApMt() == null) {
-      return;
-    }
     //it must be at least one item to add forced service:
     boolean crtEmpty = true;
     CartLn clFrc = null;
     CartLn clEm = null;
-    for (CartLn cl : pCartLn.getItsOwner().getItems()) {
+    for (CartLn cl : pCart.getItems()) {
       if (cl.getDisab()) {
         clEm = cl;
       } else if (!cl.getDisab() && cl.getForc()) {
@@ -791,6 +668,9 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       } else if (!cl.getDisab() && !cl.getForc()) {
         crtEmpty = false;
       }
+    }
+    if (clFrc == null && cdl.getFrcSr() == null || cdl.getApMt() == null) {
+      return;
     }
     if (crtEmpty) {
       if (clFrc != null) {
@@ -801,11 +681,15 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
     int cartTot;
     AccSettings as = (AccSettings) pRqVs.get("accSet");
     TradingSettings ts = (TradingSettings) pRqVs.get("tradSet");
-    if (pCartLn.getItsOwner().getExcRt().compareTo(BigDecimal.ONE) == 0) {
-      cartTot = pCartLn.getItsOwner().getTot().intValue();
+    BigDecimal ct = pCart.getTot();
+    if (clFrc != null && clFrc.getTot().compareTo(BigDecimal.ZERO) == 1) {
+      ct = ct.subtract(clFrc.getTot());
+    }
+    if (pCart.getExcRt().compareTo(BigDecimal.ONE) == 0) {
+      cartTot = ct.intValue();
     } else {
-      cartTot = pCartLn.getItsOwner().getTot().multiply(pCartLn.getItsOwner()
-.getExcRt()).setScale(as.getPricePrecision(), as.getRoundingMode()).intValue();
+      cartTot = ct.divide(pCart.getExcRt(), as.getPricePrecision(),
+        as.getRoundingMode()).intValue();
     }
     if (cartTot >= cdl.getApMt()) {
       if (clFrc != null && clFrc.getTot().compareTo(BigDecimal.ZERO) == 1) {
@@ -823,11 +707,11 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         if (clEm == null) {
           clFrc = new CartLn();
           clFrc.setIsNew(true);
+          clFrc.setItsOwner(pCart);
+          pCart.getItems().add(clFrc);
         } else {
           clFrc = clEm;
         }
-        clFrc.setItsOwner(pCartLn.getItsOwner());
-        pCartLn.getItsOwner().getItems().add(clFrc);
         clFrc.setSel(null);
         clFrc.setForc(true);
         clFrc.setDisab(false);
@@ -1012,14 +896,6 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
       getSrvOrm().insertEntity(pRqVs, pCartLn);
     } else {
       getSrvOrm().updateEntity(pRqVs, pCartLn);
-      for (int i = 0; i < pCartLn.getItsOwner().getItems().size(); i++) {
-        if (pCartLn.getItsOwner().getItems().get(i).getItId()
-          .equals(pCartLn.getItId()) && pCartLn.getItsOwner().getItems().get(i)
-            .getItTyp().equals(pCartLn.getItTyp())) {
-          pCartLn.getItsOwner().getItems().set(i, pCartLn);
-          break;
-        }
-      }
     }
     if (itls != null) {
       pRqVs.put("CartItTxLnitsOwnerdeepLevel", 1);

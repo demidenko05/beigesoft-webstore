@@ -66,17 +66,20 @@ public class PrCart<RS> implements IProcessor {
         getEnumConstants()[Integer.parseInt(dlvStr)];
       EPaymentMethod payMeth = EPaymentMethod.class.
         getEnumConstants()[Integer.parseInt(payMethStr)];
-      cart.setPayMeth(payMeth);
-      if (dlv != cart.getDeliv()) {
-        AccSettings as = (AccSettings) pRqVs.get("accSet");
-        TaxDestination txRules = this.srvCart.revealTaxRules(pRqVs,
-          cart, as);
-        if (txRules != null) {
-          pRqDt.setAttribute("txRules", txRules);
-        }
-        this.srvCart.hndDelivChan(pRqVs, cart, dlv, txRules);
-      } else {
+      if (dlv != cart.getDeliv() || payMeth != cart.getPayMeth()) {
+        EDelivering dlvOld = cart.getDeliv();
+        cart.setDeliv(dlv);
+        cart.setPayMeth(payMeth);
         this.srvOrm.updateEntity(pRqVs, cart);
+        if (dlv != dlvOld) {
+          AccSettings as = (AccSettings) pRqVs.get("accSet");
+          TaxDestination txRules = this.srvCart.revealTaxRules(pRqVs,
+            cart, as);
+          if (txRules != null) {
+            pRqDt.setAttribute("txRules", txRules);
+          }
+          this.srvCart.hndCartChan(pRqVs, cart, txRules);
+        }
       }
     } //else spam
     //TODO change to servlet redirect???

@@ -89,7 +89,7 @@ public class PrcDelItemFromCart<RS> implements IProcessor {
       TaxDestination txRules = this.srvShoppingCart.revealTaxRules(pRqVs,
         cart, as);
       this.srvShoppingCart.delLine(pRqVs, cartLn, txRules);
-      this.srvShoppingCart.hndLineChan(pRqVs, cartLn, txRules);
+      this.srvShoppingCart.hndCartChan(pRqVs, cart, txRules);
       if (txRules != null) {
         pRqDt.setAttribute("txRules", txRules);
       }

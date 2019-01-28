@@ -18,7 +18,6 @@ import org.beigesoft.model.IRequestData;
 import org.beigesoft.accounting.persistable.AccSettings;
 import org.beigesoft.accounting.persistable.TaxDestination;
 import org.beigesoft.webstore.model.EShopItemType;
-import org.beigesoft.webstore.model.EDelivering;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
 import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.webstore.persistable.CartLn;
@@ -93,27 +92,14 @@ public interface ISrvShoppingCart {
     Cart pCart, AccSettings pAs, TradingSettings pTs) throws Exception;
 
   /**
-   * <p>Handle event cart delivering method changed.
-   * It will also updates cart.</p>
+   * <p>Handle event cart delivering or line changed.</p>
    * @param pRqVs request scoped vars
    * @param pCart cart
-   * @param pDeliv delivering
    * @param pTxRules Tax Rules
    * @throws Exception - an exception.
    **/
-  void hndDelivChan(Map<String, Object> pRqVs, Cart pCart,
-    EDelivering pDeliv, TaxDestination pTxRules) throws Exception;
-
-  /**
-   * <p>Handle event cart cart line changed/deleted.
-   * It will also updates cart if need.</p>
-   * @param pRqVs request scoped vars
-   * @param pCartLn cart line
-   * @param pTxRules Tax Rules
-   * @throws Exception - an exception.
-   **/
-  void hndLineChan(Map<String, Object> pRqVs,
-    CartLn pCartLn, TaxDestination pTxRules) throws Exception;
+  void hndCartChan(Map<String, Object> pRqVs,
+    Cart pCart, TaxDestination pTxRules) throws Exception;
   /**
    * <p>Deletes cart line.</p>
    * @param pRqVs request scoped vars

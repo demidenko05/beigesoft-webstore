@@ -285,7 +285,7 @@ public class PrLog<RS> implements IProcessor {
         }
       }
       if (frCl != null) {
-         this.srvCart.hndLineChan(pRqVs, frCl, txRules);
+         this.srvCart.hndCartChan(pRqVs, cart, txRules);
       }
     }
   }

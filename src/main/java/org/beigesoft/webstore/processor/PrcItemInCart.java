@@ -83,12 +83,12 @@ public class PrcItemInCart<RS> implements IProcessor {
       .revealTaxRules(pRqVs, cart, as);
     EShopItemType itTyp = EShopItemType.class.
       getEnumConstants()[Integer.parseInt(itTypStr)];
-    boolean redoTxc = false;
+    boolean redo = false;
     if (lnIdStr != null) { //change quantity
       Long lnId = Long.valueOf(lnIdStr);
       cartLn = findCartItemById(cart, lnId);
     } else { //add
-      redoTxc = true;
+      redo = true;
       String uomIdStr = pRqDt.getParameter("uomId");
       Long uomId = Long.valueOf(uomIdStr);
       for (CartLn ci : cart.getItems()) {
@@ -132,10 +132,9 @@ public class PrcItemInCart<RS> implements IProcessor {
       } else {
         cartLn.setTot(amount);
       }
-      this.srvCart.makeCartLine(pRqVs, cartLn, as, ts,
-       txRules, false, redoTxc);
+      this.srvCart.makeCartLine(pRqVs, cartLn, as, ts, txRules, redo, redo);
       this.srvCart.makeCartTotals(pRqVs, ts, cartLn, as, txRules);
-      this.srvCart.hndLineChan(pRqVs, cartLn, txRules);
+      this.srvCart.hndCartChan(pRqVs, cart, txRules);
     }
     if (txRules != null) {
       pRqDt.setAttribute("txRules", txRules);
