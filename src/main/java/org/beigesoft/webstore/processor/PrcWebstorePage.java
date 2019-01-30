@@ -57,6 +57,7 @@ import org.beigesoft.webstore.persistable.ItemInList;
 import org.beigesoft.webstore.persistable.TradingSettings;
 import org.beigesoft.webstore.persistable.BuyerPriceCategory;
 import org.beigesoft.webstore.persistable.PriceGoods;
+import org.beigesoft.webstore.persistable.CurrRate;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 import org.beigesoft.webstore.service.ILstnCatalogChanged;
 
@@ -173,6 +174,13 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
         Currency curr = (Currency) pRqVs.get("wscurr");
         if (!cart.getCurr().getItsId().equals(curr.getItsId())) {
           cart.setCurr(curr);
+          List<CurrRate> currRates = (List<CurrRate>) pRqVs.get("currRates");
+          for (CurrRate cr: currRates) {
+            if (cr.getCurr().getItsId().equals(cart.getCurr().getItsId())) {
+              cart.setExcRt(cr.getRate());
+              break;
+            }
+          }
           this.srvShoppingCart.handleCurrencyChanged(pRqVs, cart, as, ts);
         }
         if (pRqDt.getAttribute("txRules") == null) {
@@ -878,12 +886,12 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
     }
     if (pFilterPrice.getValue2() != null) {
       if (EFilterOperator.BETWEEN.equals(pFilterPrice.getOperator())) {
-        return " and ITSPRICE<" + pFilterPrice.getValue1()
-          + " and ITSPRICE>" + pFilterPrice.getValue2();
+        return " and ITSPRICE>" + pFilterPrice.getValue1()
+          + " and ITSPRICE<" + pFilterPrice.getValue2();
       } else if (EFilterOperator.BETWEEN_INCLUDE
         .equals(pFilterPrice.getOperator())) {
-        return " and ITSPRICE<=" + pFilterPrice.getValue1()
-          + " and ITSPRICE>=" + pFilterPrice.getValue2();
+        return " and ITSPRICE>=" + pFilterPrice.getValue1()
+          + " and ITSPRICE<=" + pFilterPrice.getValue2();
       }
     }
     return "";
@@ -950,11 +958,11 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
             || EFilterOperator.GREATER_THAN_EQUAL.equals(flt.getOperator())) {
             sb.append(toSqlOperator(flt.getOperator()) + flt.getValue1());
           } else if (EFilterOperator.BETWEEN.equals(flt.getOperator())) {
-            sb.append(">" + flt.getValue1() + " and LONGVALUE2<"
+            sb.append(">" + flt.getValue1() + " and LONGVALUE1<"
               + flt.getValue2());
           } else if (EFilterOperator.BETWEEN_INCLUDE
             .equals(flt.getOperator())) {
-            sb.append(">=" + flt.getValue1() + " and LONGVALUE2<="
+            sb.append(">=" + flt.getValue1() + " and LONGVALUE1<="
               + flt.getValue2());
           } else {
             throw new Exception(
@@ -971,11 +979,11 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
             || EFilterOperator.GREATER_THAN_EQUAL.equals(flt.getOperator())) {
             sb.append(toSqlOperator(flt.getOperator()) + flt.getValue1());
           } else if (EFilterOperator.BETWEEN.equals(flt.getOperator())) {
-            sb.append(">" + flt.getValue1() + " and NUMERICVALUE2<"
+            sb.append(">" + flt.getValue1() + " and NUMERICVALUE1<"
               + flt.getValue2());
           } else if (EFilterOperator.BETWEEN_INCLUDE
             .equals(flt.getOperator())) {
-            sb.append(">=" + flt.getValue1() + " and NUMERICVALUE2<="
+            sb.append(">=" + flt.getValue1() + " and NUMERICVALUE1<="
               + flt.getValue2());
           } else {
             throw new Exception(

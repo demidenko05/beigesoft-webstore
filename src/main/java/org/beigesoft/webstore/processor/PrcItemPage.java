@@ -47,6 +47,7 @@ import org.beigesoft.webstore.persistable.CartLn;
 import org.beigesoft.webstore.persistable.Cart;
 import org.beigesoft.webstore.persistable.OnlineBuyer;
 import org.beigesoft.webstore.persistable.TradingSettings;
+import org.beigesoft.webstore.persistable.CurrRate;
 import org.beigesoft.webstore.service.ISrvShoppingCart;
 import org.beigesoft.webstore.service.IBuySr;
 
@@ -108,6 +109,13 @@ public class PrcItemPage<RS> implements IProcessor {
         Currency curr = (Currency) pRqVs.get("wscurr");
         if (!cart.getCurr().getItsId().equals(curr.getItsId())) {
           cart.setCurr(curr);
+          List<CurrRate> currRates = (List<CurrRate>) pRqVs.get("currRates");
+          for (CurrRate cr: currRates) {
+            if (cr.getCurr().getItsId().equals(cart.getCurr().getItsId())) {
+              cart.setExcRt(cr.getRate());
+              break;
+            }
+          }
           this.srvCart.handleCurrencyChanged(pRqVs, cart, as, ts);
         }
         if (pRqDt.getAttribute("txRules") == null) {

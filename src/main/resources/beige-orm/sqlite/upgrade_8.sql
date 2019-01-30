@@ -69,4 +69,5 @@ alter table SERVICEPLACE add column ISALWAYS integer not null default 0;
 alter table SEGOODSPLACE add column ISALWAYS integer not null default 0;
 alter table SESERVICEPLACE add column ISALWAYS integer not null default 0;
 alter table PRICECATEGORY add column DFOL integer not null default 0;
+update INVITEM set KNOWNCOST=0 where KNOWNCOST is null;
 update DATABASEINFO set DATABASEVERSION=8, DESCRIPTION='Beige Accounting OIO DB version 8';

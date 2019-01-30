@@ -75,4 +75,5 @@ drop table CUSTOMERORDER;
 drop table CARTTAXLINE;
 drop table CARTITEM;
 drop table SHOPPINGCART;
+update INVITEM set KNOWNCOST=0 where KNOWNCOST is null;
 update DATABASEINFO set DATABASEVERSION=8, DESCRIPTION='Beige Accounting OIO DB version 8';
