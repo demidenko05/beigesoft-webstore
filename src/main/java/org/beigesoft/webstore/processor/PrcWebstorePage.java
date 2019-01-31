@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.log.ILogger;
@@ -166,21 +167,23 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
       cart = this.srvShoppingCart
         .getShoppingCart(pRqVs, pRqDt, false, false);
     }
+    AccSettings as = (AccSettings) pRqVs.get("accSet");
+    Currency curr = (Currency) pRqVs.get("wscurr");
+    List<CurrRate> currRates = (List<CurrRate>) pRqVs.get("currRates");
+    BigDecimal cuRt = BigDecimal.ONE;
+    for (CurrRate cr: currRates) {
+      if (cr.getCurr().getItsId().equals(curr.getItsId())) {
+        cuRt = cr.getRate();
+        break;
+      }
+    }
     if (cart != null) {
       if (cart.getTot().compareTo(BigDecimal.ZERO) == 0) {
         pRqDt.setAttribute("cart", null);
       } else {
-        AccSettings as = (AccSettings) pRqVs.get("accSet");
-        Currency curr = (Currency) pRqVs.get("wscurr");
         if (!cart.getCurr().getItsId().equals(curr.getItsId())) {
           cart.setCurr(curr);
-          List<CurrRate> currRates = (List<CurrRate>) pRqVs.get("currRates");
-          for (CurrRate cr: currRates) {
-            if (cr.getCurr().getItsId().equals(cart.getCurr().getItsId())) {
-              cart.setExcRt(cr.getRate());
-              break;
-            }
-          }
+          cart.setExcRt(cuRt);
           this.srvShoppingCart.handleCurrencyChanged(pRqVs, cart, as, ts);
         }
         if (pRqDt.getAttribute("txRules") == null) {
@@ -228,7 +231,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
           pRqVs, pRqDt);
         List<SpecificsFilter> filtersSpecifics = revialFiltersSpecifics(tcat,
           pRqVs, pRqDt);
-        String whereAdd = revealWhereAdd(filterPrice);
+        String whereAdd = revWhePri(filterPrice, cuRt);
         String whereCatalog = revealWhereCatalog(tcat, filterCatalog);
         //TODO StringBuffer
         String queryg = null;
@@ -868,30 +871,45 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   /**
    * <p>Reveal part of where clause e.g. " and ITSPRICE<21" or empty string.</p>
    * @param pFilterPrice Filter Price
+   * @param pCuRt currency rate
    * @return part of where clause e.g. " and ITSPRICE<21" or empty string
    * @throws Exception an Exception
    **/
-  public final String revealWhereAdd(
-    final FilterInteger pFilterPrice) throws Exception {
+  public final String revWhePri(final FilterInteger pFilterPrice,
+    final BigDecimal pCuRt) throws Exception {
     if (pFilterPrice == null || pFilterPrice.getOperator() == null
       || pFilterPrice.getValue1() == null) {
       return "";
+    }
+    BigDecimal exchRate = pCuRt;
+    if (exchRate.compareTo(BigDecimal.ZERO) == -1) {
+      exchRate = BigDecimal.ONE.divide(exchRate.negate(), 15,
+        RoundingMode.HALF_UP);
+    }
+    int val1 = pFilterPrice.getValue1();
+    if (exchRate.compareTo(BigDecimal.ONE) != 0) {
+      BigDecimal bd = new BigDecimal(val1);
+      bd = bd.divide(exchRate, 0, RoundingMode.HALF_UP);
+      val1 = bd.intValue();
     }
     if (EFilterOperator.LESS_THAN.equals(pFilterPrice.getOperator())
       || EFilterOperator.LESS_THAN_EQUAL.equals(pFilterPrice.getOperator())
       || EFilterOperator.GREATER_THAN.equals(pFilterPrice.getOperator())
     || EFilterOperator.GREATER_THAN_EQUAL.equals(pFilterPrice.getOperator())) {
-      return " and ITSPRICE" + toSqlOperator(pFilterPrice.getOperator())
-        + pFilterPrice.getValue1();
+      return " and ITSPRICE" + toSqlOperator(pFilterPrice.getOperator()) + val1;
     }
     if (pFilterPrice.getValue2() != null) {
+      int val2 = pFilterPrice.getValue2();
+      if (exchRate.compareTo(BigDecimal.ONE) != 0) {
+        BigDecimal bd = new BigDecimal(val2);
+        bd = bd.divide(exchRate, 0, RoundingMode.HALF_UP);
+        val2 = bd.intValue();
+      }
       if (EFilterOperator.BETWEEN.equals(pFilterPrice.getOperator())) {
-        return " and ITSPRICE>" + pFilterPrice.getValue1()
-          + " and ITSPRICE<" + pFilterPrice.getValue2();
+        return " and ITSPRICE>" + val1 + " and ITSPRICE<" + val2;
       } else if (EFilterOperator.BETWEEN_INCLUDE
         .equals(pFilterPrice.getOperator())) {
-        return " and ITSPRICE>=" + pFilterPrice.getValue1()
-          + " and ITSPRICE<=" + pFilterPrice.getValue2();
+        return " and ITSPRICE>=" + val1 + " and ITSPRICE<=" + val2;
       }
     }
     return "";

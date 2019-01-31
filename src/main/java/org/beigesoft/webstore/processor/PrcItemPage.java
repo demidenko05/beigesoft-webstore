@@ -151,12 +151,12 @@ public class PrcItemPage<RS> implements IProcessor {
       throw new Exception(
         "Detail page not yet implemented for item type: " + itemTypeStr);
     }
-    String listFltAp = pRqDt.getParameter("listFltAp");
-    String listFltApt = new String(listFltAp.getBytes("ISO-8859-1"), "UTF-8");
+    String ctNm = pRqDt.getParameter("ctNm");
+    String ctNmt = new String(ctNm.getBytes("ISO-8859-1"), "UTF-8");
     //for Jetty:
-    pRqDt.setAttribute("listFltAp", listFltAp);
+    pRqDt.setAttribute("ctNm", ctNm);
     //for Tomcat 7:
-    pRqDt.setAttribute("listFltApt", listFltApt);
+    pRqDt.setAttribute("ctNmt", ctNmt);
   }
 
   /**
