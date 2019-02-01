@@ -532,7 +532,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
           }
           Integer paginationTail = Integer.valueOf(mngUvdSettings
             .getAppSettings().get("paginationTail"));
-          List<Page> pages = this.srvPage.evalPages(1, totalPages,
+          List<Page> pages = this.srvPage.evalPages(page, totalPages,
             paginationTail);
           pRqDt.setAttribute("pages", pages);
           pRqDt.setAttribute("itemsList", itemsList);
@@ -687,12 +687,19 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
       FilterInteger res = new FilterInteger();
       String operStr = pRqDt.getParameter("fltPriOp");
       String val1Str = pRqDt.getParameter("fltPriVal1");
+      String dgsep = (String) pRqVs.get("decGrSepv");
       if (operStr != null && !"".equals(operStr)
         && val1Str != null && !"".equals(val1Str)) {
         res.setOperator(Enum.valueOf(EFilterOperator.class, operStr));
+        if (dgsep != null) {
+          val1Str = val1Str.replace(dgsep, "");
+        }
         res.setValue1(Integer.valueOf(val1Str));
         String val2Str = pRqDt.getParameter("fltPriVal2");
         if (val2Str != null && !"".equals(val2Str)) {
+          if (dgsep != null) {
+            val2Str = val2Str.replace(dgsep, "");
+          }
           res.setValue2(Integer.valueOf(val2Str));
         }
       }
@@ -717,6 +724,8 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
     if (pTcat.getCatalog().getUsedSpecifics() != null
       && pTcat.getCatalog().getUsedSpecifics().size() > 0) {
       List<SpecificsFilter> res = new ArrayList<SpecificsFilter>();
+      String dsep = (String) pRqVs.get("decSepv");
+      String dgsep = (String) pRqVs.get("decGrSepv");
       for (CatalogSpecifics cs : pTcat.getCatalog().getUsedSpecifics()) {
         String operStr = pRqDt.getParameter("fltSp"
           + cs.getSpecifics().getItsId() + "Op");
@@ -759,10 +768,16 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
           if (operStr != null && !"".equals(operStr)
             && val1Str != null && val1Str.length() > 0) {
             flt.setOperator(Enum.valueOf(EFilterOperator.class, operStr));
+            if (dgsep != null) {
+              val1Str = val1Str.replace(dgsep, "");
+            }
             flt.setValue1(Integer.valueOf(val1Str));
             String val2Str = pRqDt.getParameter("fltSp"
               + cs.getSpecifics().getItsId() + "Val2");
             if (val2Str != null && val2Str.length() > 0) {
+              if (dgsep != null) {
+                val2Str = val2Str.replace(dgsep, "");
+              }
               flt.setValue2(Integer.valueOf(val2Str));
             }
           }
@@ -778,10 +793,22 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
           if (operStr != null && !"".equals(operStr)
             && val1Str != null && val1Str.length() > 0) {
             flt.setOperator(Enum.valueOf(EFilterOperator.class, operStr));
+            if (dgsep != null) {
+              val1Str = val1Str.replace(dgsep, "");
+            }
+            if (dsep != null) {
+              val1Str = val1Str.replace(dsep, ".");
+            }
             flt.setValue1(new BigDecimal(val1Str));
             String val2Str = pRqDt.getParameter("fltSp"
               + cs.getSpecifics().getItsId() + "Val2");
             if (val2Str != null && val2Str.length() > 0) {
+              if (dgsep != null) {
+                val2Str = val2Str.replace(dgsep, "");
+              }
+              if (dsep != null) {
+                val2Str = val2Str.replace(dsep, ".");
+              }
               flt.setValue2(new BigDecimal(val2Str));
             }
           }

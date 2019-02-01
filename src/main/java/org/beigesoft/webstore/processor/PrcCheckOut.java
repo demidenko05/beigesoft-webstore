@@ -219,20 +219,6 @@ public class PrcCheckOut<RS> implements IProcessor {
       saveSords(pRqVs, pur, cart);
       pRqDt.setAttribute("orders", pur.getOrds());
       pRqDt.setAttribute("sorders", pur.getSords());
-      String ctNm = pRqDt.getParameter("ctNm");
-      if (ctNm != null) {
-        String ctNmt = new String(ctNm.getBytes("ISO-8859-1"),
-          "UTF-8");
-        pRqDt.setAttribute("ctNm", ctNm);
-        pRqDt.setAttribute("ctNmt", ctNmt);
-      }
-      String itFltAp = pRqDt.getParameter("itFltAp");
-      if (itFltAp != null) {
-        String itFltApt = new String(itFltAp.getBytes("ISO-8859-1"),
-          "UTF-8");
-        pRqDt.setAttribute("itFltAp", itFltAp);
-        pRqDt.setAttribute("itFltApt", itFltApt);
-      }
     }
   }
 
