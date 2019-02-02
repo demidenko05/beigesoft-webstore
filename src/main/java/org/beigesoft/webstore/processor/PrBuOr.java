@@ -202,7 +202,7 @@ public class PrBuOr<RS> implements IProcessor {
     int firstResult = (page - 1) * itemsPerPage; //0-20,20-40
     Integer paginationTail = Integer.valueOf(mngUvd
       .getAppSettings().get("paginationTail"));
-    List<Page> pages = this.srvPage.evalPages(1, totalPages,
+    List<Page> pages = this.srvPage.evalPages(page, totalPages,
       paginationTail);
     pRqDt.setAttribute("pgs", pages);
     String tbn = CustOrder.class.getSimpleName();

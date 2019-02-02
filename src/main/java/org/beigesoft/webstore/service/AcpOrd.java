@@ -566,7 +566,7 @@ public class AcpOrd<RS> implements IAcpOrd {
 + iils.get(0).getAvailableQuantity() + "/" + gl.getQuant());
             } else {
               iils.get(0).setAvailableQuantity(aq);
-              getSrvOrm().updateEntity(pRqVs, iils);
+              getSrvOrm().updateEntity(pRqVs, iils.get(0));
             }
           } else {
             pRqVs.remove("fieldsNames");
@@ -575,9 +575,6 @@ public class AcpOrd<RS> implements IAcpOrd {
           }
           pRqVs.remove("fieldsNames");
         }
-      } else {
-        throw new Exception("Can't book SeGood: itId="
-          + gl.getGood().getItsId());
       }
     }
     pRqVs.remove(tbn + "itemdeepLevel");
@@ -636,7 +633,7 @@ public class AcpOrd<RS> implements IAcpOrd {
   + iils.get(0).getAvailableQuantity() + "/" + sl.getQuant());
               } else {
                 iils.get(0).setAvailableQuantity(aq);
-                getSrvOrm().updateEntity(pRqVs, iils);
+                getSrvOrm().updateEntity(pRqVs, iils.get(0));
               }
             } else {
               pRqVs.remove("fieldsNames");
@@ -645,9 +642,6 @@ public class AcpOrd<RS> implements IAcpOrd {
             }
             pRqVs.remove("fieldsNames");
           }
-        } else {
-          throw new Exception("SeServicePlace NA SESERV: Id: "
-            + sl.getService().getItsId());
         }
       } else {
         tibs = true;
@@ -822,7 +816,7 @@ public class AcpOrd<RS> implements IAcpOrd {
   + iils.get(0).getAvailableQuantity() + "/" + gl.getQuant());
             } else {
               iils.get(0).setAvailableQuantity(aq);
-              getSrvOrm().updateEntity(pRqVs, iils);
+              getSrvOrm().updateEntity(pRqVs, iils.get(0));
             }
           } else {
             pRqVs.remove("fieldsNames");
@@ -831,9 +825,6 @@ public class AcpOrd<RS> implements IAcpOrd {
           }
           pRqVs.remove("fieldsNames");
         }
-      } else {
-        throw new Exception("GoodsPlace NA for InvItem: itId: "
-          + gl.getGood().getItsId());
       }
     }
     pRqVs.remove(tbn + "itemdeepLevel");
@@ -892,7 +883,7 @@ public class AcpOrd<RS> implements IAcpOrd {
   + iils.get(0).getAvailableQuantity() + "/" + sl.getQuant());
               } else {
                 iils.get(0).setAvailableQuantity(aq);
-                getSrvOrm().updateEntity(pRqVs, iils);
+                getSrvOrm().updateEntity(pRqVs, iils.get(0));
               }
             } else {
               pRqVs.remove("fieldsNames");
@@ -901,9 +892,6 @@ public class AcpOrd<RS> implements IAcpOrd {
             }
             pRqVs.remove("fieldsNames");
           }
-        } else {
-          throw new Exception("ServicePlace NA for SERV: Id="
-            + sl.getService().getItsId());
         }
       } else {
         tibs = true;

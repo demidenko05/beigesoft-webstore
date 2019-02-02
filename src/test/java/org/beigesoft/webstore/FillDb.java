@@ -261,7 +261,7 @@ public class FillDb {
         priPbh.setPriceCategory(pct);
         priPbh.setUnitOfMeasure(each);
         double pr = 7;
-        if (i % 2 == 0) {
+        if ((i + Math.round(Math.random() * 2.0)) % 2 == 0) {
           pr = pr + Math.round(Math.random()) + Math.random();
         } else {
           pr = pr - Math.round(Math.random()) + Math.random();
@@ -280,7 +280,7 @@ public class FillDb {
         GoodsSpecifics specImPbh = new GoodsSpecifics();
         specImPbh.setItem(pbh);
         specImPbh.setSpecifics(img);
-        if ((i + Math.round(Math.random())) % 2 == 0) {
+        if ((i + Math.round(Math.random() * 2.0)) % 2 == 0) {
           specImPbh.setStringValue1("static/uploads/merchandise.png");
         } else {
           specImPbh.setStringValue1("static/uploads/merchandise2.png");
@@ -308,7 +308,7 @@ public class FillDb {
         priPch.setPriceCategory(pct);
         priPch.setUnitOfMeasure(each);
         pr = 8.0;
-        if (i % 2 == 0) {
+        if ((i + Math.round(Math.random() * 2.0)) % 2 == 0) {
           pr = pr + Math.round(Math.random()) + Math.random();
         } else {
           pr = pr - Math.round(Math.random()) + Math.random();
@@ -378,7 +378,7 @@ public class FillDb {
         spClrHond.setSpecifics(spClr);
         spClrHond.setLongValue2(2L);
         spClrHond.setStringValue2("Color");
-        if (i % 2 == 0) {
+        if ((i + Math.round(Math.random() * 2.0)) % 2 == 0) {
           spClrHond.setLongValue1(3L);
           spClrHond.setStringValue1("Red");
         } else {
@@ -391,7 +391,7 @@ public class FillDb {
         spFuelHond.setSpecifics(spFuel);
         spFuelHond.setLongValue2(4L);
         spFuelHond.setStringValue2("Fuel");
-        if (i % 2 == 0) {
+        if ((i + Math.round(Math.random() * 2.0)) % 2 == 0) {
           spFuelHond.setLongValue1(6L);
           spFuelHond.setStringValue1("Gasoline");
         } else {
@@ -404,7 +404,7 @@ public class FillDb {
         spBodyHond.setSpecifics(spBody);
         spBodyHond.setLongValue2(3L);
         spBodyHond.setStringValue2("Body type");
-        if (i % 2 == 0) {
+        if ((i + Math.round(Math.random() * 2.0)) % 2 == 0) {
           spBodyHond.setLongValue1(5L);
           spBodyHond.setStringValue1("Sedan");
         } else {
@@ -417,7 +417,7 @@ public class FillDb {
         spTrnHond.setSpecifics(spTrn);
         spTrnHond.setLongValue2(5L);
         spTrnHond.setStringValue2("Transmission");
-        if (i % 2 == 0) {
+        if ((i + Math.round(Math.random() * 2.0)) % 2 == 0) {
           spTrnHond.setLongValue1(4L);
           spTrnHond.setStringValue1("AT");
         } else {
@@ -428,7 +428,7 @@ public class FillDb {
         GoodsSpecifics specImHond = new GoodsSpecifics();
         specImHond.setItem(hond);
         specImHond.setSpecifics(img);
-        if ((i + Math.round(Math.random())) % 2 == 0) {
+        if ((i + Math.round(Math.random() * 2.0)) % 2 == 0) {
           specImHond.setStringValue1("static/uploads/merchandise.png");
         } else {
           specImHond.setStringValue1("static/uploads/merchandise2.png");
@@ -503,7 +503,7 @@ public class FillDb {
         spClrFord.setSpecifics(spClr);
         spClrFord.setLongValue2(2L);
         spClrFord.setStringValue2("Color");
-        if (i % 2 == 0) {
+        if ((i + Math.round(Math.random() * 2.0)) % 2 == 0) {
           spClrFord.setLongValue1(3L);
           spClrFord.setStringValue1("Red");
         } else {
@@ -516,7 +516,7 @@ public class FillDb {
         spFuelFord.setSpecifics(spFuel);
         spFuelFord.setLongValue2(4L);
         spFuelFord.setStringValue2("Fuel");
-        if (i % 4 == 0) {
+        if ((i + Math.round(Math.random() * 2.0)) % 2 == 0) {
           spFuelFord.setLongValue1(6L);
           spFuelFord.setStringValue1("Gasoline");
         } else {
@@ -529,7 +529,7 @@ public class FillDb {
         spBodyFord.setSpecifics(spBody);
         spBodyFord.setLongValue2(3L);
         spBodyFord.setStringValue2("Body type");
-        if (i % 6 == 0) {
+        if ((i + Math.round(Math.random() * 2.0)) % 2 == 0) {
           spBodyFord.setLongValue1(5L);
           spBodyFord.setStringValue1("Sedan");
         } else {
@@ -542,7 +542,7 @@ public class FillDb {
         spTrnFord.setSpecifics(spTrn);
         spTrnFord.setLongValue2(5L);
         spTrnFord.setStringValue2("Transmission");
-        if (i % 8 == 0) {
+        if ((i + Math.round(Math.random() * 2.0)) % 2 == 0) {
           spTrnFord.setLongValue1(4L);
           spTrnFord.setStringValue1("AT");
         } else {
@@ -553,7 +553,7 @@ public class FillDb {
         GoodsSpecifics specImFord = new GoodsSpecifics();
         specImFord.setItem(ford);
         specImFord.setSpecifics(img);
-        if ((i + Math.round(Math.random())) % 2 == 0) {
+        if ((i + Math.round(Math.random() * 2.0)) % 2 == 0) {
           specImFord.setStringValue1("static/uploads/merchandise.png");
         } else {
           specImFord.setStringValue1("static/uploads/merchandise2.png");
