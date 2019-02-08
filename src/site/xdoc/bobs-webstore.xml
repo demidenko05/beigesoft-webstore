@@ -32,6 +32,7 @@
         <p>
           Bob added several catalogs into "menu - Catalog of goods":
           <p align="center"><img alt="Beige-Webstore making catalog of goods" style="max-width: 100%" src="images/webstore-goods-catalogs.png" /></p>
+          * catalogs must "contain of goods"!
         </p>
         <p>To add sub-catalog into catalog bob uses menu <b>Subcatalogs in catalogs</b>:
           <p align="center"><img alt="Beige-Webstore making catalog of goods" style="max-width: 100%" src="images/webstore-goods-subcatalogs.png" /></p>
@@ -66,22 +67,20 @@
         <p>Then Bob added <b>Price category of goods/service</b>:
           <p align="center"><img style="max-width: 100%" src="images/webstore-pricecatgoods.png" /></p>
         </p>
-        <p>Then Bob added <b>Price category of buyers</b> at same way
-        </p>
         <p>Then Bob added <b>Price category</b>:
           <p align="center"><img style="max-width: 100%" src="images/webstore-pricecat.png" /></p>
+          it must be "default online price category"!
         </p>
         <p>Then Bob assign <b>Price of goods</b> for every goods:
           <p align="center"><img style="max-width: 100%" src="images/webstore-pricegoods.png" /></p>
         </p>
         <p>After data has been completed Bob push <b>Refresh goods in list</b> in "Menu-..."</p>
-        <p>Resulting web-store catalog "Pizza hot" is:
+        <p>Resulting web-store catalog "Pizza with filter" is:
           <p align="center"><img style="max-width: 100%" src="images/webstore-pizzahot.png" /></p>
         </p>
         <p>Dynamically added specifics "Weight" is in filter:
           <p align="center"><img style="max-width: 100%" src="images/webstore-pizzahotf0.png" /></p>
           <p align="center"><img style="max-width: 100%" src="images/webstore-pizzahotf.png" /></p>
-          <p align="center"><img style="max-width: 100%" src="images/webstore-pizzahotf1.png" /></p>
         </p>
         <h4>S.E. sellers.</h4>
         <p>To register a seller, you should add in menu "Web-store admin-..."<b>User</b>
@@ -89,7 +88,7 @@
           <p align="center"><img style="max-width: 100%" src="images/webstore-seselus.png" /></p>
         </p>
         <p>Then you should add S.E. seller as "Debtor/Creditor" in accounting main menu.
-          Then you should add S.E. seller as "S.E.Seller" in "Web-store Admin" menu.</p>
+          Then you should add S.E. seller as "S.E.Seller" in "Web-store Admin -> Catalog G/S" menu.</p>
         <p>Any S.E.Seller can create its own goods/services. It can't see neither software owner's accounting information (expect shared information like "Unit of measure" or "Pick-up place")
           nor information of other S.E. sellers. Software administrator only can see S.E.Seller's information, it can't change it by using HTML interface (it can change only by using direct database access).
           Any way adding/deleting S.E.Seller's item to any catalog can only web-store administrator.

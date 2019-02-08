@@ -198,7 +198,7 @@ public class FillDb {
     CatalogGs ctpch = new CatalogGs();
     ctpch.setItsId(121L);
     CatalogGs catCars = new CatalogGs();
-    catCars.setItsId(3L);
+    catCars.setItsId(4L);
     PickUpPlace pzr = new PickUpPlace();
     pzr.setItsId(1L);
     PriceCategory pct = new PriceCategory();
@@ -242,6 +242,7 @@ public class FillDb {
         InvItem pbh = new InvItem();
         pbh.setItsName("pizza with bacon hot#" + i);
         pbh.setItsCategory(pbhc);
+        pbh.setKnownCost(BigDecimal.ZERO);
         pbh.setIdDatabaseBirth(srvDatabase.getIdDatabase());
         pbh.setItsType(gd);
         pbh.setDefUnitOfMeasure(each);
@@ -288,6 +289,7 @@ public class FillDb {
         srvOrm.insertEntity(rqVs, specImPbh);
         InvItem pch = new InvItem();
         pch.setItsName("pizza with cheese hot#" + i);
+        pch.setKnownCost(BigDecimal.ZERO);
         pch.setItsCategory(pchc);
         pch.setIdDatabaseBirth(srvDatabase.getIdDatabase());
         pch.setItsType(gd);
@@ -335,6 +337,7 @@ public class FillDb {
         srvOrm.insertEntity(rqVs, specImPch);
 
         InvItem hond = new InvItem();
+        hond.setKnownCost(BigDecimal.ZERO);
         hond.setItsName("Honda#" + i);
         hond.setItsCategory(iicCars);
         hond.setIdDatabaseBirth(srvDatabase.getIdDatabase());
@@ -461,6 +464,7 @@ public class FillDb {
 
         InvItem ford = new InvItem();
         ford.setItsName("Ford#" + i);
+        ford.setKnownCost(BigDecimal.ZERO);
         ford.setItsCategory(iicCars);
         ford.setIdDatabaseBirth(srvDatabase.getIdDatabase());
         ford.setItsType(gd);

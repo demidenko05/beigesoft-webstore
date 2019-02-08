@@ -42,6 +42,7 @@ import org.beigesoft.persistable.UserRoleTomcat;
 import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.accounting.persistable.I18nInvItem;
 import org.beigesoft.accounting.persistable.DebtorCreditor;
+import org.beigesoft.accounting.persistable.DebtorCreditorCategory;
 import org.beigesoft.accounting.persistable.ServiceToSale;
 import org.beigesoft.accounting.persistable.InvItemTaxCategory;
 import org.beigesoft.accounting.persistable.UnitOfMeasure;
@@ -206,6 +207,7 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
     this.sharedEntities.add(InvItem.class);
     this.sharedEntities.add(I18nInvItem.class);
     this.sharedEntities.add(DebtorCreditor.class);
+    this.sharedEntities.add(DebtorCreditorCategory.class);
     this.sharedEntities.add(ServiceToSale.class);
     this.sharedEntities.add(InvItemTaxCategory.class);
     this.sharedEntities.add(UnitOfMeasure.class);
