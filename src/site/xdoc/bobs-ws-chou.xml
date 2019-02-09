@@ -45,7 +45,7 @@
       <p>User can order any item. During checkout cart will be used to make customer orders - one for web-store owner's items and others for S.E.Seller's ones.
         To demonstrate this, add new S.E. seller "Yoga Teacher" (you should login as administrator):
         <ul>
-          <li>add "Debitor/creditor" "Yoga Teacher" in <b>menu -> Appearance -> Standard -> Trade -> Services to sell</b></li>
+          <li>add "Debitor/creditor" "Yoga Teacher" in <b>menu -> Appearance -> Standard -> Trade</b></li>
           <li>add "User": name-"YogaTeacher", password-"****" in <b>menu -> Admin -> Webstore-admin -> ... -> Users</b></li>
           <li>add "User role": user-"YogaTeacher", role-"seseller" in <b>menu -> Admin -> Webstore-admin -> ... -> User roles</b></li>
           <li>add "S.E.Seller": seller-"Yoga Teacher", user-"YogaTeacher" in <b>menu -> Admin -> Webstore-admin -> Catalog G/S -> S.E.Sellers</b></li>
@@ -54,10 +54,10 @@
         <ul>
           <li>add S.E. good - "Yoga uniform"</li>
           <li>add S.E. good in place - quantity 20, "is always = NO", place "NY" (place can add only web-store administrator)</li>
-          <li>add S.E. good price - 100USD for all buyers.</li>
+          <li>add S.E. good price - 100USD for "online all" price category.</li>
           <li>add S.E. service - "Yoga class 2 months, starts on 2 April"</li>
           <li>add S.E. service in place - quantity 20, "is always = NO", place "NY" (place can add only web-store administrator)</li>
-          <li>add S.E. service price - 500USD for all buyers.</li>
+          <li>add S.E. service price - 500USD for "online all" price category.</li>
         </ul>
       </p>
       <p>Finally, to add these items to list, add as web-store administrator "S.E.Good/Service in catalog", then set "Contains of S.E.Goods/Services" for that catalog. Then push "... -> Refresh items in list".</p>

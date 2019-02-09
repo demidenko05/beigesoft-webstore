@@ -320,6 +320,7 @@ public class FctBnPublicTradeProcessors<RS>
       this.processorsMap.get(beanName);
     if (proc == null) {
       proc = new PrcCheckOut<RS>();
+      proc.setLog(getLogger());
       proc.setSrvOrm(getSrvOrm());
       proc.setSrvCart(getSrvShoppingCart());
       proc.setProcFac(this);

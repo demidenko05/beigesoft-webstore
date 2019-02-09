@@ -24,6 +24,7 @@ import org.beigesoft.model.IRequestData;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
+import org.beigesoft.log.ILogger;
 import org.beigesoft.accounting.persistable.AccSettings;
 import org.beigesoft.accounting.persistable.TaxDestination;
 import org.beigesoft.accounting.persistable.InvItem;
@@ -75,6 +76,11 @@ import org.beigesoft.webstore.service.ISrvShoppingCart;
  * @author Yury Demidenko
  */
 public class PrcCheckOut<RS> implements IProcessor {
+
+  /**
+   * <p>Logger.</p>
+   **/
+  private ILogger log;
 
   /**
    * <p>ORM service.</p>
@@ -186,6 +192,7 @@ public class PrcCheckOut<RS> implements IProcessor {
         }
         cart.setErr(true);
         getSrvOrm().updateEntity(pRqVs, cart);
+        this.log.warn(pRqVs, PrcCheckOut.class, errs);
         break;
       } else { //only/multiply place/s with non-zero availability
         BigDecimal avQu = BigDecimal.ZERO;
@@ -195,6 +202,10 @@ public class PrcCheckOut<RS> implements IProcessor {
         if (avQu.compareTo(cl.getQuant()) == -1) {
           isCompl = false;
           cl.setAvQuan(avQu);
+          String errs = "!Not available item name/ID/type/quant/avail: "
+            + cl.getItsName() + "/" + cl.getItId() + "/" + cl.getItTyp()
+              + "/" + cl.getQuant() + "/" + avQu;
+          this.log.warn(pRqVs, PrcCheckOut.class, errs);
         }
       }
       if (isCompl && cl.getPrice().compareTo(BigDecimal.ZERO) == 1) {
@@ -1013,6 +1024,22 @@ public class PrcCheckOut<RS> implements IProcessor {
   }
 
   //Simple getters and setters:
+  /**
+   * <p>Getter for log.</p>
+   * @return ILogger
+   **/
+  public final ILogger getLog() {
+    return this.log;
+  }
+
+  /**
+   * <p>Setter for log.</p>
+   * @param pLog reference
+   **/
+  public final void setLog(final ILogger pLog) {
+    this.log = pLog;
+  }
+
   /**
    * <p>Geter for srvOrm.</p>
    * @return ISrvOrm<RS>
