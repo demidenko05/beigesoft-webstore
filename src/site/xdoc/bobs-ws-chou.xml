@@ -11,7 +11,6 @@
 
     <section name="Bob's web-store example.">
       <h4>Bob's pizza web-store example. Part 2, cart checkout, forced delivering (shipping).</h4>
-        <p>* these features are available since 1.1.8 version (in source code right now).</p>
         <p>* see previous article about adding S.E. Seller, item, etc into web-store.</p>
 
         <p>"Forced delivering (shipping), free from N total" is widely used method.
@@ -38,7 +37,7 @@
         It's made with JSON requests. Payment gateway usually supply "SDK" to avoid making JSON query by hand (include OAuth2 authentication) and for data validation prior sending.
         Buyer's payment method (secret data) is handled entirely by payment gateways.
         To use PayPal you should either compile "web-store" by yourself (see example <a href="https://github.com/demidenko05/beige-accoio-web">beige-accoio-web</a>),
-        or reassemble WAR with "beigesoft-ppl.jar" library.
+        or reassemble WAR with included "beigesoft-ppl.jar" library.
       </p>
       
       <h4>S.E. seller's items</h4>
@@ -81,7 +80,7 @@
       <h4>Cart checkout</h4>
       <p>After adding 2 items cart is:
         <p align="center"><img alt="Beige-Webstore settings" style="max-width: 100%" src="images/wschou4.png" /></p>
-        After adding "Yoga class" delivering fee is waved:
+        After adding "Yoga class" delivering fee is waived:
         <p align="center"><img alt="Beige-Webstore settings" style="max-width: 100%" src="images/wschou5.png" /></p>
         Press checkout, two orders will be created:
         <p align="center"><img alt="Beige-Webstore settings" style="max-width: 100%" src="images/wschou6.png" /></p>

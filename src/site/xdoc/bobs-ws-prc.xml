@@ -11,7 +11,6 @@
 
     <section name="Bob's web-store example.">
       <h4>Bob's pizza web-store example. Part 3, prices depend on buyer, prices in foreign currency.</h4>
-        <p>* these features are available since 1.1.8 version (in source code right now).</p>
 
         <p>To make different prices for different buyers you should open <b>menu -> Admin -> Webstore-admin</b> then:
           <ul>
