@@ -21,7 +21,7 @@ import java.math.BigDecimal;
 import java.net.URL;
 
 import org.beigesoft.model.IRequestData;
-import org.beigesoft.log.ILogger;
+import org.beigesoft.log.ILog;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.accounting.persistable.InvItem;
@@ -64,7 +64,7 @@ public class PrcItemPage<RS> implements IProcessor {
   /**
    * <p>Logger.</p>
    **/
-  private ILogger logger;
+  private ILog logger;
 
   /**
    * <p>ORM service.</p>
@@ -429,9 +429,9 @@ public class PrcItemPage<RS> implements IProcessor {
   //Simple getters and setters:
   /**
    * <p>Geter for logger.</p>
-   * @return ILogger
+   * @return ILog
    **/
-  public final ILogger getLogger() {
+  public final ILog getLogger() {
     return this.logger;
   }
 
@@ -439,7 +439,7 @@ public class PrcItemPage<RS> implements IProcessor {
    * <p>Setter for logger.</p>
    * @param pLogger reference
    **/
-  public final void setLogger(final ILogger pLogger) {
+  public final void setLogger(final ILog pLogger) {
     this.logger = pLogger;
   }
 

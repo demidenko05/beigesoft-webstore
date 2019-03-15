@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Date;
 
-import org.beigesoft.log.ILogger;
+import org.beigesoft.log.ILog;
 import org.beigesoft.model.ColumnsValues;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
@@ -53,7 +53,7 @@ public class CncOrd<RS> implements ICncOrd {
   /**
    * <p>Logger.</p>
    **/
-  private ILogger log;
+  private ILog log;
 
   /**
    * <p>ORM service.</p>
@@ -301,9 +301,9 @@ public class CncOrd<RS> implements ICncOrd {
   //Simple getters and setters:
   /**
    * <p>Geter for log.</p>
-   * @return ILogger
+   * @return ILog
    **/
-  public final ILogger getLog() {
+  public final ILog getLog() {
     return this.log;
   }
 
@@ -311,7 +311,7 @@ public class CncOrd<RS> implements ICncOrd {
    * <p>Setter for log.</p>
    * @param pLogger reference
    **/
-  public final void setLog(final ILogger pLogger) {
+  public final void setLog(final ILog pLogger) {
     this.log = pLogger;
   }
 

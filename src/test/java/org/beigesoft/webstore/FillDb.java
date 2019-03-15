@@ -51,7 +51,7 @@ import org.beigesoft.orm.holder.HldCnvFromRsNames;
 import org.beigesoft.service.SrvSqlEscape;
 import org.beigesoft.service.HlpInsertUpdate;
 import org.beigesoft.orm.service.FillerEntitiesFromRs;
-import org.beigesoft.log.LoggerSimple;
+import org.beigesoft.log.LogSmp;
 import org.beigesoft.converter.CnvHasVersionToColumnsValues;
 import org.beigesoft.accounting.persistable.InvItem;
 import org.beigesoft.accounting.persistable.InvItemCategory;
@@ -112,9 +112,9 @@ public class FillDb {
   public void populate(int pRc) throws Exception {
     SrvOrmSqlite<ResultSet> srvOrm;
     SrvDatabase srvDatabase;
-    LoggerSimple logger = new LoggerSimple();
+    LogSmp logger = new LogSmp();
     IUtlReflection utlReflection = new UtlReflection();
-    logger.setIsShowDebugMessages(false);
+    logger.setDbgSh(false);
     //logger.setDetailLevel(100000);
     srvOrm = new SrvOrmSqlite<ResultSet>();
     srvDatabase = new SrvDatabase();

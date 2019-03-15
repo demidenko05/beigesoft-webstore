@@ -15,7 +15,7 @@ package org.beigesoft.webstore.factory;
 import java.util.Map;
 import java.util.HashMap;
 
-import org.beigesoft.log.ILogger;
+import org.beigesoft.log.ILog;
 import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.holder.IHolderForClassByName;
@@ -75,12 +75,12 @@ public class FctBnPublicTradeProcessors<RS>
   /**
    * <p>Logger.</p>
    **/
-  private ILogger logger;
+  private ILog logger;
 
   /**
    * <p>Logger security.</p>
    **/
-  private ILogger secLog;
+  private ILog secLog;
 
   /**
    * <p>Converters map "converter name"-"object' s converter".</p>
@@ -548,9 +548,9 @@ public class FctBnPublicTradeProcessors<RS>
 
   /**
    * <p>Geter for logger.</p>
-   * @return ILogger
+   * @return ILog
    **/
-  public final ILogger getLogger() {
+  public final ILog getLogger() {
     return this.logger;
   }
 
@@ -558,15 +558,15 @@ public class FctBnPublicTradeProcessors<RS>
    * <p>Setter for logger.</p>
    * @param pLogger reference
    **/
-  public final void setLogger(final ILogger pLogger) {
+  public final void setLogger(final ILog pLogger) {
     this.logger = pLogger;
   }
 
   /**
    * <p>Getter for secLog.</p>
-   * @return ILogger
+   * @return ILog
    **/
-  public final ILogger getSecLog() {
+  public final ILog getSecLog() {
     return this.secLog;
   }
 
@@ -574,7 +574,7 @@ public class FctBnPublicTradeProcessors<RS>
    * <p>Setter for secLog.</p>
    * @param pSecLog reference
    **/
-  public final void setSecLog(final ILogger pSecLog) {
+  public final void setSecLog(final ILog pSecLog) {
     this.secLog = pSecLog;
   }
 

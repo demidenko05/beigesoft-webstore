@@ -26,7 +26,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 import org.beigesoft.exception.ExceptionWithCode;
-import org.beigesoft.log.ILogger;
+import org.beigesoft.log.ILog;
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.model.Page;
 import org.beigesoft.service.IProcessor;
@@ -108,7 +108,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
   /**
    * <p>Logger.</p>
    **/
-  private ILogger logger;
+  private ILog logger;
 
   /**
    * <p>Query for specifics of item filter.</p>
@@ -308,9 +308,10 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
            .replace(":TITCAT", "SESRCA").replace(":CATALOGFILTER", whereCatalog)
             .replace(":WHEREADD", whereAdd);
         }
+        boolean isDbgSh = getLogger().getDbgSh(this.getClass())
+          && getLogger().getDbgFl() < 13011 && getLogger().getDbgCl() > 13013;
         if (filtersSpecifics != null) {
-          if (getLogger().getIsShowDebugMessagesFor(getClass())
-            && getLogger().getDetailLevel() > 2000) {
+          if (isDbgSh) {
             getLogger().debug(pRqVs, PrcWebstorePage.class,
               "filters apecifics: size: " + filtersSpecifics.size());
           }
@@ -1462,9 +1463,9 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
 
   /**
    * <p>Geter for logger.</p>
-   * @return ILogger
+   * @return ILog
    **/
-  public final ILogger getLogger() {
+  public final ILog getLogger() {
     return this.logger;
   }
 
@@ -1472,7 +1473,7 @@ public class PrcWebstorePage<RS> implements IProcessor, ILstnCatalogChanged {
    * <p>Setter for logger.</p>
    * @param pLogger reference
    **/
-  public final void setLogger(final ILogger pLogger) {
+  public final void setLogger(final ILog pLogger) {
     this.logger = pLogger;
   }
 }

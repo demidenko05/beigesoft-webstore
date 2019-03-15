@@ -4,7 +4,8 @@ Beigesoft ™ Web Store library.
 
 This is java code and XML-settings that implements models and services of universal WEB-Store. It can be used as big-store that makes selling many goods, as well as small store that makes appointments to a service-maker.
 
-It's draft yet.
+Version 1.1.9:
+new beige-log version, debug range #13-14 (13000..14999)
 
 Version 1.1.5:
 Added JAR signing.

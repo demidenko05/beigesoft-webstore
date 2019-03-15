@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 import org.beigesoft.exception.ExceptionWithCode;
-import org.beigesoft.log.ILogger;
+import org.beigesoft.log.ILog;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvOrm;
@@ -61,7 +61,7 @@ public class FctBnTradeProcessors<RS>
   /**
    * <p>Logger.</p>
    **/
-  private ILogger logger;
+  private ILog logger;
 
   /**
    * <p>FctBnPublicTradeProcessors.</p>
@@ -339,9 +339,9 @@ public class FctBnTradeProcessors<RS>
 
   /**
    * <p>Geter for logger.</p>
-   * @return ILogger
+   * @return ILog
    **/
-  public final ILogger getLogger() {
+  public final ILog getLogger() {
     return this.logger;
   }
 
@@ -349,7 +349,7 @@ public class FctBnTradeProcessors<RS>
    * <p>Setter for logger.</p>
    * @param pLogger reference
    **/
-  public final void setLogger(final ILogger pLogger) {
+  public final void setLogger(final ILog pLogger) {
     this.logger = pLogger;
   }
 

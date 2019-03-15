@@ -165,7 +165,7 @@
     <dependency>
       <groupId>org.beigesoft</groupId>
       <artifactId>beigesoft-accounting</artifactId>
-      <version>1.1.8</version>
+      <version>1.1.9-SNAPSHOT</version>
     </dependency>
     <dependency>
      <groupId>junit</groupId>
@@ -176,7 +176,7 @@
     <dependency>
       <groupId>org.beigesoft</groupId>
       <artifactId>beigesoft-jdbc</artifactId>
-      <version>1.1.8</version>
+      <version>1.1.9-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -193,8 +193,8 @@
     </dependency>
     <dependency>
       <groupId>org.beigesoft</groupId>
-      <artifactId>beige-logging-slf4j</artifactId>
-      <version>1.0.2</version>
+      <artifactId>beige-log-slf4j</artifactId>
+      <version>1.0-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

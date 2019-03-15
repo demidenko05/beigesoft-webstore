@@ -17,7 +17,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
 
-import org.beigesoft.log.ILogger;
+import org.beigesoft.log.ILog;
 import org.beigesoft.model.IHasIdLongVersion;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IEntityProcessor;
@@ -163,7 +163,7 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
   /**
    * <p>Logger.</p>
    **/
-  private ILogger logger;
+  private ILog logger;
 
   /**
    * <p>Find S.E.Seller service.</p>
@@ -734,9 +734,9 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
 
   /**
    * <p>Geter for logger.</p>
-   * @return ILogger
+   * @return ILog
    **/
-  public final ILogger getLogger() {
+  public final ILog getLogger() {
     return this.logger;
   }
 
@@ -744,7 +744,7 @@ public class FctBnTradeEntitiesProcessors<RS> implements IFactoryAppBeansByName<
    * <p>Setter for logger.</p>
    * @param pLogger reference
    **/
-  public final void setLogger(final ILogger pLogger) {
+  public final void setLogger(final ILog pLogger) {
     this.logger = pLogger;
   }
 

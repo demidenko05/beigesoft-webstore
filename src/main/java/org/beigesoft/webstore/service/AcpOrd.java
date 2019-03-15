@@ -25,7 +25,7 @@ import java.net.URL;
 
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.model.ColumnsValues;
-import org.beigesoft.log.ILogger;
+import org.beigesoft.log.ILog;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.accounting.persistable.UnitOfMeasure;
@@ -63,7 +63,7 @@ public class AcpOrd<RS> implements IAcpOrd {
   /**
    * <p>Logger.</p>
    **/
-  private ILogger log;
+  private ILog log;
 
   /**
    * <p>ORM service.</p>
@@ -988,9 +988,9 @@ public class AcpOrd<RS> implements IAcpOrd {
   //Simple getters and setters:
   /**
    * <p>Geter for log.</p>
-   * @return ILogger
+   * @return ILog
    **/
-  public final ILogger getLog() {
+  public final ILog getLog() {
     return this.log;
   }
 
@@ -998,7 +998,7 @@ public class AcpOrd<RS> implements IAcpOrd {
    * <p>Setter for log.</p>
    * @param pLogger reference
    **/
-  public final void setLog(final ILogger pLogger) {
+  public final void setLog(final ILog pLogger) {
     this.log = pLogger;
   }
 

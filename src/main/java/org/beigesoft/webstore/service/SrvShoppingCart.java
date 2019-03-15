@@ -29,7 +29,7 @@ import java.net.URL;
 import org.beigesoft.exception.ExceptionWithCode;
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.model.IRecordSet;
-import org.beigesoft.log.ILogger;
+import org.beigesoft.log.ILog;
 import org.beigesoft.service.ISrvOrm;
 import org.beigesoft.service.ISrvDatabase;
 import org.beigesoft.service.ISrvNumberToString;
@@ -89,7 +89,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
   /**
    * <p>Logger.</p>
    **/
-  private ILogger logger;
+  private ILog logger;
 
   /**
    * <p>Database service.</p>
@@ -265,8 +265,9 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
         descr = "Tax rules: aggregate/invoice basis/zip/RM = " + pTxRules
     .getSalTaxUseAggregItBas() + "/" + pTxRules.getSalTaxIsInvoiceBase()
   + "/" + pTxRules.getRegZip() + "/" + pTxRules.getSalTaxRoundMode();
-      if (getLogger().getIsShowDebugMessagesFor(getClass())
-        && getLogger().getDetailLevel() > 40000) {
+      boolean isDbgSh = getLogger().getDbgSh(this.getClass())
+        && getLogger().getDbgFl() < 13001 && getLogger().getDbgCl() > 13003;
+      if (isDbgSh) {
         String txCat;
         if (pCartLn.getTxCat() != null) {
           txCat = pCartLn.getTxCat().getItsName();
@@ -1505,9 +1506,9 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
 
   /**
    * <p>Geter for logger.</p>
-   * @return ILogger
+   * @return ILog
    **/
-  public final ILogger getLogger() {
+  public final ILog getLogger() {
     return this.logger;
   }
 
@@ -1515,7 +1516,7 @@ public class SrvShoppingCart<RS> implements ISrvShoppingCart {
    * <p>Setter for logger.</p>
    * @param pLogger reference
    **/
-  public final void setLogger(final ILogger pLogger) {
+  public final void setLogger(final ILog pLogger) {
     this.logger = pLogger;
   }
 

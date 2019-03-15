@@ -22,7 +22,7 @@ import java.math.BigDecimal;
 
 import org.beigesoft.model.IRequestData;
 import org.beigesoft.model.ColumnsValues;
-import org.beigesoft.log.ILogger;
+import org.beigesoft.log.ILog;
 import org.beigesoft.factory.IFactoryAppBeansByName;
 import org.beigesoft.service.IProcessor;
 import org.beigesoft.service.ISrvDatabase;
@@ -47,7 +47,7 @@ public class PrLog<RS> implements IProcessor {
   /**
    * <p>Logger.</p>
    **/
-  private ILogger log;
+  private ILog log;
 
   /**
    * <p>ORM service.</p>
@@ -293,9 +293,9 @@ public class PrLog<RS> implements IProcessor {
   //Simple getters and setters:
   /**
    * <p>Getter for log.</p>
-   * @return ILogger
+   * @return ILog
    **/
-  public final ILogger getLog() {
+  public final ILog getLog() {
     return this.log;
   }
 
@@ -303,7 +303,7 @@ public class PrLog<RS> implements IProcessor {
    * <p>Setter for log.</p>
    * @param pLog reference
    **/
-  public final void setLog(final ILogger pLog) {
+  public final void setLog(final ILog pLog) {
     this.log = pLog;
   }
 
