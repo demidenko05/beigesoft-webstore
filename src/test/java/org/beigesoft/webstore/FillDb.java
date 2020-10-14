@@ -12,7 +12,7 @@ package org.beigesoft.webstore;
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  */
 
-import java.util.Map;
+/*import java.util.Map;
 import java.util.HashMap;
 import java.util.Date;
 import java.io.File;
@@ -64,7 +64,7 @@ import org.beigesoft.webstore.persistable.GoodsPlace;
 import org.beigesoft.webstore.persistable.PriceGoods;
 import org.beigesoft.webstore.persistable.PriceCategory;
 import org.beigesoft.webstore.persistable.SpecificsOfItem;
-import org.beigesoft.webstore.persistable.GoodsSpecifics;
+import org.beigesoft.webstore.persistable.GoodsSpecifics;*/
 
 /**
  * <p>Populating SQLite database with sample data - pizza with bacon hot#, pizza with cheese hot#, Ford #, Honda#.
@@ -80,7 +80,7 @@ import org.beigesoft.webstore.persistable.GoodsSpecifics;
 public class FillDb {
   
 
-  public static void main(String[] args) throws Exception {
+  /*public static void main(String[] args) throws Exception {
     if (args.length < 1) {
       System.err.println("usage: " + FillDb.class.getName() +
       "<records count>");
@@ -600,5 +600,5 @@ public class FillDb {
       srvDatabase.releaseResources();
       ds.close();
     }
-  }
+  }*/
 }
